@@ -1156,7 +1156,7 @@ ${reservation.discountCode ? `🎟️ Code promo : ${reservation.discountCode}` 
                   >
                     <option value="">Sélectionnez votre profil...</option>
                     {uniqueUsers.map(u => (
-                      <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                    <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
                     ))}
                   </select>
                 ) : (
