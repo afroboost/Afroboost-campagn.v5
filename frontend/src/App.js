@@ -1524,9 +1524,7 @@ function App() {
   if (coachMode) return <CoachDashboard t={t} lang={lang} onBack={() => setCoachMode(false)} onLogout={() => setCoachMode(false)} />;
 
   const visibleOffers = offers.filter(o => o.visible !== false);
-  const uniqueUsers = Array.from(new Map(users.map(u => [u.email, u])).values());
   const totalPrice = calculateTotal();
-  const isFree = parseFloat(totalPrice) === 0 && appliedDiscount;
 
   return (
     <div className="w-full min-h-screen p-6 relative section-gradient" style={{ fontFamily: 'system-ui, sans-serif' }}>
