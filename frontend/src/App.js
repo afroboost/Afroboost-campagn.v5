@@ -787,10 +787,50 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     name: "", message: "", mediaUrl: "", mediaFormat: "16:9",
     targetType: "all", selectedContacts: [],
     channels: { whatsapp: true, email: false, instagram: false },
-    scheduledAt: null, scheduledDate: "", scheduledTime: ""
+    scheduleSlots: [] // Multi-date scheduling
   });
   const [selectedContactsForCampaign, setSelectedContactsForCampaign] = useState([]);
   const [contactSearchQuery, setContactSearchQuery] = useState("");
+  const [campaignLogs, setCampaignLogs] = useState([]); // Error logs
+
+  // Add schedule slot
+  const addScheduleSlot = () => {
+    const now = new Date();
+    const defaultDate = now.toISOString().split('T')[0];
+    const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    setNewCampaign(prev => ({
+      ...prev,
+      scheduleSlots: [...prev.scheduleSlots, { date: defaultDate, time: defaultTime }]
+    }));
+  };
+
+  // Remove schedule slot
+  const removeScheduleSlot = (index) => {
+    setNewCampaign(prev => ({
+      ...prev,
+      scheduleSlots: prev.scheduleSlots.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Update schedule slot
+  const updateScheduleSlot = (index, field, value) => {
+    setNewCampaign(prev => ({
+      ...prev,
+      scheduleSlots: prev.scheduleSlots.map((slot, i) => i === index ? { ...slot, [field]: value } : slot)
+    }));
+  };
+
+  // Add log entry
+  const addCampaignLog = (campaignId, message, type = 'info') => {
+    const logEntry = {
+      id: Date.now(),
+      campaignId,
+      message,
+      type, // 'info', 'success', 'error', 'warning'
+      timestamp: new Date().toISOString()
+    };
+    setCampaignLogs(prev => [logEntry, ...prev].slice(0, 100)); // Keep last 100 logs
+  };
 
   // Load campaigns
   useEffect(() => {
