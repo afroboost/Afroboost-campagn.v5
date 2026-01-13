@@ -960,13 +960,16 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                   className="px-3 py-2 rounded-lg neon-input text-sm" />
                 <div>
                   <label className="block text-white text-xs mb-1 opacity-70">{t('allowedCourses')}</label>
-                  <div className="flex flex-wrap gap-2">
-                    {courses.map(c => (
-                      <button key={c.id} type="button" onClick={() => toggleCourseSelection(c.id)}
-                        className={`px-2 py-1 rounded text-xs transition-all ${newCode.courses.includes(c.id) ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-                        style={{ color: 'white' }}>{c.name.split(' – ')[0]}</button>
-                    ))}
-                    {courses.length === 0 && <span className="text-white text-xs opacity-50">{t('allCourses')}</span>}
+                  {/* Scrollable courses list */}
+                  <div className="courses-scroll-container" style={{ maxHeight: '120px', overflowY: 'auto', padding: '4px' }} data-testid="courses-scroll-container">
+                    <div className="flex flex-wrap gap-2">
+                      {courses.map(c => (
+                        <button key={c.id} type="button" onClick={() => toggleCourseSelection(c.id)}
+                          className={`px-2 py-1 rounded text-xs transition-all ${newCode.courses.includes(c.id) ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+                          style={{ color: 'white' }} data-testid={`course-select-${c.id}`}>{c.name.split(' – ')[0]}</button>
+                      ))}
+                      {courses.length === 0 && <span className="text-white text-xs opacity-50">{t('allCourses')}</span>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -990,9 +993,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                       <span>✓ {t('used')}: {code.used || 0}x</span>
                     </div>
                   </div>
-                  <button onClick={() => toggleCode(code)} className={`px-4 py-2 rounded-lg text-xs font-medium ${code.active ? 'bg-green-600' : 'bg-gray-600'}`} style={{ color: 'white' }}>
-                    {code.active ? `✅ ${t('active')}` : `❌ ${t('inactive')}`}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => toggleCode(code)} className={`px-4 py-2 rounded-lg text-xs font-medium ${code.active ? 'bg-green-600' : 'bg-gray-600'}`} style={{ color: 'white' }}>
+                      {code.active ? `✅ ${t('active')}` : `❌ ${t('inactive')}`}
+                    </button>
+                    {/* Delete button - red trash icon */}
+                    <button 
+                      onClick={() => deleteCode(code.id)} 
+                      className="delete-code-btn px-3 py-2 rounded-lg text-xs font-medium"
+                      style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.4)' }}
+                      data-testid={`delete-code-${code.id}`}
+                      title={t('delete') || 'Supprimer'}
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               ))}
               {discountCodes.length === 0 && <p className="text-center py-8 text-white opacity-50">{t('noPromoCode')}</p>}
