@@ -2339,6 +2339,45 @@ function App() {
     <div className="w-full min-h-screen p-6 relative section-gradient" style={{ fontFamily: 'system-ui, sans-serif' }}>
       <LanguageSelector lang={lang} setLang={setLang} />
 
+      {/* PWA Install Banner */}
+      {showInstallBanner && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-50 px-4 py-3"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.95) 0%, rgba(217, 28, 210, 0.95) 100%)',
+            boxShadow: '0 4px 20px rgba(217, 28, 210, 0.4)'
+          }}
+          data-testid="pwa-install-banner"
+        >
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📲</span>
+              <div>
+                <p className="text-white font-semibold text-sm">Installer Afroboost</p>
+                <p className="text-white text-xs opacity-80">Accès rapide depuis votre écran d'accueil</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={handleInstallClick}
+                className="px-4 py-2 rounded-full text-sm font-semibold"
+                style={{ background: '#000', color: '#fff' }}
+                data-testid="pwa-install-btn"
+              >
+                Installer
+              </button>
+              <button 
+                onClick={dismissInstallBanner}
+                className="p-2 text-white opacity-70 hover:opacity-100"
+                data-testid="pwa-dismiss-btn"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showConfirmPayment && <ConfirmPaymentOverlay t={t} onConfirm={confirmPayment} onCancel={() => { setShowConfirmPayment(false); setPendingReservation(null); }} />}
       {showSuccess && lastReservation && <SuccessOverlay t={t} data={lastReservation} onClose={() => setShowSuccess(false)} />}
 
