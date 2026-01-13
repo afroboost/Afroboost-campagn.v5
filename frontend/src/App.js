@@ -1620,61 +1620,94 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
             <div>
               <h3 className="text-white font-semibold mb-4">Historique des campagnes</h3>
               
+              {/* Error Logs Panel - Shows if there are errors */}
+              {campaignLogs.filter(l => l.type === 'error').length > 0 && (
+                <div className="mb-4 p-3 rounded-lg bg-red-600/20 border border-red-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                    <span className="text-red-400 font-semibold text-sm">Erreurs récentes</span>
+                  </div>
+                  <div className="space-y-1 max-h-[100px] overflow-y-auto">
+                    {campaignLogs.filter(l => l.type === 'error').slice(0, 5).map(log => (
+                      <p key={log.id} className="text-xs text-red-300">{log.message}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               {/* Mobile-friendly scrollable table */}
               <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-                <table className="w-full min-w-[600px]">
+                <table className="w-full min-w-[700px]">
                   <thead>
                     <tr className="text-left text-white text-sm opacity-70 border-b border-purple-500/30">
                       <th className="pb-3 pr-4">Campagne</th>
                       <th className="pb-3 pr-4">Contacts</th>
                       <th className="pb-3 pr-4">Canaux</th>
                       <th className="pb-3 pr-4">Statut</th>
-                      <th className="pb-3 pr-4">Date</th>
+                      <th className="pb-3 pr-4">Date programmée</th>
                       <th className="pb-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {campaigns.map(campaign => (
-                      <tr key={campaign.id} className="border-b border-purple-500/20 text-white text-sm">
-                        <td className="py-3 pr-4">
-                          <span className="font-medium">{campaign.name}</span>
-                        </td>
-                        <td className="py-3 pr-4">
-                          {campaign.targetType === "all" ? `Tous (${campaign.results?.length || 0})` : campaign.selectedContacts?.length || 0}
-                        </td>
-                        <td className="py-3 pr-4">
-                          {campaign.channels?.whatsapp && <span className="mr-1">📱</span>}
-                          {campaign.channels?.email && <span className="mr-1">📧</span>}
-                          {campaign.channels?.instagram && <span>📸</span>}
-                        </td>
-                        <td className="py-3 pr-4">
-                          {campaign.status === 'draft' && <span className="px-2 py-1 rounded text-xs bg-gray-600">📝 Brouillon</span>}
-                          {campaign.status === 'scheduled' && <span className="px-2 py-1 rounded text-xs bg-yellow-600">📅 Programmé</span>}
-                          {campaign.status === 'sending' && <span className="px-2 py-1 rounded text-xs bg-blue-600">🔄 En cours</span>}
-                          {campaign.status === 'completed' && <span className="px-2 py-1 rounded text-xs bg-green-600">✅ Envoyé</span>}
-                        </td>
-                        <td className="py-3 pr-4 text-xs opacity-70">
-                          {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Immédiat'}
-                        </td>
-                        <td className="py-3">
-                          <div className="flex gap-2">
-                            {(campaign.status === 'draft' || campaign.status === 'scheduled') && (
-                              <button onClick={() => launchCampaign(campaign.id)} className="px-3 py-1 rounded text-xs bg-purple-600 hover:bg-purple-700">
-                                🚀 Lancer
+                    {campaigns.map(campaign => {
+                      // Count failed results for this campaign
+                      const failedCount = campaign.results?.filter(r => r.status === 'failed').length || 0;
+                      const hasErrors = failedCount > 0 || campaignLogs.some(l => l.campaignId === campaign.id && l.type === 'error');
+                      
+                      return (
+                        <tr key={campaign.id} className="border-b border-purple-500/20 text-white text-sm">
+                          <td className="py-3 pr-4">
+                            <div className="flex items-center gap-2">
+                              {hasErrors && (
+                                <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0" title="Erreur détectée"></span>
+                              )}
+                              <span className="font-medium">{campaign.name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 pr-4">
+                            {campaign.targetType === "all" ? `Tous (${campaign.results?.length || 0})` : campaign.selectedContacts?.length || 0}
+                          </td>
+                          <td className="py-3 pr-4">
+                            {campaign.channels?.whatsapp && <span className="mr-1">📱</span>}
+                            {campaign.channels?.email && <span className="mr-1">📧</span>}
+                            {campaign.channels?.instagram && <span>📸</span>}
+                          </td>
+                          <td className="py-3 pr-4">
+                            <div className="flex items-center gap-1">
+                              {campaign.status === 'draft' && <span className="px-2 py-1 rounded text-xs bg-gray-600">📝 Brouillon</span>}
+                              {campaign.status === 'scheduled' && <span className="px-2 py-1 rounded text-xs bg-yellow-600">📅 Programmé</span>}
+                              {campaign.status === 'sending' && <span className="px-2 py-1 rounded text-xs bg-blue-600">🔄 En cours</span>}
+                              {campaign.status === 'completed' && !hasErrors && <span className="px-2 py-1 rounded text-xs bg-green-600">✅ Envoyé</span>}
+                              {campaign.status === 'completed' && hasErrors && (
+                                <span className="px-2 py-1 rounded text-xs bg-orange-600" title={`${failedCount} échec(s)`}>
+                                  ⚠️ Partiel ({failedCount})
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 pr-4 text-xs opacity-70">
+                            {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Immédiat'}
+                          </td>
+                          <td className="py-3">
+                            <div className="flex gap-2">
+                              {(campaign.status === 'draft' || campaign.status === 'scheduled') && (
+                                <button onClick={() => launchCampaign(campaign.id)} className="px-3 py-1 rounded text-xs bg-purple-600 hover:bg-purple-700">
+                                  🚀 Lancer
+                                </button>
+                              )}
+                              {campaign.status === 'sending' && (
+                                <button onClick={() => setTab(`campaign-${campaign.id}`)} className="px-3 py-1 rounded text-xs bg-blue-600 hover:bg-blue-700">
+                                  👁️ Voir
+                                </button>
+                              )}
+                              <button onClick={() => deleteCampaign(campaign.id)} className="px-3 py-1 rounded text-xs bg-red-600/30 hover:bg-red-600/50 text-red-400">
+                                🗑️
                               </button>
-                            )}
-                            {campaign.status === 'sending' && (
-                              <button onClick={() => setTab(`campaign-${campaign.id}`)} className="px-3 py-1 rounded text-xs bg-blue-600 hover:bg-blue-700">
-                                👁️ Voir
-                              </button>
-                            )}
-                            <button onClick={() => deleteCampaign(campaign.id)} className="px-3 py-1 rounded text-xs bg-red-600/30 hover:bg-red-600/50 text-red-400">
-                              🗑️
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                     {campaigns.length === 0 && (
                       <tr>
                         <td colSpan={6} className="py-8 text-center text-white opacity-50">
