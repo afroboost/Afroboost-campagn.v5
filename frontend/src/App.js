@@ -1593,6 +1593,15 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     } catch (err) { console.error("Error marking sent:", err); }
   };
 
+  // Update shipping tracking for a reservation
+  const updateTracking = async (reservationId, trackingNumber, shippingStatus) => {
+    try {
+      await axios.put(`${API}/reservations/${reservationId}/tracking`, { trackingNumber, shippingStatus });
+      const res = await axios.get(`${API}/reservations`);
+      setReservations(res.data);
+    } catch (err) { console.error("Error updating tracking:", err); }
+  };
+
   const tabs = [
     { id: "reservations", label: t('reservations') }, { id: "concept", label: t('conceptVisual') },
     { id: "courses", label: t('courses') }, { id: "offers", label: t('offers') },
