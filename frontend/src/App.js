@@ -4615,26 +4615,29 @@ function App() {
 
   // Scroll vers la section par défaut au chargement (si configuré par le coach)
   useEffect(() => {
-    if (concept.defaultLandingSection && concept.defaultLandingSection !== 'all' && !coachMode && !showSplash) {
-      // Petit délai pour s'assurer que le DOM est prêt
+    // Ne pas scroller si en mode coach ou pendant le splash
+    if (coachMode || showSplash) return;
+    
+    // Attendre que les données soient chargées et le splash terminé
+    if (concept.defaultLandingSection && concept.defaultLandingSection !== 'all' && concept.defaultLandingSection !== 'sessions') {
+      // Délai plus long pour s'assurer que tout est prêt
       const timer = setTimeout(() => {
         let sectionId = null;
-        if (concept.defaultLandingSection === 'sessions') {
-          sectionId = 'sessions-section';
-        } else if (concept.defaultLandingSection === 'offers' || concept.defaultLandingSection === 'shop') {
+        if (concept.defaultLandingSection === 'offers' || concept.defaultLandingSection === 'shop') {
           sectionId = 'offers-section';
         }
         
         if (sectionId) {
           const element = document.getElementById(sectionId);
           if (element) {
+            console.log(`Auto-scrolling to: ${sectionId}`);
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }
         
         // Mettre à jour le filtre actif
         setActiveFilter(concept.defaultLandingSection);
-      }, 500);
+      }, 800); // Délai augmenté pour attendre le splash
       return () => clearTimeout(timer);
     }
   }, [concept.defaultLandingSection, coachMode, showSplash]);
