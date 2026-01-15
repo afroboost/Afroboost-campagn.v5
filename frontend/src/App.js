@@ -672,7 +672,7 @@ const OfferCard = ({ offer, selected, onClick }) => {
   );
 };
 
-// Offer Card for Horizontal Slider - With LED effect, Info icon, Zoom and Image Carousel
+// Offer Card for Horizontal Slider - With LED effect, Loupe, Info icon + Discrete dots
 const OfferCardSlider = ({ offer, selected, onClick }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
@@ -709,7 +709,7 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
   
   return (
     <>
-      {/* Zoom Modal with Carousel */}
+      {/* Zoom Modal - flèches uniquement dans le zoom */}
       {showZoom && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
@@ -723,18 +723,18 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
               style={{ boxShadow: '0 0 40px rgba(217, 28, 210, 0.5)' }}
             />
             
-            {/* Flèches dans le zoom si plusieurs images */}
+            {/* Flèches UNIQUEMENT dans le zoom */}
             {hasMultipleImages && (
               <>
                 <button 
                   onClick={prevImage}
-                  className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-pink-600 text-2xl"
+                  className="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-pink-600 text-xl"
                 >
                   ‹
                 </button>
                 <button 
                   onClick={nextImage}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-pink-600 text-2xl"
+                  className="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-pink-600 text-xl"
                 >
                   ›
                 </button>
@@ -749,7 +749,6 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
             </button>
             <p className="text-center text-white mt-4 text-lg font-semibold">{offer.name}</p>
             
-            {/* Indicateur de position dans le zoom */}
             {hasMultipleImages && (
               <p className="text-center text-pink-400 text-sm mt-2">{currentImageIndex + 1} / {images.length}</p>
             )}
@@ -776,7 +775,7 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
           }}
           data-testid={`offer-card-${offer.id}`}
         >
-          {/* Image Section with Carousel */}
+          {/* Image Section - Points discrets uniquement */}
           <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
             {!showDescription ? (
               <>
@@ -788,34 +787,17 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
                   onError={(e) => { e.target.src = defaultImage; }}
                 />
                 
-                {/* Flèches de navigation si plusieurs images */}
+                {/* Points discrets cliquables - PAS de flèches */}
                 {hasMultipleImages && (
-                  <>
-                    <button 
-                      onClick={prevImage}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-pink-600 text-lg"
-                      style={{ zIndex: 15 }}
-                    >
-                      ‹
-                    </button>
-                    <button 
-                      onClick={nextImage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-pink-600 text-lg"
-                      style={{ zIndex: 15 }}
-                    >
-                      ›
-                    </button>
-                    {/* Indicateurs de position (points) */}
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1" style={{ zIndex: 15 }}>
-                      {images.map((_, idx) => (
-                        <div 
-                          key={idx} 
-                          onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
-                          className={`w-2 h-2 rounded-full cursor-pointer transition-all ${idx === currentImageIndex ? 'bg-pink-500 scale-125' : 'bg-white/50 hover:bg-white/80'}`}
-                        />
-                      ))}
-                    </div>
-                  </>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5" style={{ zIndex: 15 }}>
+                    {images.map((_, idx) => (
+                      <div 
+                        key={idx} 
+                        onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                        className={`w-1.5 h-1.5 rounded-full cursor-pointer transition-all ${idx === currentImageIndex ? 'bg-pink-500 scale-150' : 'bg-white/40'}`}
+                      />
+                    ))}
+                  </div>
                 )}
                 
                 {/* Zoom Button (Loupe) - Top Left */}
@@ -835,7 +817,7 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
                   </svg>
                 </div>
                 
-                {/* Info Icon "i" - Top Right - Minimalist */}
+                {/* Info Icon "i" - Top Right */}
                 {offer.description && (
                   <div 
                     className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-110"
