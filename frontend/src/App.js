@@ -1667,6 +1667,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                     <th className="bg-black">{t('qty')}</th>
                     <th className="bg-black">{t('total')}</th>
                     <th className="bg-black">Statut</th>
+                    <th className="bg-black">📦 Expédition</th>
                   </tr>
                 </thead>
                 <tbody>
