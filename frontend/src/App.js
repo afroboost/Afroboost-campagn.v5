@@ -1944,13 +1944,15 @@ function App() {
   const [offers, setOffers] = useState([]);
   const [users, setUsers] = useState([]);
   const [paymentLinks, setPaymentLinks] = useState({ stripe: "", paypal: "", twint: "", coachWhatsapp: "" });
-  const [concept, setConcept] = useState({ description: "", heroImageUrl: "", logoUrl: "", faviconUrl: "" });
+  const [concept, setConcept] = useState({ description: "", heroImageUrl: "", logoUrl: "", faviconUrl: "", termsText: "" });
   const [discountCodes, setDiscountCodes] = useState([]);
 
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [quantity, setQuantity] = useState(1); // Quantité pour achats multiples
+  const [showTermsModal, setShowTermsModal] = useState(false); // Modal CGV
 
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
