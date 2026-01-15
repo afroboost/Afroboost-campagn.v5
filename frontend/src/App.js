@@ -591,7 +591,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-// Offer Card - Clean Design with Full Image + Info displayed inside card + Image Carousel
+// Offer Card - Clean Design with Full Image + Info icon + Discrete dots navigation
 const OfferCard = ({ offer, selected, onClick }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -610,20 +610,9 @@ const OfferCard = ({ offer, selected, onClick }) => {
     setShowDescription(!showDescription);
   };
   
-  const prevImage = (e) => {
-    e.stopPropagation();
-    setCurrentImageIndex(prev => prev > 0 ? prev - 1 : images.length - 1);
-  };
-  
-  const nextImage = (e) => {
-    e.stopPropagation();
-    setCurrentImageIndex(prev => prev < images.length - 1 ? prev + 1 : 0);
-  };
-  
   return (
     <div onClick={onClick} className={`offer-card rounded-xl overflow-hidden ${selected ? 'selected' : ''}`} data-testid={`offer-card-${offer.id}`}>
       <div style={{ position: 'relative', height: '140px' }}>
-        {/* Image or Description based on state */}
         {!showDescription ? (
           <>
             <img 
@@ -633,36 +622,20 @@ const OfferCard = ({ offer, selected, onClick }) => {
               onError={(e) => { e.target.src = defaultImage; }}
             />
             
-            {/* Flèches de navigation si plusieurs images */}
+            {/* Points discrets cliquables si plusieurs images */}
             {hasMultipleImages && (
-              <>
-                <button 
-                  onClick={prevImage}
-                  className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 text-sm"
-                  style={{ zIndex: 10 }}
-                >
-                  ‹
-                </button>
-                <button 
-                  onClick={nextImage}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 text-sm"
-                  style={{ zIndex: 10 }}
-                >
-                  ›
-                </button>
-                {/* Indicateurs de position */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1" style={{ zIndex: 10 }}>
-                  {images.map((_, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`w-2 h-2 rounded-full ${idx === currentImageIndex ? 'bg-pink-500' : 'bg-white/50'}`}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5" style={{ zIndex: 10 }}>
+                {images.map((_, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                    className={`w-1.5 h-1.5 rounded-full cursor-pointer transition-all ${idx === currentImageIndex ? 'bg-pink-500 scale-125' : 'bg-white/40'}`}
+                  />
+                ))}
+              </div>
             )}
             
-            {/* Info Icon - Only show if description exists */}
+            {/* Info Icon (i) - Only if description exists */}
             {offer.description && (
               <div 
                 className="offer-info-btn"
@@ -675,13 +648,11 @@ const OfferCard = ({ offer, selected, onClick }) => {
             )}
           </>
         ) : (
-          /* Description Panel - replaces image */
           <div 
             className="offer-description-panel"
             data-testid={`offer-description-panel-${offer.id}`}
           >
             <p className="offer-description-text">{offer.description}</p>
-            {/* Close button */}
             <button 
               className="offer-close-btn"
               onClick={toggleDescription}
