@@ -2714,6 +2714,14 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 )}
               </div>
 
+              {/* Section d'atterrissage par défaut */}
+              <div className="mt-6 pt-6 border-t border-purple-500/30">
+                <LandingSectionSelector 
+                  value={concept.defaultLandingSection || 'sessions'}
+                  onChange={(value) => setConcept({ ...concept, defaultLandingSection: value })}
+                />
+              </div>
+
               <button onClick={saveConcept} className="btn-primary px-6 py-3 rounded-lg mt-6" data-testid="save-concept">{t('save')}</button>
             </div>
           </div>
