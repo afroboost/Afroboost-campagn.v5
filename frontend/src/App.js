@@ -1147,30 +1147,54 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
           <div className="card-gradient rounded-xl p-6">
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
               <h2 className="font-semibold text-white" style={{ fontSize: '20px' }}>{t('reservationsList')}</h2>
-              <button onClick={exportCSV} className="csv-btn" data-testid="export-csv">{t('downloadCSV')}</button>
+              <div className="flex gap-2">
+                <button onClick={() => setShowScanner(true)} className="btn-primary px-4 py-2 rounded-lg flex items-center gap-2" data-testid="scan-ticket-btn">
+                  📷 Scanner un ticket
+                </button>
+                <button onClick={exportCSV} className="csv-btn" data-testid="export-csv">{t('downloadCSV')}</button>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+            
+            {/* Scrollable reservations table */}
+            <div className="overflow-x-auto overflow-y-auto rounded-lg" style={{ maxHeight: '600px' }}>
               <table className="coach-table">
-                <thead><tr>
-                  <th>{t('code')}</th><th>{t('name')}</th><th>{t('email')}</th><th>WhatsApp</th>
-                  <th>{t('courses')}</th><th>{t('date')}</th><th>{t('time')}</th>
-                  <th>{t('offer')}</th><th>{t('qty')}</th><th>{t('total')}</th>
-                </tr></thead>
+                <thead className="sticky top-0 bg-black z-10">
+                  <tr>
+                    <th className="bg-black">{t('code')}</th>
+                    <th className="bg-black">{t('name')}</th>
+                    <th className="bg-black">{t('email')}</th>
+                    <th className="bg-black">WhatsApp</th>
+                    <th className="bg-black">{t('courses')}</th>
+                    <th className="bg-black">{t('date')}</th>
+                    <th className="bg-black">{t('time')}</th>
+                    <th className="bg-black">{t('offer')}</th>
+                    <th className="bg-black">{t('qty')}</th>
+                    <th className="bg-black">{t('total')}</th>
+                    <th className="bg-black">Statut</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {reservations.map(r => {
                     const dt = new Date(r.datetime);
                     return (
-                      <tr key={r.id}>
+                      <tr key={r.id} className={r.validated ? 'bg-green-900/20' : ''}>
                         <td style={{ fontWeight: 'bold', color: '#d91cd2' }}>{r.reservationCode || '-'}</td>
                         <td>{r.userName}</td><td>{r.userEmail}</td><td>{r.userWhatsapp || '-'}</td>
                         <td>{r.courseName}</td><td>{dt.toLocaleDateString('fr-CH')}</td>
                         <td>{dt.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' })}</td>
                         <td>{r.offerName}</td><td>{r.quantity || 1}</td>
                         <td style={{ fontWeight: 'bold' }}>CHF {r.totalPrice || r.price}</td>
+                        <td>
+                          {r.validated ? (
+                            <span className="px-2 py-1 rounded text-xs bg-green-600 text-white">✅ Validé</span>
+                          ) : (
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-600 text-white">⏳ En attente</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
-                  {reservations.length === 0 && <tr><td colSpan="10" className="text-center py-8" style={{ opacity: 0.5 }}>{t('noReservations')}</td></tr>}
+                  {reservations.length === 0 && <tr><td colSpan="11" className="text-center py-8" style={{ opacity: 0.5 }}>{t('noReservations')}</td></tr>}
                 </tbody>
               </table>
             </div>
