@@ -591,19 +591,33 @@ const CloseIcon = () => (
   </svg>
 );
 
-// Offer Card - Clean Design with Full Image + Info displayed inside card
+// Offer Card - Clean Design with Full Image + Info displayed inside card + Image Carousel
 const OfferCard = ({ offer, selected, onClick }) => {
   const [showDescription, setShowDescription] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const defaultImage = "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=200&fit=crop";
   
-  // Utiliser images[0] en priorité, puis thumbnail, puis image par défaut
-  const mainImage = (offer.images && offer.images.length > 0) 
-    ? offer.images[0] 
-    : (offer.thumbnail || defaultImage);
+  // Liste des images disponibles
+  const images = (offer.images && offer.images.length > 0) 
+    ? offer.images.filter(img => img && img.trim()) 
+    : (offer.thumbnail ? [offer.thumbnail] : [defaultImage]);
+  
+  const currentImage = images[currentImageIndex] || defaultImage;
+  const hasMultipleImages = images.length > 1;
   
   const toggleDescription = (e) => {
     e.stopPropagation();
     setShowDescription(!showDescription);
+  };
+  
+  const prevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => prev > 0 ? prev - 1 : images.length - 1);
+  };
+  
+  const nextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => prev < images.length - 1 ? prev + 1 : 0);
   };
   
   return (
@@ -613,11 +627,41 @@ const OfferCard = ({ offer, selected, onClick }) => {
         {!showDescription ? (
           <>
             <img 
-              src={mainImage} 
+              src={currentImage} 
               alt={offer.name} 
               className="offer-card-image"
               onError={(e) => { e.target.src = defaultImage; }}
             />
+            
+            {/* Flèches de navigation si plusieurs images */}
+            {hasMultipleImages && (
+              <>
+                <button 
+                  onClick={prevImage}
+                  className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 text-sm"
+                  style={{ zIndex: 10 }}
+                >
+                  ‹
+                </button>
+                <button 
+                  onClick={nextImage}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 text-sm"
+                  style={{ zIndex: 10 }}
+                >
+                  ›
+                </button>
+                {/* Indicateurs de position */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1" style={{ zIndex: 10 }}>
+                  {images.map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`w-2 h-2 rounded-full ${idx === currentImageIndex ? 'bg-pink-500' : 'bg-white/50'}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            
             {/* Info Icon - Only show if description exists */}
             {offer.description && (
               <div 
