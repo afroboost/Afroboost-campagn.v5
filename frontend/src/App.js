@@ -492,10 +492,9 @@ const LanguageSelector = ({ lang, setLang }) => {
   );
 };
 
-// Media Display Component (YouTube, Vimeo, Image, Video) - Optimized visibility with validation
+// Media Display Component (YouTube, Vimeo, Image, Video) - Clean display without dark overlays
 const MediaDisplay = ({ url, className }) => {
   const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const media = parseMediaUrl(url);
   
   // Placeholder Afroboost par défaut
@@ -504,10 +503,7 @@ const MediaDisplay = ({ url, className }) => {
   // Return null if no valid media URL
   if (!media || !url || url.trim() === '') return null;
 
-  // Detect mobile for responsive overlay
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
-  // 16:9 container wrapper
+  // 16:9 container wrapper - Clean without dark filters
   const containerStyle = {
     position: 'relative',
     width: '100%',
@@ -527,8 +523,8 @@ const MediaDisplay = ({ url, className }) => {
     height: '100%'
   };
 
-  // Full overlay to prevent all interactions with video controls and links - TRANSPARENT
-  const fullOverlayStyle = {
+  // Transparent overlay to prevent clicks without hiding content
+  const clickBlockerStyle = {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -537,30 +533,6 @@ const MediaDisplay = ({ url, className }) => {
     zIndex: 10,
     cursor: 'default',
     background: 'transparent',
-    pointerEvents: 'auto'
-  };
-
-  // Top bar overlay - RÉDUIT: Plus fin et plus transparent pour la lisibilité
-  const topBarOverlayStyle = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: isMobile ? '35px' : '50px', // Réduit de 55/80 à 35/50
-    zIndex: 15,
-    background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)', // Plus transparent
-    pointerEvents: 'auto'
-  };
-
-  // Bottom bar overlay - RÉDUIT: Plus fin et plus transparent
-  const bottomBarOverlayStyle = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    height: isMobile ? '30px' : '45px', // Réduit de 50/70 à 30/45
-    zIndex: 15,
-    background: 'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)', // Plus transparent
     pointerEvents: 'auto'
   };
 
@@ -591,7 +563,7 @@ const MediaDisplay = ({ url, className }) => {
   }
 
   if (media.type === 'youtube') {
-    // YouTube params: modestbranding=1, rel=0, showinfo=0 to hide external links
+    // YouTube embed - NO dark overlays, just click blocker
     return (
       <div className={className} style={containerStyle} data-testid="media-container-16-9">
         <iframe 
@@ -602,10 +574,8 @@ const MediaDisplay = ({ url, className }) => {
           title="YouTube video"
           onError={() => setHasError(true)}
         />
-        {/* Overlays réduits pour meilleure visibilité */}
-        <div style={topBarOverlayStyle} onClick={(e) => e.preventDefault()} />
-        <div style={bottomBarOverlayStyle} onClick={(e) => e.preventDefault()} />
-        <div style={fullOverlayStyle} onClick={(e) => e.preventDefault()} />
+        {/* Only transparent click blocker - NO dark gradients */}
+        <div style={clickBlockerStyle} onClick={(e) => e.preventDefault()} />
       </div>
     );
   }
@@ -621,10 +591,8 @@ const MediaDisplay = ({ url, className }) => {
           title="Vimeo video"
           onError={() => setHasError(true)}
         />
-        {/* Overlays réduits */}
-        <div style={topBarOverlayStyle} onClick={(e) => e.preventDefault()} />
-        <div style={bottomBarOverlayStyle} onClick={(e) => e.preventDefault()} />
-        <div style={fullOverlayStyle} onClick={(e) => e.preventDefault()} />
+        {/* Only transparent click blocker */}
+        <div style={clickBlockerStyle} onClick={(e) => e.preventDefault()} />
       </div>
     );
   }
