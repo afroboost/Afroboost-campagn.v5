@@ -2844,46 +2844,89 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 </div>
               </div>
 
-              {/* Modes de paiement acceptés */}
+              {/* Modes de paiement acceptés - Toggles */}
               <div className="mt-6 pt-6 border-t border-purple-500/30">
-                <h3 className="text-white text-sm font-semibold mb-4">💳 Modes de paiement acceptés</h3>
-                <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  Les icônes des paiements cochés s'afficheront dans le pied de page côté client.
+                <h3 className="text-white text-sm font-semibold mb-4">💳 Logos de paiement</h3>
+                <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Activez les logos qui s'afficheront dans le pied de page.
                 </p>
-                <div className="flex flex-wrap gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={concept.paymentTwint || false}
-                      onChange={(e) => setConcept({ ...concept, paymentTwint: e.target.checked })}
-                      className="w-5 h-5 rounded accent-pink-500"
-                      data-testid="payment-twint"
-                    />
-                    <span className="text-white text-sm">Twint</span>
-                    <span style={{ fontSize: '20px' }}>🔵</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={concept.paymentPaypal || false}
-                      onChange={(e) => setConcept({ ...concept, paymentPaypal: e.target.checked })}
-                      className="w-5 h-5 rounded accent-pink-500"
-                      data-testid="payment-paypal"
-                    />
-                    <span className="text-white text-sm">PayPal</span>
-                    <span style={{ fontSize: '20px' }}>🅿️</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={concept.paymentCreditCard || false}
-                      onChange={(e) => setConcept({ ...concept, paymentCreditCard: e.target.checked })}
-                      className="w-5 h-5 rounded accent-pink-500"
-                      data-testid="payment-creditcard"
-                    />
-                    <span className="text-white text-sm">Carte de Crédit</span>
-                    <span style={{ fontSize: '20px' }}>💳</span>
-                  </label>
+                <div className="space-y-3">
+                  {/* Toggle Twint */}
+                  <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="https://upload.wikimedia.org/wikipedia/commons/8/83/Twint_Logo.svg" 
+                        alt="Twint" 
+                        style={{ height: '20px' }}
+                        onError={(e) => { e.target.src = ''; e.target.alt = 'Twint'; }}
+                      />
+                      <span className="text-white text-sm">Twint</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConcept({ ...concept, paymentTwint: !concept.paymentTwint })}
+                      className={`relative w-12 h-6 rounded-full transition-all duration-300 ${concept.paymentTwint ? 'bg-pink-500' : 'bg-gray-600'}`}
+                      data-testid="toggle-twint"
+                    >
+                      <span 
+                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${concept.paymentTwint ? 'left-7' : 'left-1'}`}
+                      />
+                    </button>
+                  </div>
+                  
+                  {/* Toggle PayPal */}
+                  <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" 
+                        alt="PayPal" 
+                        style={{ height: '18px' }}
+                        onError={(e) => { e.target.src = ''; e.target.alt = 'PayPal'; }}
+                      />
+                      <span className="text-white text-sm">PayPal</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConcept({ ...concept, paymentPaypal: !concept.paymentPaypal })}
+                      className={`relative w-12 h-6 rounded-full transition-all duration-300 ${concept.paymentPaypal ? 'bg-pink-500' : 'bg-gray-600'}`}
+                      data-testid="toggle-paypal"
+                    >
+                      <span 
+                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${concept.paymentPaypal ? 'left-7' : 'left-1'}`}
+                      />
+                    </button>
+                  </div>
+                  
+                  {/* Toggle Carte de Crédit */}
+                  <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        <img 
+                          src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" 
+                          alt="Visa" 
+                          style={{ height: '14px' }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                        <img 
+                          src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" 
+                          alt="Mastercard" 
+                          style={{ height: '16px' }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
+                      <span className="text-white text-sm">Carte de Crédit</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConcept({ ...concept, paymentCreditCard: !concept.paymentCreditCard })}
+                      className={`relative w-12 h-6 rounded-full transition-all duration-300 ${concept.paymentCreditCard ? 'bg-pink-500' : 'bg-gray-600'}`}
+                      data-testid="toggle-creditcard"
+                    >
+                      <span 
+                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${concept.paymentCreditCard ? 'left-7' : 'left-1'}`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
 
