@@ -658,6 +658,11 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
   const [showZoom, setShowZoom] = useState(false);
   const defaultImage = "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=250&fit=crop";
   
+  // Utiliser images[0] en priorité, puis thumbnail, puis image par défaut
+  const mainImage = (offer.images && offer.images.length > 0 && offer.images[0]) 
+    ? offer.images[0] 
+    : (offer.thumbnail || defaultImage);
+  
   const toggleDescription = (e) => {
     e.stopPropagation();
     setShowDescription(!showDescription);
@@ -678,7 +683,7 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
         >
           <div className="relative max-w-4xl max-h-[90vh] p-4">
             <img 
-              src={offer.thumbnail || defaultImage} 
+              src={mainImage} 
               alt={offer.name} 
               className="max-w-full max-h-[80vh] object-contain rounded-xl"
               style={{ boxShadow: '0 0 40px rgba(217, 28, 210, 0.5)' }}
@@ -718,7 +723,7 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
             {!showDescription ? (
               <>
                 <img 
-                  src={offer.thumbnail || defaultImage} 
+                  src={mainImage} 
                   alt={offer.name} 
                   className="w-full h-full"
                   style={{ objectFit: 'cover', objectPosition: 'center' }}
