@@ -753,6 +753,38 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
 
+  // Validate reservation by code (for QR scanner)
+  const validateReservation = async (code) => {
+    try {
+      const response = await axios.post(`${API}/reservations/${code}/validate`);
+      if (response.data.success) {
+        setScanResult({ success: true, reservation: response.data.reservation });
+        // Update local state
+        setReservations(reservations.map(r => 
+          r.reservationCode === code ? { ...r, validated: true } : r
+        ));
+        // Auto-close after 3 seconds
+        setTimeout(() => {
+          setShowScanner(false);
+          setScanResult(null);
+        }, 3000);
+      }
+    } catch (err) {
+      setScanError(err.response?.data?.detail || 'Code non trouvé');
+      setTimeout(() => setScanError(null), 3000);
+    }
+  };
+
+  // Manual code input for validation
+  const handleManualValidation = (e) => {
+    e.preventDefault();
+    const code = e.target.code.value.trim().toUpperCase();
+    if (code) {
+      validateReservation(code);
+      e.target.reset();
+    }
+  };
+
   const saveConcept = async () => { 
     try {
       await axios.put(`${API}/concept`, concept); 
