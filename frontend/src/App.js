@@ -2019,6 +2019,89 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     return `https://instagram.com/${username || 'afroboost'}`;
   };
 
+  // === ENVOI DIRECT PAR CANAL ===
+  
+  // Obtenir les contacts pour l'envoi direct
+  const getContactsForDirectSend = () => {
+    if (newCampaign.targetType === "selected") {
+      return allContacts.filter(c => selectedContactsForCampaign.includes(c.id));
+    }
+    return allContacts;
+  };
+
+  // Générer mailto: groupé avec BCC pour tous les emails
+  const generateGroupedEmailLink = () => {
+    const contacts = getContactsForDirectSend();
+    const emails = contacts.map(c => c.email).filter(e => e && e.includes('@'));
+    
+    if (emails.length === 0) return null;
+    
+    const subject = newCampaign.name || "Afroboost - Message";
+    const body = newCampaign.mediaUrl 
+      ? `${newCampaign.message}\n\n🔗 Voir le visuel: ${newCampaign.mediaUrl}`
+      : newCampaign.message;
+    
+    // Premier email en "to", reste en BCC pour confidentialité
+    const firstEmail = emails[0];
+    const bccEmails = emails.slice(1).join(',');
+    
+    return `mailto:${firstEmail}?${bccEmails ? `bcc=${bccEmails}&` : ''}subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  // Obtenir le contact WhatsApp actuel
+  const getCurrentWhatsAppContact = () => {
+    const contacts = getContactsForDirectSend().filter(c => c.phone);
+    return contacts[currentWhatsAppIndex] || null;
+  };
+
+  // Passer au contact WhatsApp suivant
+  const nextWhatsAppContact = () => {
+    const contacts = getContactsForDirectSend().filter(c => c.phone);
+    if (currentWhatsAppIndex < contacts.length - 1) {
+      setCurrentWhatsAppIndex(currentWhatsAppIndex + 1);
+    }
+  };
+
+  // Passer au contact WhatsApp précédent
+  const prevWhatsAppContact = () => {
+    if (currentWhatsAppIndex > 0) {
+      setCurrentWhatsAppIndex(currentWhatsAppIndex - 1);
+    }
+  };
+
+  // Copier le message pour Instagram
+  const copyMessageForInstagram = async () => {
+    const message = newCampaign.mediaUrl 
+      ? `${newCampaign.message}\n\n🔗 ${newCampaign.mediaUrl}`
+      : newCampaign.message;
+    
+    try {
+      await navigator.clipboard.writeText(message);
+      setMessageCopied(true);
+      setTimeout(() => setMessageCopied(false), 3000);
+    } catch (err) {
+      // Fallback pour navigateurs plus anciens
+      const textarea = document.createElement('textarea');
+      textarea.value = message;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setMessageCopied(true);
+      setTimeout(() => setMessageCopied(false), 3000);
+    }
+  };
+
+  // Stats des contacts pour envoi
+  const contactStats = useMemo(() => {
+    const contacts = getContactsForDirectSend();
+    return {
+      total: contacts.length,
+      withEmail: contacts.filter(c => c.email && c.email.includes('@')).length,
+      withPhone: contacts.filter(c => c.phone).length,
+    };
+  }, [allContacts, selectedContactsForCampaign, newCampaign.targetType]);
+
   // Mark result as sent
   const markResultSent = async (campaignId, contactId, channel) => {
     try {
