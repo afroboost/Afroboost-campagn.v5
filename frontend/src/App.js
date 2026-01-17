@@ -3369,50 +3369,103 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
 
         {/* Offers Tab */}
         {tab === "offers" && (
-          <div className="card-gradient rounded-xl p-6">
-            <h2 className="font-semibold text-white mb-6" style={{ fontSize: '20px' }}>{t('offers')}</h2>
-            {offers.map((offer, idx) => (
-              <div key={offer.id} className="glass rounded-lg p-4 mb-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-3">
+          <div className="card-gradient rounded-xl p-4 sm:p-6">
+            <h2 className="font-semibold text-white mb-6 text-lg sm:text-xl">{t('offers')}</h2>
+            
+            {/* === MOBILE VIEW: Cartes verticales === */}
+            <div className="block md:hidden space-y-4">
+              {offers.map((offer, idx) => (
+                <div key={offer.id} className="glass rounded-lg p-4">
+                  {/* Image et nom */}
+                  <div className="flex items-center gap-3 mb-3">
                     {offer.images?.[0] || offer.thumbnail ? (
-                      <img src={offer.images?.[0] || offer.thumbnail} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      <img src={offer.images?.[0] || offer.thumbnail} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className="w-12 h-12 rounded-lg bg-purple-900/30 flex items-center justify-center text-2xl">🎧</div>
+                      <div className="w-16 h-16 rounded-lg bg-purple-900/30 flex items-center justify-center text-2xl flex-shrink-0">🎧</div>
                     )}
-                    <div>
-                      <h4 className="text-white font-semibold">{offer.name}</h4>
-                      <p className="text-purple-400 text-sm">{offer.price} CHF • {offer.images?.length || 0} images</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-white font-semibold text-sm truncate">{offer.name}</h4>
+                      <p className="text-purple-400 text-xs">{offer.price} CHF</p>
+                      <p className="text-white/50 text-xs">{offer.images?.filter(i => i).length || 0} images</p>
+                    </div>
+                    {/* Toggle visible */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className={`switch ${offer.visible ? 'active' : ''}`} onClick={() => { const n = [...offers]; n[idx].visible = !offer.visible; setOffers(n); updateOffer({ ...offer, visible: !offer.visible }); }} />
+                      <span className="text-xs text-white/40">{offer.visible ? 'ON' : 'OFF'}</span>
                     </div>
                   </div>
+                  
+                  {/* Description */}
+                  {offer.description && (
+                    <p className="text-white/60 text-xs mb-3 italic truncate">"{offer.description}"</p>
+                  )}
+                  
+                  {/* Boutons action - largeur 100% sur mobile */}
                   <div className="flex gap-2">
                     <button 
                       onClick={() => startEditOffer(offer)}
-                      className="px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs"
+                      className="flex-1 py-3 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium"
                       data-testid={`edit-offer-${offer.id}`}
                     >
                       ✏️ Modifier
                     </button>
                     <button 
                       onClick={() => deleteOffer(offer.id)}
-                      className="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs"
+                      className="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium"
                       data-testid={`delete-offer-${offer.id}`}
                     >
                       🗑️ Supprimer
                     </button>
-                    <div className="flex items-center gap-2 ml-2">
-                      <span className="text-xs text-white opacity-60">{t('visible')}</span>
-                      <div className={`switch ${offer.visible ? 'active' : ''}`} onClick={() => { const n = [...offers]; n[idx].visible = !offer.visible; setOffers(n); updateOffer({ ...offer, visible: !offer.visible }); }} />
-                    </div>
                   </div>
                 </div>
-                {offer.description && (
-                  <p className="text-white/60 text-xs mt-2 italic">"{offer.description}"</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
             
-            {/* Formulaire Ajout/Modification */}
+            {/* === DESKTOP VIEW: Layout horizontal === */}
+            <div className="hidden md:block">
+              {offers.map((offer, idx) => (
+                <div key={offer.id} className="glass rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      {offer.images?.[0] || offer.thumbnail ? (
+                        <img src={offer.images?.[0] || offer.thumbnail} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-purple-900/30 flex items-center justify-center text-2xl">🎧</div>
+                      )}
+                      <div>
+                        <h4 className="text-white font-semibold">{offer.name}</h4>
+                        <p className="text-purple-400 text-sm">{offer.price} CHF • {offer.images?.filter(i => i).length || 0} images</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => startEditOffer(offer)}
+                        className="px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs"
+                        data-testid={`edit-offer-${offer.id}`}
+                      >
+                        ✏️ Modifier
+                      </button>
+                      <button 
+                        onClick={() => deleteOffer(offer.id)}
+                        className="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs"
+                        data-testid={`delete-offer-${offer.id}`}
+                      >
+                        🗑️ Supprimer
+                      </button>
+                      <div className="flex items-center gap-2 ml-2">
+                        <span className="text-xs text-white opacity-60">{t('visible')}</span>
+                        <div className={`switch ${offer.visible ? 'active' : ''}`} onClick={() => { const n = [...offers]; n[idx].visible = !offer.visible; setOffers(n); updateOffer({ ...offer, visible: !offer.visible }); }} />
+                      </div>
+                    </div>
+                  </div>
+                  {offer.description && (
+                    <p className="text-white/60 text-xs mt-2 italic">"{offer.description}"</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {/* Formulaire Ajout/Modification - RESPONSIVE */}
             <form id="offer-form" onSubmit={addOffer} className="glass rounded-lg p-4 mt-4 border-2 border-purple-500/50">
               <h3 className="text-white mb-4 font-semibold text-sm flex items-center gap-2">
                 {editingOfferId ? '✏️ Modifier l\'offre' : '➕ Ajouter une offre'}
@@ -3423,22 +3476,22 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 )}
               </h3>
               
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Basic Info - Stack on mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="text-xs text-white opacity-60 mb-1 block">Nom de l'offre *</label>
-                  <input type="text" placeholder="Ex: Cours à l'unité" value={newOffer.name} onChange={e => setNewOffer({ ...newOffer, name: e.target.value })} className="w-full px-3 py-2 rounded-lg neon-input text-sm" required />
+                  <input type="text" placeholder="Ex: Cours à l'unité" value={newOffer.name} onChange={e => setNewOffer({ ...newOffer, name: e.target.value })} className="w-full px-3 py-3 rounded-lg neon-input text-sm" required />
                 </div>
                 <div>
                   <label className="text-xs text-white opacity-60 mb-1 block">Prix (CHF)</label>
-                  <input type="number" placeholder="30" value={newOffer.price} onChange={e => setNewOffer({ ...newOffer, price: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 rounded-lg neon-input text-sm" />
+                  <input type="number" placeholder="30" value={newOffer.price} onChange={e => setNewOffer({ ...newOffer, price: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-3 rounded-lg neon-input text-sm" />
                 </div>
               </div>
               
-              {/* 5 Champs d'images */}
+              {/* 5 Champs d'images - 1 colonne mobile, 5 desktop */}
               <div className="mt-4">
                 <label className="text-xs text-white opacity-60 mb-2 block">📷 Images (max 5 URLs)</label>
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
                   {[0, 1, 2, 3, 4].map(i => (
                     <input 
                       key={i}
@@ -3450,7 +3503,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                         newImages[i] = e.target.value;
                         setNewOffer({ ...newOffer, images: newImages });
                       }}
-                      className="w-full px-3 py-2 rounded-lg neon-input text-xs"
+                      className="w-full px-3 py-3 rounded-lg neon-input text-xs"
                     />
                   ))}
                 </div>
@@ -3462,7 +3515,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 <textarea 
                   value={newOffer.description || ''} 
                   onChange={e => setNewOffer({ ...newOffer, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg neon-input text-sm" 
+                  className="w-full px-3 py-3 rounded-lg neon-input text-sm" 
                   rows={2}
                   maxLength={150}
                   placeholder="Description visible au clic sur l'icône i (max 150 car.)"
@@ -3470,12 +3523,12 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{(newOffer.description || '').length}/150</p>
               </div>
               
-              {/* Category & Type */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+              {/* Category & Type - Stack on mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                 <select 
                   value={newOffer.category} 
                   onChange={e => setNewOffer({ ...newOffer, category: e.target.value })}
-                  className="px-3 py-2 rounded-lg neon-input text-sm"
+                  className="px-3 py-3 rounded-lg neon-input text-sm w-full"
                 >
                   <option value="service">🎧 Service / Cours</option>
                   <option value="tshirt">👕 T-shirt</option>
