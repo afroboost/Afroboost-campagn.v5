@@ -5782,13 +5782,19 @@ function App() {
           {(concept.paymentTwint || concept.paymentPaypal || concept.paymentCreditCard) && (
             <div className="flex justify-center items-center gap-6 mb-6" data-testid="payment-logos-footer">
               {concept.paymentTwint && (
-                <img 
-                  src="https://upload.wikimedia.org/wikipedia/commons/8/83/Twint_Logo.svg" 
-                  alt="Twint" 
-                  style={{ height: '24px', filter: 'brightness(0) invert(1)', opacity: 0.7 }}
+                <div 
+                  style={{ 
+                    height: '24px', 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    opacity: 0.8 
+                  }}
                   title="Twint"
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                />
+                >
+                  <svg width="60" height="24" viewBox="0 0 120 40" fill="white">
+                    <text x="0" y="28" fontFamily="Arial, sans-serif" fontSize="24" fontWeight="bold" fill="white">TWINT</text>
+                  </svg>
+                </div>
               )}
               {concept.paymentPaypal && (
                 <img 
