@@ -690,16 +690,14 @@ const MediaDisplay = ({ url, className }) => {
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
           onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
         />
-        {/* Bouton mute discret */}
+        {/* Bouton mute */}
         <button 
           onClick={toggleMute}
           onTouchStart={toggleMute}
           style={smallMuteStyle}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
           data-testid="mute-btn"
         >
-          {isMuted ? '🔇' : '🔊'}
+          {isMuted ? '🔇 Son' : '🔊'}
         </button>
       </div>
     );
