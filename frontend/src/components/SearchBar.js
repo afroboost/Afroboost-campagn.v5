@@ -1,41 +1,60 @@
-// /components/SearchBar.js - Navigation Client avec filtres épurés et recherche
+// /components/SearchBar.js - Navigation Client avec filtres ultra-minimalistes
 // Architecture modulaire Afroboost - Design minimaliste style globe
 
 import { useState, useCallback, useEffect } from 'react';
 
-// Icône de recherche SVG
+// Icône de recherche SVG - fine
 const SearchIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"/>
     <line x1="21" y1="21" x2="16.65" y2="16.65"/>
   </svg>
 );
 
-// Icône de fermeture SVG
+// Icône de fermeture SVG - fine
 const CloseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"/>
     <line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 );
 
-// Configuration des filtres - Style épuré
+// Icônes minimalistes pour les filtres - style traits fins comme le globe
+const AllIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"/>
+    <rect x="14" y="3" width="7" height="7"/>
+    <rect x="14" y="14" width="7" height="7"/>
+    <rect x="3" y="14" width="7" height="7"/>
+  </svg>
+);
+
+const CoursesIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+);
+
+const ShopIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <path d="M16 10a4 4 0 01-8 0"/>
+  </svg>
+);
+
+// Configuration des filtres - Style ultra-minimaliste
 const FILTER_OPTIONS = [
-  { id: 'all', label: 'Tout', icon: '🔥' },
-  { id: 'sessions', label: 'Sessions', icon: '📅' },
-  { id: 'offers', label: 'Offres', icon: '🎁' },
-  { id: 'shop', label: 'Shop', icon: '🛍️' }
+  { id: 'all', label: 'Tout', Icon: AllIcon },
+  { id: 'sessions', label: 'Cours', Icon: CoursesIcon },
+  { id: 'shop', label: 'Shop', Icon: ShopIcon }
 ];
 
 /**
- * Barre de navigation avec filtres épurés style globe et recherche textuelle
- * @param {Object} props
- * @param {string} props.activeFilter - Filtre actif ('all', 'sessions', 'offers', 'shop')
- * @param {Function} props.onFilterChange - Callback quand le filtre change
- * @param {string} props.searchQuery - Terme de recherche actuel
- * @param {Function} props.onSearchChange - Callback quand la recherche change
- * @param {boolean} props.showSearch - Afficher ou non la barre de recherche
- * @param {boolean} props.showFilters - Afficher ou non les boutons de filtre (default: false)
+ * Barre de navigation avec filtres ultra-minimalistes style globe
  */
 export const NavigationBar = ({ 
   activeFilter = 'all', 
@@ -43,21 +62,20 @@ export const NavigationBar = ({
   searchQuery = '', 
   onSearchChange,
   showSearch = true,
-  showFilters = false  // MASQUÉ PAR DÉFAUT
+  showFilters = true
 }) => {
   const [localSearch, setLocalSearch] = useState(searchQuery);
   
-  // Debounce search input - filtrage en temps réel
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       if (onSearchChange) {
         onSearchChange(localSearch);
       }
-    }, 150); // Réduit pour un filtrage plus réactif
+    }, 150);
     return () => clearTimeout(timer);
   }, [localSearch, onSearchChange]);
 
-  // Synchroniser si la prop change de l'extérieur
   useEffect(() => {
     setLocalSearch(searchQuery);
   }, [searchQuery]);
@@ -66,13 +84,12 @@ export const NavigationBar = ({
     if (onFilterChange) {
       onFilterChange(filterId);
       
-      // Smooth scroll vers la section correspondante
       setTimeout(() => {
         let sectionId = null;
         if (filterId === 'sessions') {
           sectionId = 'sessions-section';
-        } else if (filterId === 'offers' || filterId === 'shop') {
-          sectionId = 'offers-section';
+        } else if (filterId === 'shop') {
+          sectionId = 'products-section';
         }
         
         if (sectionId) {
@@ -94,78 +111,24 @@ export const NavigationBar = ({
 
   return (
     <div className="navigation-bar mb-6" data-testid="navigation-bar">
-      {/* Filtres épurés - MASQUÉS par défaut, visibles uniquement si showFilters=true */}
-      {showFilters && (
-        <div 
-          className="filter-chips-container mb-4"
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '8px',
-            flexWrap: 'wrap',
-            padding: '4px 0'
-          }}
-        >
-          {FILTER_OPTIONS.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => handleFilterClick(filter.id)}
-              data-testid={`filter-${filter.id}`}
-            className={`filter-chip-minimal ${activeFilter === filter.id ? 'active' : ''}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '20px',
-              fontSize: '14px',
-              fontWeight: '500',
-              whiteSpace: 'nowrap',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              // Style épuré : pas d'arrière-plan, bordure uniquement si actif
-              backgroundColor: 'transparent',
-              background: 'none',
-              border: activeFilter === filter.id 
-                ? '1.5px solid #d91cd2' 
-                : '1.5px solid transparent',
-              color: activeFilter === filter.id ? '#fff' : 'rgba(255, 255, 255, 0.7)',
-              // Lueur néon subtile uniquement si actif
-              boxShadow: activeFilter === filter.id 
-                ? '0 0 12px rgba(217, 28, 210, 0.4)' 
-                : 'none',
-              // Reset button styles
-              outline: 'none',
-              WebkitAppearance: 'none',
-              MozAppearance: 'none',
-              appearance: 'none'
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>{filter.icon}</span>
-            <span>{filter.label}</span>
-          </button>
-        ))}
-      </div>
-      )}
-
-      {/* Barre de recherche avec bordure rose */}
+      {/* Barre de recherche avec bordure rose fine */}
       {showSearch && (
         <div 
           className="search-bar-container"
           style={{
             position: 'relative',
             width: '100%',
-            maxWidth: '500px',
-            margin: '0 auto'
+            maxWidth: '400px',
+            margin: '0 auto 16px auto'
           }}
         >
           <div 
             style={{
               position: 'absolute',
-              left: '14px',
+              left: '12px',
               top: '50%',
               transform: 'translateY(-50%)',
-              color: 'rgba(217, 28, 210, 0.6)',
+              color: 'rgba(217, 28, 210, 0.5)',
               pointerEvents: 'none'
             }}
           >
@@ -175,20 +138,21 @@ export const NavigationBar = ({
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder="Rechercher par titre..."
+            placeholder="Rechercher..."
             data-testid="search-input"
-            className="search-input-pink"
+            className="search-input-minimal"
             style={{
               width: '100%',
-              padding: '12px 40px 12px 44px',
-              borderRadius: '12px',
-              border: '1.5px solid #d91cd2',
-              background: 'rgba(0, 0, 0, 0.4)',
+              padding: '10px 36px 10px 36px',
+              borderRadius: '20px',
+              border: '1px solid rgba(217, 28, 210, 0.4)',
+              background: 'rgba(0, 0, 0, 0.3)',
               color: '#fff',
-              fontSize: '14px',
+              fontSize: '13px',
+              fontWeight: '300',
+              letterSpacing: '0.3px',
               outline: 'none',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 0 10px rgba(217, 28, 210, 0.2)'
+              transition: 'all 0.3s ease'
             }}
           />
           {localSearch && (
@@ -197,14 +161,14 @@ export const NavigationBar = ({
               data-testid="clear-search"
               style={{
                 position: 'absolute',
-                right: '14px',
+                right: '12px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 background: 'none',
                 border: 'none',
-                color: '#d91cd2',
+                color: 'rgba(217, 28, 210, 0.6)',
                 cursor: 'pointer',
-                padding: '4px',
+                padding: '2px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -216,29 +180,64 @@ export const NavigationBar = ({
         </div>
       )}
 
+      {/* Icônes de filtres - Ultra minimalistes, petites, style globe */}
+      {showFilters && (
+        <div 
+          className="filter-icons-container"
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          {FILTER_OPTIONS.map((filter) => {
+            const isActive = activeFilter === filter.id;
+            const Icon = filter.Icon;
+            
+            return (
+              <button
+                key={filter.id}
+                onClick={() => handleFilterClick(filter.id)}
+                data-testid={`filter-${filter.id}`}
+                title={filter.label}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  border: `1px solid ${isActive ? '#D91CD2' : 'rgba(255, 255, 255, 0.25)'}`,
+                  background: isActive ? 'rgba(217, 28, 210, 0.15)' : 'transparent',
+                  color: isActive ? '#D91CD2' : 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  transition: 'all 0.25s ease',
+                  outline: 'none',
+                  padding: 0
+                }}
+              >
+                <Icon />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Styles pour hover et focus */}
       <style>{`
-        .filter-chip-minimal {
-          background: transparent !important;
-          background-color: transparent !important;
+        .search-input-minimal:focus {
+          border-color: #D91CD2 !important;
+          box-shadow: 0 0 10px rgba(217, 28, 210, 0.25);
         }
-        .filter-chip-minimal:hover {
-          color: #fff !important;
-          border-color: rgba(217, 28, 210, 0.5) !important;
+        .search-input-minimal::placeholder {
+          color: rgba(255, 255, 255, 0.35);
+          font-weight: 300;
         }
-        .filter-chip-minimal.active {
-          border-color: #d91cd2 !important;
-          box-shadow: 0 0 12px rgba(217, 28, 210, 0.4) !important;
-        }
-        .filter-chip-minimal.active:hover {
-          border-color: #d91cd2 !important;
-        }
-        .search-input-pink:focus {
-          border-color: #d91cd2 !important;
-          box-shadow: 0 0 15px rgba(217, 28, 210, 0.4);
-        }
-        .search-input-pink::placeholder {
-          color: rgba(255, 255, 255, 0.4);
+        .filter-icons-container button:hover {
+          border-color: rgba(217, 28, 210, 0.6) !important;
+          color: #D91CD2 !important;
+          background: rgba(217, 28, 210, 0.08) !important;
         }
       `}</style>
     </div>
@@ -247,7 +246,6 @@ export const NavigationBar = ({
 
 /**
  * Flèche animée pour indiquer du contenu en dessous
- * Apparaît si aucun scroll détecté après 3 secondes
  */
 export const ScrollIndicator = ({ show }) => {
   if (!show) return null;
@@ -269,12 +267,12 @@ export const ScrollIndicator = ({ show }) => {
       data-testid="scroll-indicator"
     >
       <svg 
-        width="32" 
-        height="32" 
+        width="28" 
+        height="28" 
         viewBox="0 0 24 24" 
         fill="none" 
         stroke="#d91cd2" 
-        strokeWidth="2" 
+        strokeWidth="1.5" 
         strokeLinecap="round" 
         strokeLinejoin="round"
       >
@@ -299,7 +297,6 @@ export const ScrollIndicator = ({ show }) => {
 
 /**
  * Hook pour gérer l'indicateur de scroll
- * Affiche une flèche si aucun scroll après 3 secondes
  */
 export const useScrollIndicator = () => {
   const [showIndicator, setShowIndicator] = useState(false);
@@ -311,12 +308,10 @@ export const useScrollIndicator = () => {
     const handleScroll = () => {
       hasScrolled = true;
       setShowIndicator(false);
-      // Retirer l'écouteur après le premier scroll
       window.removeEventListener('scroll', handleScroll);
       if (timer) clearTimeout(timer);
     };
     
-    // Afficher l'indicateur après 3 secondes si pas de scroll
     timer = setTimeout(() => {
       if (!hasScrolled) {
         setShowIndicator(true);
@@ -336,29 +331,19 @@ export const useScrollIndicator = () => {
 
 /**
  * Hook pour gérer la logique de filtrage et recherche
- * @param {Array} offers - Liste des offres
- * @param {Array} courses - Liste des cours
- * @param {string} defaultSection - Section par défaut à afficher
  */
 export const useNavigation = (offers = [], courses = [], defaultSection = 'all') => {
   const [activeFilter, setActiveFilter] = useState(defaultSection);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filtrer les offres selon le filtre actif et la recherche
   const filteredOffers = offers.filter(offer => {
-    // Filtre par catégorie
     let categoryMatch = true;
     if (activeFilter === 'sessions') {
       categoryMatch = !offer.isProduct;
-    } else if (activeFilter === 'offers') {
-      // OFFRES = abonnements + sessions cardio (tous les non-produits)
-      categoryMatch = !offer.isProduct;
     } else if (activeFilter === 'shop') {
-      // SHOP = uniquement produits physiques
       categoryMatch = offer.isProduct === true;
     }
 
-    // Filtre par recherche textuelle - TITRE UNIQUEMENT
     let searchMatch = true;
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -368,14 +353,11 @@ export const useNavigation = (offers = [], courses = [], defaultSection = 'all')
     return categoryMatch && searchMatch;
   });
 
-  // Filtrer les cours si nécessaire
   const filteredCourses = courses.filter(course => {
-    // Shop masque les cours
     if (activeFilter === 'shop') {
       return false;
     }
     
-    // Filtre par recherche textuelle - TITRE UNIQUEMENT
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       return (course.name?.toLowerCase() || '').includes(query);
@@ -384,14 +366,12 @@ export const useNavigation = (offers = [], courses = [], defaultSection = 'all')
     return true;
   });
 
-  // Déterminer quelle section scroller au chargement
   const getSectionToScroll = useCallback(() => {
     switch (activeFilter) {
       case 'sessions':
         return 'sessions-section';
-      case 'offers':
       case 'shop':
-        return 'offers-section';
+        return 'products-section';
       default:
         return null;
     }
@@ -411,9 +391,6 @@ export const useNavigation = (offers = [], courses = [], defaultSection = 'all')
 
 /**
  * Sélecteur de section d'atterrissage pour le Mode Coach
- * @param {Object} props
- * @param {string} props.value - Valeur actuelle
- * @param {Function} props.onChange - Callback au changement
  */
 export const LandingSectionSelector = ({ value = 'sessions', onChange }) => {
   const options = [
@@ -450,5 +427,4 @@ export const LandingSectionSelector = ({ value = 'sessions', onChange }) => {
   );
 };
 
-// Export par défaut
 export default NavigationBar;
