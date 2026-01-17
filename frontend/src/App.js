@@ -2539,6 +2539,8 @@ function App() {
   // Sélection d'offre avec smooth scroll vers le formulaire "Vos informations"
   const handleSelectOffer = (offer) => {
     setSelectedOffer(offer);
+    // Réinitialiser les variantes quand une nouvelle offre est sélectionnée
+    setSelectedVariants({});
     
     // Smooth scroll vers la section "Vos informations" après un court délai
     // pour laisser le temps au DOM de se mettre à jour
