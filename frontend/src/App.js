@@ -147,6 +147,12 @@ const translations = {
     termsText: "Texte des Conditions Générales",
     termsPlaceholder: "Entrez le texte de vos conditions générales de vente...",
     scanToValidate: "Scannez pour valider",
+    batchGeneration: "Génération en série",
+    batchCount: "Nombre de codes",
+    codePrefix: "Préfixe du code",
+    generateBatch: "🚀 Générer la série",
+    batchSuccess: "codes créés avec succès !",
+    batchMax: "Maximum 20 codes par série",
   },
   en: {
     appTitle: "Afroboost",
@@ -257,6 +263,12 @@ const translations = {
     termsText: "Terms and Conditions Text",
     termsPlaceholder: "Enter your terms and conditions text...",
     scanToValidate: "Scan to validate",
+    batchGeneration: "Batch Generation",
+    batchCount: "Number of codes",
+    codePrefix: "Code prefix",
+    generateBatch: "🚀 Generate batch",
+    batchSuccess: "codes created successfully!",
+    batchMax: "Maximum 20 codes per batch",
   },
   de: {
     appTitle: "Afroboost",
@@ -367,6 +379,12 @@ const translations = {
     termsText: "AGB-Text",
     termsPlaceholder: "Geben Sie Ihren AGB-Text ein...",
     scanToValidate: "Zum Validieren scannen",
+    batchGeneration: "Serien-Generierung",
+    batchCount: "Anzahl der Codes",
+    codePrefix: "Code-Präfix",
+    generateBatch: "🚀 Serie generieren",
+    batchSuccess: "Codes erfolgreich erstellt!",
+    batchMax: "Maximal 20 Codes pro Serie",
   }
 };
 
