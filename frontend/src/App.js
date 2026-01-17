@@ -1163,8 +1163,8 @@ const OffersSliderAutoPlay = ({ offers, selectedOffer, onSelectOffer }) => {
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          paddingTop: '20px',  /* Espace pour que le glow ne soit pas coupé */
-          marginTop: '-10px'   /* Compense le padding pour l'alignement */
+          paddingTop: '30px',  /* Espace pour que le glow ne soit pas coupé - 30px */
+          marginTop: '-10px'   /* Compense partiellement le padding pour l'alignement */
         }}
         data-testid="offers-slider"
       >
