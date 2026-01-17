@@ -519,7 +519,9 @@ const MediaDisplay = ({ url, className }) => {
   if (!media || !url || url.trim() === '') return null;
 
   // Toggle mute
-  const toggleMute = () => {
+  const toggleMute = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
     const newMuted = !isMuted;
     setIsMuted(newMuted);
     
@@ -527,7 +529,7 @@ const MediaDisplay = ({ url, className }) => {
       videoRef.current.muted = newMuted;
     }
     
-    // Pour YouTube, recharger l'iframe
+    // Pour YouTube, recharger l'iframe avec le nouveau paramètre mute
     if (iframeRef.current && media.type === 'youtube') {
       const currentSrc = iframeRef.current.src;
       const newSrc = currentSrc.replace(/mute=[01]/, `mute=${newMuted ? '1' : '0'}`);
@@ -555,7 +557,7 @@ const MediaDisplay = ({ url, className }) => {
     height: '100%'
   };
 
-  // Petite icône discrète en bas à droite - z-index élevé pour passer par-dessus YouTube
+  // Petite icône discrète en bas à droite
   const smallMuteStyle = {
     position: 'absolute',
     bottom: '12px',
@@ -577,17 +579,17 @@ const MediaDisplay = ({ url, className }) => {
     boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
   };
 
-  // Click blocker
-  const clickBlockerStyle = {
+  // Couche transparente COMPLÈTE pour bloquer TOUS les clics vers YouTube
+  // Laisse seulement le coin bas-droite pour le bouton mute
+  const fullBlockerStyle = {
     position: 'absolute',
     top: 0,
     left: 0,
     width: '100%',
-    height: 'calc(100% - 40px)',
-    zIndex: 10,
+    height: '100%',
+    zIndex: 50,
     cursor: 'default',
-    background: 'transparent',
-    pointerEvents: 'auto'
+    background: 'transparent'
   };
 
   if (hasError) {
@@ -613,23 +615,33 @@ const MediaDisplay = ({ url, className }) => {
 
   if (media.type === 'youtube') {
     const muteParam = isMuted ? '1' : '0';
+    // URL YouTube avec TOUS les paramètres pour masquer les contrôles et empêcher la sortie
+    const youtubeUrl = `https://www.youtube.com/embed/${media.id}?autoplay=1&mute=${muteParam}&loop=1&playlist=${media.id}&playsinline=1&modestbranding=1&rel=0&showinfo=0&controls=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&origin=${window.location.origin}`;
+    
     return (
       <div className={className} style={containerStyle} data-testid="media-container-16-9">
         <iframe 
           ref={iframeRef}
-          src={`https://www.youtube.com/embed/${media.id}?autoplay=1&mute=${muteParam}&loop=1&playlist=${media.id}&modestbranding=1&rel=0&showinfo=0&controls=0&disablekb=1&fs=0&iv_load_policy=3`}
+          src={youtubeUrl}
           frameBorder="0" 
           allow="autoplay; encrypted-media" 
-          style={contentStyle}
+          style={{ ...contentStyle, pointerEvents: 'none' }}
           title="YouTube video"
           onError={() => setHasError(true)}
         />
-        <div style={clickBlockerStyle} onClick={(e) => e.preventDefault()} />
+        {/* Couche transparente TOTALE pour bloquer tous les clics */}
+        <div 
+          style={fullBlockerStyle} 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        />
+        {/* Bouton mute discret au-dessus de la couche bloquante */}
         <button 
-          onClick={toggleMute} 
+          onClick={toggleMute}
+          onTouchStart={toggleMute}
           style={smallMuteStyle}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
           data-testid="mute-btn"
         >
           {isMuted ? '🔇' : '🔊'}
@@ -640,22 +652,31 @@ const MediaDisplay = ({ url, className }) => {
   
   if (media.type === 'vimeo') {
     const mutedParam = isMuted ? '1' : '0';
+    const vimeoUrl = `https://player.vimeo.com/video/${media.id}?autoplay=1&muted=${mutedParam}&loop=1&background=1&playsinline=1&title=0&byline=0&portrait=0`;
+    
     return (
       <div className={className} style={containerStyle} data-testid="media-container-16-9">
         <iframe 
-          src={`https://player.vimeo.com/video/${media.id}?autoplay=1&muted=${mutedParam}&loop=1&background=1&title=0&byline=0&portrait=0`}
+          src={vimeoUrl}
           frameBorder="0" 
           allow="autoplay" 
-          style={contentStyle}
+          style={{ ...contentStyle, pointerEvents: 'none' }}
           title="Vimeo video"
           onError={() => setHasError(true)}
         />
-        <div style={clickBlockerStyle} onClick={(e) => e.preventDefault()} />
+        {/* Couche transparente TOTALE pour bloquer tous les clics */}
+        <div 
+          style={fullBlockerStyle} 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        />
+        {/* Bouton mute discret */}
         <button 
-          onClick={toggleMute} 
+          onClick={toggleMute}
+          onTouchStart={toggleMute}
           style={smallMuteStyle}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
           data-testid="mute-btn"
         >
           {isMuted ? '🔇' : '🔊'}
@@ -678,10 +699,10 @@ const MediaDisplay = ({ url, className }) => {
           onError={() => setHasError(true)}
         />
         <button 
-          onClick={toggleMute} 
+          onClick={toggleMute}
           style={smallMuteStyle}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
           data-testid="mute-btn"
         >
           {isMuted ? '🔇' : '🔊'}
