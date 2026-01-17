@@ -2957,7 +2957,7 @@ function App() {
         />
 
         {/* Message si aucun résultat */}
-        {visibleOffers.length === 0 && visibleCourses.length === 0 && searchQuery.trim() && (
+        {filteredServices.length === 0 && filteredProducts.length === 0 && visibleCourses.length === 0 && searchQuery.trim() && (
           <div className="text-center py-8 mb-8 rounded-xl" style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
             <p className="text-white opacity-70">🔍 Aucun résultat pour "{searchQuery}"</p>
             <button 
