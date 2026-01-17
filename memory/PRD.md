@@ -406,9 +406,21 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Glow adouci** : Réduction de `0 0 30px/60px` à `0 0 10px rgba(217, 28, 210, 0.4)`
   - **CSS + inline** : Correction dans App.css et App.js (ligne 956)
   - **Margin-top** : Ajout pour éviter que le glow soit coupé en haut
+  - **Padding-top slider** : Ajout `padding: 20px 20px 10px 20px` au conteneur `.offers-slider`
+- [x] **Notifications Automatiques Coach (17 Jan 2026)**:
+  - **Backend** : Champs `coachNotificationEmail` et `coachNotificationPhone` ajoutés au modèle PaymentLinks
+  - **Endpoint** : `/api/notify-coach` pour formater les messages de notification
+  - **Interface Admin** : Section "🔔 Notifications automatiques" dans Mode Coach → Paiements
+  - **Intégration** : Fonction `notifyCoachAutomatic()` appelée après chaque réservation réussie
+  - **Support** : Email via EmailJS + WhatsApp via API Twilio (si configurés)
+  - **Message formaté** : Nom client, email, WhatsApp, offre, cours, date, montant, code réservation
+- [x] **Fix WEEKDAYS_MAP (17 Jan 2026)**:
+  - **Erreur corrigée** : `ReferenceError: WEEKDAYS_MAP is not defined` dans CoachDashboard.js
+  - **Solution** : Ajout de la constante `WEEKDAYS_MAP` directement dans le fichier CoachDashboard.js
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
+- [x] ~~**Notifications email après réservation**~~ - ✅ COMPLÉTÉ
 - [ ] **Optimisation Backend MongoDB** - Appliquer pagination et projection sur les requêtes pour améliorer les performances en production.
 - [ ] Continuer refactoring: Extraire CoachLoginModal dans composant séparé
 - [ ] Tests automatisés pour les composants extraits
@@ -417,7 +429,6 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
 - [ ] Créer pages dédiées: /boutique, /profil (routing Vercel)
 - [ ] Envoi Email via mailto: avec sujet personnalisé
 - [ ] Envoi Instagram via ig.me
-- [ ] Notifications email après réservation
 - [ ] Dashboard analytics pour le coach
 - [ ] Ajouter une vue "Leads" dans le Mode Coach pour visualiser les contacts capturés
 
