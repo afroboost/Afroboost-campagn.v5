@@ -151,7 +151,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
   const [batchLoading, setBatchLoading] = useState(false);
   const [newCourse, setNewCourse] = useState({ name: "", weekday: 0, time: "18:30", locationName: "", mapsUrl: "" });
   const [newOffer, setNewOffer] = useState({ 
-    name: "", price: 0, visible: true, description: "",
+    name: "", price: 0, visible: true, description: "", keywords: "",
     images: ["", "", "", "", ""], // 5 champs d'images
     category: "service", isProduct: false, variants: null, tva: 0, shippingCost: 0, stock: -1
   });
