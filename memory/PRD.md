@@ -393,6 +393,19 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Réduction App.js** : De 6402 lignes à 3055 lignes (réduction de 52%)
   - **Imports mis à jour** : `import { CoachDashboard } from "./components/CoachDashboard"`
   - **Fonctionnalité préservée** : Tous les onglets et fonctions du Mode Coach fonctionnent
+- [x] **Affiche Événement (Popup d'accueil) (17 Jan 2026)**:
+  - **Popup modal** : S'affiche automatiquement à l'arrivée du visiteur (après splash screen)
+  - **Support média** : Images (Unsplash, CDN) et vidéos (YouTube, Vimeo)
+  - **Fermeture facile** : Bouton × visible en haut à droite
+  - **SessionStorage** : Le popup ne réapparaît pas après fermeture (mémorisation session)
+  - **Administration** : Section "🎉 Affiche Événement" dans Mode Coach → Concept & Visuel
+  - **Toggle activation** : Activer/désactiver l'affiche avec un switch
+  - **Aperçu en direct** : Prévisualisation de l'image ou vidéo dans l'admin
+  - **Backend** : Champs `eventPosterEnabled` et `eventPosterMediaUrl` ajoutés au modèle Concept
+- [x] **Correction Glow Offres (17 Jan 2026)**:
+  - **Glow adouci** : Réduction de `0 0 30px/60px` à `0 0 10px rgba(217, 28, 210, 0.4)`
+  - **CSS + inline** : Correction dans App.css et App.js (ligne 956)
+  - **Margin-top** : Ajout pour éviter que le glow soit coupé en haut
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
