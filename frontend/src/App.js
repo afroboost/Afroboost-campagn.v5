@@ -719,11 +719,9 @@ const MediaDisplay = ({ url, className }) => {
         <button 
           onClick={toggleMute}
           style={smallMuteStyle}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
           data-testid="mute-btn"
         >
-          {isMuted ? '🔇' : '🔊'}
+          {isMuted ? '🔇 Son' : '🔊'}
         </button>
       </div>
     );
