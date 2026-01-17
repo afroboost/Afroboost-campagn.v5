@@ -3727,6 +3727,14 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-2 rounded-lg glass text-white text-xs sm:text-sm" data-testid="import-csv-btn">
                   <FolderIcon /> {t('importCSV')}
                 </button>
+                <button 
+                  onClick={exportPromoCodesCSV} 
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-white text-xs sm:text-sm"
+                  style={{ background: 'rgba(139, 92, 246, 0.3)', border: '1px solid rgba(139, 92, 246, 0.5)' }}
+                  data-testid="export-csv-btn"
+                >
+                  📥 {t('exportCSV')}
+                </button>
               </div>
             </div>
             
