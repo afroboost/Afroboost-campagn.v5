@@ -2170,7 +2170,43 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 <input type="url" value={paymentLinks.twint} onChange={e => setPaymentLinks({ ...paymentLinks, twint: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://..." /></div>
               <div><label className="block mb-2 text-white text-sm">{t('coachWhatsapp')}</label>
                 <input type="tel" value={paymentLinks.coachWhatsapp} onChange={e => setPaymentLinks({ ...paymentLinks, coachWhatsapp: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="+41791234567" /></div>
-              <button onClick={savePayments} className="btn-primary px-6 py-3 rounded-lg">{t('save')}</button>
+              
+              {/* Section Notifications automatiques */}
+              <div className="mt-8 pt-6 border-t border-purple-500/30">
+                <h3 className="text-white text-sm font-semibold mb-4">🔔 Notifications automatiques</h3>
+                <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  Recevez une notification par email et/ou WhatsApp à chaque nouvelle réservation.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block mb-2 text-white text-xs opacity-70">📧 Email pour les alertes</label>
+                    <input 
+                      type="email" 
+                      value={paymentLinks.coachNotificationEmail || ''} 
+                      onChange={e => setPaymentLinks({ ...paymentLinks, coachNotificationEmail: e.target.value })} 
+                      className="w-full px-4 py-3 rounded-lg neon-input text-sm" 
+                      placeholder="coach@exemple.com"
+                      data-testid="coach-notification-email"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-2 text-white text-xs opacity-70">📱 WhatsApp pour les alertes</label>
+                    <input 
+                      type="tel" 
+                      value={paymentLinks.coachNotificationPhone || ''} 
+                      onChange={e => setPaymentLinks({ ...paymentLinks, coachNotificationPhone: e.target.value })} 
+                      className="w-full px-4 py-3 rounded-lg neon-input text-sm" 
+                      placeholder="+41791234567"
+                      data-testid="coach-notification-phone"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs mt-3" style={{ color: 'rgba(139, 92, 246, 0.7)' }}>
+                  💡 Conseil: Configurez EmailJS dans l'onglet Campagnes pour activer les notifications email.
+                </p>
+              </div>
+
+              <button onClick={savePayments} className="btn-primary px-6 py-3 rounded-lg mt-6">{t('save')}</button>
             </div>
           </div>
         )}
