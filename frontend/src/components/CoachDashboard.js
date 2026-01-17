@@ -33,6 +33,102 @@ const ClockIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColo
 const TrashIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>;
 const FolderIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>;
 
+// Parse media URL helper
+function parseMediaUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) return null;
+  
+  const ytMatch = trimmedUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) return { type: 'youtube', id: ytMatch[1] };
+  
+  const vimeoMatch = trimmedUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeoMatch) return { type: 'vimeo', id: vimeoMatch[1] };
+  
+  const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.m4v', '.ogv'];
+  const lowerUrl = trimmedUrl.toLowerCase();
+  if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+    return { type: 'video', url: trimmedUrl };
+  }
+  
+  return { type: 'image', url: trimmedUrl };
+}
+
+// MediaDisplay component (simplified version for admin preview)
+const MediaDisplay = ({ url, className }) => {
+  const media = parseMediaUrl(url);
+  if (!media || !url || url.trim() === '') return null;
+
+  const containerStyle = {
+    position: 'relative',
+    width: '100%',
+    paddingBottom: '56.25%',
+    overflow: 'hidden',
+    borderRadius: '16px',
+    border: '1px solid rgba(217, 28, 210, 0.3)',
+    background: '#0a0a0a'
+  };
+
+  const contentStyle = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%'
+  };
+
+  if (media.type === 'youtube') {
+    return (
+      <div className={className} style={containerStyle}>
+        <iframe 
+          src={`https://www.youtube.com/embed/${media.id}?autoplay=0&mute=1`}
+          frameBorder="0" 
+          allow="encrypted-media" 
+          style={{ ...contentStyle }}
+          title="YouTube video"
+        />
+      </div>
+    );
+  }
+  
+  if (media.type === 'vimeo') {
+    return (
+      <div className={className} style={containerStyle}>
+        <iframe 
+          src={`https://player.vimeo.com/video/${media.id}?autoplay=0&muted=1`}
+          frameBorder="0" 
+          allow="autoplay" 
+          style={{ ...contentStyle }}
+          title="Vimeo video"
+        />
+      </div>
+    );
+  }
+  
+  if (media.type === 'video') {
+    return (
+      <div className={className} style={containerStyle}>
+        <video 
+          src={media.url} 
+          muted
+          playsInline 
+          style={{ ...contentStyle, objectFit: 'cover' }}
+        />
+      </div>
+    );
+  }
+  
+  return (
+    <div className={className} style={containerStyle}>
+      <img 
+        src={media.url} 
+        alt="Media" 
+        style={{ ...contentStyle, objectFit: 'cover' }}
+      />
+    </div>
+  );
+};
+
 const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
   const [tab, setTab] = useState("reservations");
   const [reservations, setReservations] = useState([]);
