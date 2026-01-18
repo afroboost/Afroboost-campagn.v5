@@ -2114,7 +2114,8 @@ function App() {
   // Vérifier si le cache est valide
   const isCacheValid = useCallback((key) => {
     const cached = cacheRef.current[key];
-    return cached.data && (Date.now() - cached.timestamp < CACHE_TTL);
+    const cacheTTL = 5 * 60 * 1000; // 5 minutes
+    return cached.data && (Date.now() - cached.timestamp < cacheTTL);
   }, []);
 
   // Fonction pour charger les données avec cache
