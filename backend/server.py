@@ -50,6 +50,17 @@ async def api_health_check():
     """Health check endpoint via /api prefix for Kubernetes"""
     return await health_check()
 
+# Favicon endpoint to prevent 404 errors
+@app.get("/api/favicon.ico")
+async def favicon():
+    """Return empty response for favicon requests to prevent 404 errors"""
+    return JSONResponse(status_code=204, content=None)
+
+@api_router.get("/favicon.ico")
+async def api_favicon():
+    """Return empty response for favicon requests via API router"""
+    return JSONResponse(status_code=204, content=None)
+
 # ==================== MODELS ====================
 
 class Course(BaseModel):
