@@ -169,6 +169,9 @@ class Reservation(BaseModel):
     shippingCost: float = 0.0
     trackingNumber: Optional[str] = None  # Numéro de suivi colis
     shippingStatus: str = "pending"  # pending, shipped, delivered
+    # Multi-date selection support
+    selectedDates: Optional[List[str]] = None  # Array of ISO date strings
+    selectedDatesText: Optional[str] = None  # Formatted text of selected dates
 
 class ReservationCreate(BaseModel):
     userId: str
