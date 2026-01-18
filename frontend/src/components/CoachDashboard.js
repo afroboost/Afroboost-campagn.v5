@@ -3648,12 +3648,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                     </div>
                     <div className="space-y-1">
                       {filteredContacts.map(contact => (
-                        <label key={contact.id} className="flex items-center gap-2 text-white text-sm cursor-pointer hover:bg-purple-500/10 p-1 rounded">
+                        <div key={contact.id} className="flex items-center gap-2 text-white text-sm hover:bg-purple-500/10 p-1 rounded group">
                           <input type="checkbox" checked={selectedContactsForCampaign.includes(contact.id)}
-                            onChange={() => toggleContactForCampaign(contact.id)} />
-                          <span className="truncate">{contact.name}</span>
+                            onChange={() => toggleContactForCampaign(contact.id)} className="cursor-pointer" />
+                          <span className="truncate flex-1">{contact.name}</span>
                           <span className="text-xs opacity-50 truncate">({contact.email})</span>
-                        </label>
+                          {/* Bouton suppression (visible au hover) */}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); deleteContact(contact.id); }}
+                            className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-red-400 hover:bg-red-500/20 text-xs transition-opacity"
+                            title="Supprimer définitivement"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       ))}
                     </div>
                     <p className="text-xs text-purple-400 mt-2">{selectedContactsForCampaign.length} contact(s) sélectionné(s)</p>
