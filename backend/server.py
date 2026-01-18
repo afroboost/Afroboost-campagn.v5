@@ -452,8 +452,17 @@ async def create_course(course: CourseCreate):
     return course_obj
 
 @api_router.put("/courses/{course_id}", response_model=Course)
-async def update_course(course_id: str, course: CourseCreate):
-    await db.courses.update_one({"id": course_id}, {"$set": course.model_dump()})
+async def update_course(course_id: str, course_update: dict):
+    """Update a course - supports partial updates including playlist"""
+    # Récupérer le cours existant
+    existing = await db.courses.find_one({"id": course_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Cours non trouvé")
+    
+    # Fusionner les données (mise à jour partielle)
+    update_data = {k: v for k, v in course_update.items() if v is not None}
+    
+    await db.courses.update_one({"id": course_id}, {"$set": update_data})
     updated = await db.courses.find_one({"id": course_id}, {"_id": 0})
     return updated
 
