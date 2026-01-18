@@ -643,6 +643,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
       price: offer.price || 0,
       visible: offer.visible !== false,
       description: offer.description || "",
+      keywords: offer.keywords || "", // FIX: Charger les mots-clés existants
       images: paddedImages,
       category: offer.category || "service",
       isProduct: offer.isProduct || false,
@@ -659,7 +660,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
   // Annuler l'édition
   const cancelEditOffer = () => {
     setNewOffer({ 
-      name: "", price: 0, visible: true, description: "",
+      name: "", price: 0, visible: true, description: "", keywords: "",
       images: ["", "", "", "", ""],
       category: "service", isProduct: false, variants: null, tva: 0, shippingCost: 0, stock: -1
     });
