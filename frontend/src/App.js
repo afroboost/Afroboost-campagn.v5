@@ -2109,9 +2109,8 @@ function App() {
     concept: { data: null, timestamp: 0 },
     paymentLinks: { data: null, timestamp: 0 }
   });
-  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  // Vérifier si le cache est valide
+  // Vérifier si le cache est valide (TTL: 5 minutes)
   const isCacheValid = useCallback((key) => {
     const cached = cacheRef.current[key];
     const cacheTTL = 5 * 60 * 1000; // 5 minutes
