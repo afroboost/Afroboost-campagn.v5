@@ -32,6 +32,7 @@ import {
 import { ChatWidget } from "./components/ChatWidget";
 import { CoachDashboard } from "./components/CoachDashboard";
 import CoachLoginModal from "./components/CoachLoginModal";
+import PaymentSuccessPage from "./components/PaymentSuccessPage";
 import { useDataCache, invalidateCache } from "./hooks/useDataCache";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
