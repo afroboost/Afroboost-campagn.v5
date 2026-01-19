@@ -304,14 +304,15 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
 ```
 
 ### Data Models (MongoDB)
-- `courses`: id, name, weekday, time, locationName, mapsUrl, visible
+- `courses`: id, name, weekday, time, locationName, mapsUrl, visible, playlist (List[str])
 - `offers`: id, name, price, thumbnail, description, visible
 - `users`: id, name, email, whatsapp, createdAt
-- `reservations`: id, reservationCode, userId, userName, userEmail, courseId, selectedDates (List[str]), selectedDatesText, totalPrice, ...
+- `reservations`: id, reservationCode, userId, userName, userEmail, courseId, selectedDates (List[str]), selectedDatesText, totalPrice, stripeSessionId, paymentStatus, ...
 - `discount_codes`: id, code, type, value, assignedEmail, courses, maxUses, used, active
-- `concept`: id, description, heroImageUrl, logoUrl, faviconUrl
+- `concept`: id, description, heroImageUrl, logoUrl, faviconUrl, paymentTwint, paymentPaypal, paymentCreditCard, ...
 - `payment_links`: id, stripe, paypal, twint, coachWhatsapp
 - `campaigns`: id, name, message, mediaUrl, mediaFormat, targetType, selectedContacts, channels, scheduledAt, status, results, createdAt
+- `payment_transactions` **(NOUVEAU)**: id, session_id, amount, currency, product_name, customer_email, metadata, payment_status, payment_methods, created_at, updated_at
 
 ---
 
