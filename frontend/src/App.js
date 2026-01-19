@@ -1982,6 +1982,7 @@ function App() {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showConfirmPayment, setShowConfirmPayment] = useState(false);
+  const [showPaymentSuccessPage, setShowPaymentSuccessPage] = useState(false); // Page de succès Stripe
   const [validationMessage, setValidationMessage] = useState("");
   const [pendingReservation, setPendingReservation] = useState(null);
   const [lastReservation, setLastReservation] = useState(null);
