@@ -49,17 +49,17 @@
   border-radius: 2px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #D91CD2;
+  background: var(--primary-color);
   border-radius: 2px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #e84de0;
+  background: var(--primary-light);
 }
 
 /* Pink scrollbar for sessions/courses list on client side */
 .sessions-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #D91CD2 rgba(0, 0, 0, 0.15);
+  scrollbar-color: var(--primary-color) rgba(0, 0, 0, 0.15);
 }
 .sessions-scrollbar::-webkit-scrollbar {
   width: 4px;
@@ -69,11 +69,11 @@
   border-radius: 2px;
 }
 .sessions-scrollbar::-webkit-scrollbar-thumb {
-  background: #D91CD2;
+  background: var(--primary-color);
   border-radius: 2px;
 }
 .sessions-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #e84de0;
+  background: var(--primary-light);
 }
 
 /* =================================================================
@@ -85,7 +85,7 @@
   justify-content: center;
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(217, 28, 210, 0.5);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 50%, transparent);
   background: transparent;
   color: rgba(255, 255, 255, 0.8);
   font-size: 13px;
@@ -97,7 +97,7 @@
 }
 
 .variant-chip:hover {
-  border-color: #D91CD2;
+  border-color: var(--primary-color);
   color: #fff;
   background: rgba(217, 28, 210, 0.1);
 }
