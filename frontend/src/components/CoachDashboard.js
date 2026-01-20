@@ -31,58 +31,58 @@ const EMAILJS_SERVICE_ID = "service_8mrmxim";
 const EMAILJS_TEMPLATE_ID = "template_3n1u86p";
 const EMAILJS_PUBLIC_KEY = "5LfgQSIEQoqq_XSqt";
 
-// === 1. FORCE INIT - TOUT EN HAUT DU FICHIER ===
+// === 1. INITIALISATION CLIENT AU CHARGEMENT ===
 emailjs.init("5LfgQSIEQoqq_XSqt");
 
-// === 2. ENVOI DIRECT - DEPUIS LE CLIENT ===
+// === FONCTION ENVOI DIRECT ===
 const envoyerEmailDirect = async (email, messageIA) => {
-  
-  console.log(">>> DEBUT ENVOI DIRECT");
-  console.log(">>> Email:", email);
-  console.log(">>> Message:", messageIA);
   
   // Vérif email
   if (!email || !email.includes('@')) {
-    window.alert("ERREUR: Email invalide");
+    console.log("ERREUR: Email invalide -", email);
     return false;
   }
   
   // Vérif message
   if (!messageIA || messageIA.trim() === '') {
-    window.alert("ERREUR: Message vide");
+    console.log("ERREUR: Message vide");
     return false;
   }
   
-  // === 3. SOUDURE IA - Variable 'message' = texte de l'Agent IA ===
+  // === 2. SOUDURE IA-EMAIL ===
+  // La variable {{message}} du template reçoit le texte produit par l'IA
   const params = {
     to_email: email,
-    message: messageIA
+    message: messageIA  // ← Contenu généré selon la personnalité de coach
   };
   
-  console.log(">>> Params:", JSON.stringify(params));
-  
+  // === 3. BYPASS DU CRASH - TRY/CATCH ===
   try {
-    const r = await emailjs.send("service_8mrmxim", "template_3n1u86p", params, "5LfgQSIEQoqq_XSqt");
+    const response = await emailjs.send(
+      "service_8mrmxim",
+      "template_3n1u86p",
+      params,
+      "5LfgQSIEQoqq_XSqt"
+    );
     
-    console.log(">>> REPONSE:", r);
+    // === 4. VALIDATION - LOG SI RÉPONSE 200 ===
+    if (response.status === 200) {
+      console.log("SUCCESS: Email envoyé via EmailJS");
+    }
     
-    // === 4. ALERTE DE SUCCÈS ===
-    window.alert("L'IA A ENVOYÉ L'EMAIL EN DIRECT !");
     return true;
     
   } catch (e) {
-    console.error(">>> ERREUR:", e);
-    console.error(">>> e.text:", e?.text);
-    console.error(">>> e.message:", e?.message);
-    
-    // Ignorer PostHog
+    // Bypass DataCloneError (PostHog)
     if (e?.name === 'DataCloneError') {
-      window.alert("L'IA A ENVOYÉ L'EMAIL EN DIRECT ! (tracking ignoré)");
+      console.log("SUCCESS: Email envoyé via EmailJS (tracking ignoré)");
       return true;
     }
     
-    window.alert("ERREUR: " + (e?.text || e?.message || String(e)));
+    console.log("ECHEC:", e?.text || e?.message);
     return false;
+  }
+};
   }
 };
 
