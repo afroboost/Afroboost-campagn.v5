@@ -1331,7 +1331,6 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
       alert(`❌ Erreur lors de l'envoi: ${error.message}`);
     }
   };
-  };
 
   // === WHATSAPP API FUNCTIONS ===
   
