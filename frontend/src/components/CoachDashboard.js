@@ -1348,8 +1348,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   // === WHATSAPP API FUNCTIONS ===
   
   // Sauvegarder la configuration WhatsApp
-  const handleSaveWhatsAppConfig = () => {
-    const success = saveWhatsAppConfig(whatsAppConfig);
+  const handleSaveWhatsAppConfig = async () => {
+    const success = await saveWhatsAppConfig(whatsAppConfig);
     if (success) {
       setShowWhatsAppConfig(false);
       alert('✅ Configuration WhatsApp API sauvegardée !');
