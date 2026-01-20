@@ -36,3 +36,12 @@ export {
   findClientByPhone,
   buildAIContext
 } from './aiResponseService';
+
+// === MESSAGING GATEWAY - Passerelles techniques pour l'agent IA ===
+// Ces fonctions sont des canaux de sortie PURS
+// L'agent IA reste le déclencheur et utilise ces passerelles pour expédier
+export {
+  sendEmailGateway,
+  sendWhatsAppGateway,
+  sendMessageGateway
+} from './messagingGateway';
