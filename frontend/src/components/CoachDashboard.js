@@ -1532,60 +1532,64 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }
   };
 
-  // === FONCTION TEST EMAILJS DIRECTE ===
-  // Utilise EXCLUSIVEMENT les constantes fixes sans transformation complexe
+  // === FONCTION TEST EMAILJS - ISOLATION COMPLÈTE ===
+  // Utilise la fonction autonome performEmailSend pour éviter les conflits PostHog
   const handleTestEmailJS = async (e) => {
-    // CRITICAL: Bloquer la propagation pour PostHog
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    // === BLOCAGE CRASH POSTHOG ===
+    // Ces lignes DOIVENT être en premier, avant toute autre logique
+    e.preventDefault();
+    e.stopPropagation();
     
+    // Validation basique
     if (!testEmailAddress || !testEmailAddress.includes('@')) {
       alert('Veuillez entrer une adresse email valide pour le test');
       return;
     }
     
-    console.log('🧪 Testing EmailJS DIRECT with address:', testEmailAddress);
-    console.log('📧 Using: ServiceID:', EMAILJS_SERVICE_ID, 'TemplateID:', EMAILJS_TEMPLATE_ID);
-    setTestEmailStatus('sending');
-    
+    // Mise à jour UI - dans un try/catch séparé pour isoler PostHog
     try {
-      // LIAISON RÉELLE EMAILJS - Objet plat sans transformation
-      const templateParams = {
-        to_email: testEmailAddress,
-        to_name: "Client",
-        subject: "Test Afroboost",
-        message: "Ceci est un test de configuration EmailJS. Si vous recevez ce message, tout fonctionne !"
-      };
-      
-      console.log('📧 Template params:', templateParams);
-      
-      // Appel DIRECT à emailjs.send avec les constantes fixes
-      const response = await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        templateParams,
-        EMAILJS_PUBLIC_KEY
+      setTestEmailStatus('sending');
+    } catch (stateError) {
+      console.warn('PostHog bloqué sur setState mais envoi maintenu:', stateError);
+    }
+    
+    // === ENVOI TECHNIQUE - ISOLÉ DE LA GESTION D'ÉTAT ===
+    try {
+      // Appel de la fonction autonome (hors composant React)
+      const result = await performEmailSend(
+        testEmailAddress,
+        'Client',
+        'Test Afroboost',
+        'Ceci est un test de configuration EmailJS. Si vous recevez ce message, tout fonctionne !'
       );
       
-      console.log('✅ EmailJS response:', response);
-      
-      if (response.status === 200 || response.text === 'OK') {
-        setTestEmailStatus('success');
-        alert('✅ Email de test envoyé avec succès !');
-        setTimeout(() => setTestEmailStatus(null), 5000);
-      } else {
-        setTestEmailStatus('error');
-        alert(`❌ Erreur: Statut ${response.status}`);
-        setTimeout(() => setTestEmailStatus(null), 3000);
+      // Gestion du résultat - également isolée
+      try {
+        if (result.success) {
+          setTestEmailStatus('success');
+          alert('✅ Email de test envoyé avec succès !');
+          setTimeout(() => setTestEmailStatus(null), 5000);
+        } else {
+          setTestEmailStatus('error');
+          alert(`❌ Erreur EmailJS: ${result.error}`);
+          setTimeout(() => setTestEmailStatus(null), 3000);
+        }
+      } catch (uiError) {
+        console.warn('PostHog bloqué sur UI update mais envoi réussi:', uiError);
+        if (result.success) {
+          alert('✅ Email envoyé (UI bloquée par PostHog)');
+        }
       }
-    } catch (error) {
-      setTestEmailStatus('error');
-      const errorMsg = error?.text || error?.message || 'Erreur inconnue';
-      alert(`❌ Erreur EmailJS: ${errorMsg}`);
-      console.error('❌ EmailJS exception:', error);
-      setTimeout(() => setTestEmailStatus(null), 3000);
+    } catch (sendError) {
+      console.error('❌ Erreur envoi email:', sendError);
+      try {
+        setTestEmailStatus('error');
+        alert(`❌ Erreur technique: ${sendError.message}`);
+        setTimeout(() => setTestEmailStatus(null), 3000);
+      } catch (e) {
+        console.warn('PostHog bloqué mais erreur signalée:', e);
+        alert(`❌ Erreur: ${sendError.message}`);
+      }
     }
   };
 
