@@ -31,14 +31,39 @@ const EMAILJS_SERVICE_ID = "service_8mrmxim";
 const EMAILJS_TEMPLATE_ID = "template_3n1u86p";
 const EMAILJS_PUBLIC_KEY = "5LfgQSIEQoqq_XSqt";
 
-// === INITIALISATION SDK EMAILJS AU CHARGEMENT DU MODULE ===
-// Exécuté une seule fois au chargement du fichier, avant tout rendu React
-try {
-  emailjs.init(EMAILJS_PUBLIC_KEY);
-  console.log('✅ EmailJS SDK initialisé au chargement du module');
-} catch (initError) {
-  console.error('❌ Erreur initialisation EmailJS:', initError);
-}
+// === 1. FORCE INIT - TOUT EN HAUT DU FICHIER ===
+emailjs.init("5LfgQSIEQoqq_XSqt");
+console.log("EMAILJS INIT OK");
+
+// === FONCTION ENVOI BRUT - ULTRA SIMPLE ===
+const envoyerEmailBrut = async (email, texteIA) => {
+  // 3. VARIABLES PLATES - Rien de complexe
+  const data = {
+    to_email: email,
+    message: texteIA
+  };
+  
+  console.log("TENTATIVE ENVOI:", data);
+  
+  // 2. BYPASS CRASH - Try/catch simple
+  try {
+    const r = await emailjs.send(
+      "service_8mrmxim",
+      "template_3n1u86p", 
+      data,
+      "5LfgQSIEQoqq_XSqt"
+    );
+    
+    // 4. ALERTE RÉELLE
+    window.alert("EMAIL ENVOYÉ RÉELLEMENT");
+    console.log("SUCCESS:", r);
+    return true;
+    
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+};
 
 // ============================================================
 // === FONCTIONS AUTONOMES - ISOLÉES DE LA GESTION D'ÉTAT ===
