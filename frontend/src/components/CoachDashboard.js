@@ -83,8 +83,6 @@ const envoyerEmailDirect = async (email, messageIA) => {
     return false;
   }
 };
-  }
-};
 
 // ============================================================
 // === FONCTIONS AUTONOMES - ISOLÉES DE LA GESTION D'ÉTAT ===
