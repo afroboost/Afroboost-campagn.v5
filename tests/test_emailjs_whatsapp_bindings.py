@@ -174,9 +174,18 @@ class TestHandleTestWhatsApp:
     def test_handle_test_whatsapp_uses_direct_function(self, coach_dashboard_content):
         """Verify handleTestWhatsApp uses sendWhatsAppMessageDirect"""
         # Find handleTestWhatsApp function and check it calls sendWhatsAppMessageDirect
-        pattern = r'const handleTestWhatsApp = async \(e\) => \{[^}]*await sendWhatsAppMessageDirect\('
-        match = re.search(pattern, coach_dashboard_content, re.DOTALL)
-        assert match is not None, "handleTestWhatsApp doesn't use sendWhatsAppMessageDirect"
+        # The function spans multiple lines, so we check more flexibly
+        func_start = coach_dashboard_content.find("const handleTestWhatsApp = async (e) =>")
+        assert func_start != -1, "handleTestWhatsApp function not found"
+        
+        # Find the next function definition to limit our search
+        next_func = coach_dashboard_content.find("const handle", func_start + 50)
+        if next_func == -1:
+            next_func = len(coach_dashboard_content)
+        
+        func_body = coach_dashboard_content[func_start:next_func]
+        assert "await sendWhatsAppMessageDirect(" in func_body, \
+            "handleTestWhatsApp doesn't use sendWhatsAppMessageDirect"
         print("✅ handleTestWhatsApp uses sendWhatsAppMessageDirect")
 
 
