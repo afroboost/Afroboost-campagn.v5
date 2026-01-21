@@ -3149,6 +3149,215 @@ async def get_session_participants(session_id: str):
     
     return participants
 
+# ==================== WEB PUSH NOTIFICATIONS ====================
+
+@api_router.get("/push/vapid-key")
+async def get_vapid_public_key():
+    """Retourne la clé publique VAPID pour l'inscription côté client"""
+    return {"publicKey": VAPID_PUBLIC_KEY}
+
+@api_router.post("/push/subscribe")
+async def subscribe_push(request: Request):
+    """
+    Enregistre une souscription push pour un participant.
+    
+    Body attendu:
+    {
+        "participant_id": "xxx",
+        "subscription": {
+            "endpoint": "https://...",
+            "keys": {
+                "p256dh": "...",
+                "auth": "..."
+            }
+        }
+    }
+    """
+    body = await request.json()
+    participant_id = body.get("participant_id")
+    subscription = body.get("subscription")
+    
+    if not participant_id or not subscription:
+        raise HTTPException(status_code=400, detail="participant_id et subscription sont requis")
+    
+    # Sauvegarder la souscription
+    sub_obj = {
+        "id": str(uuid.uuid4()),
+        "participant_id": participant_id,
+        "subscription": subscription,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "active": True
+    }
+    
+    # Mettre à jour ou créer
+    await db.push_subscriptions.update_one(
+        {"participant_id": participant_id},
+        {"$set": sub_obj},
+        upsert=True
+    )
+    
+    logger.info(f"Push subscription registered for participant {participant_id}")
+    return {"success": True, "message": "Souscription enregistrée"}
+
+@api_router.delete("/push/subscribe/{participant_id}")
+async def unsubscribe_push(participant_id: str):
+    """Désactive la souscription push d'un participant"""
+    await db.push_subscriptions.update_one(
+        {"participant_id": participant_id},
+        {"$set": {"active": False}}
+    )
+    return {"success": True, "message": "Souscription désactivée"}
+
+async def send_push_notification(participant_id: str, title: str, body: str, data: dict = None):
+    """
+    Envoie une notification push à un participant.
+    Retourne True si envoyé avec succès, False sinon.
+    """
+    if not WEBPUSH_AVAILABLE or not VAPID_PRIVATE_KEY:
+        logger.warning("Web Push not configured")
+        return False
+    
+    # Récupérer la souscription
+    sub = await db.push_subscriptions.find_one(
+        {"participant_id": participant_id, "active": True},
+        {"_id": 0}
+    )
+    
+    if not sub or not sub.get("subscription"):
+        logger.info(f"No push subscription for participant {participant_id}")
+        return False
+    
+    subscription_info = sub["subscription"]
+    
+    payload = json.dumps({
+        "title": title,
+        "body": body,
+        "icon": "/favicon.ico",
+        "badge": "/favicon.ico",
+        "data": data or {},
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    try:
+        webpush(
+            subscription_info=subscription_info,
+            data=payload,
+            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_claims={"sub": f"mailto:{VAPID_CLAIMS_EMAIL}"}
+        )
+        logger.info(f"Push notification sent to {participant_id}")
+        return True
+    except WebPushException as e:
+        logger.error(f"Push notification failed: {str(e)}")
+        # Si la souscription est invalide, la désactiver
+        if e.response and e.response.status_code in [404, 410]:
+            await db.push_subscriptions.update_one(
+                {"participant_id": participant_id},
+                {"$set": {"active": False}}
+            )
+        return False
+    except Exception as e:
+        logger.error(f"Push notification error: {str(e)}")
+        return False
+
+async def send_backup_email(participant_id: str, message_preview: str):
+    """
+    Envoie un email de backup si la notification push échoue.
+    """
+    if not RESEND_AVAILABLE or not RESEND_API_KEY:
+        logger.warning("Resend not configured - cannot send backup email")
+        return False
+    
+    # Récupérer les infos du participant
+    participant = await db.chat_participants.find_one({"id": participant_id}, {"_id": 0})
+    if not participant or not participant.get("email"):
+        logger.info(f"No email for participant {participant_id}")
+        return False
+    
+    email = participant["email"]
+    name = participant.get("name", "")
+    
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #d91cd2, #8b5cf6); padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">💬 Afroboost</h1>
+        </div>
+        <div style="background: #1a1a1a; padding: 30px; color: #ffffff; border-radius: 0 0 12px 12px;">
+            <p style="font-size: 16px; margin-bottom: 20px;">
+                Bonjour {name} 👋
+            </p>
+            <p style="font-size: 14px; color: #cccccc; margin-bottom: 20px;">
+                Vous avez reçu une réponse sur Afroboost :
+            </p>
+            <div style="background: rgba(139, 92, 246, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid #8b5cf6;">
+                <p style="margin: 0; font-size: 14px; color: #ffffff;">
+                    "{message_preview[:150]}{'...' if len(message_preview) > 150 else ''}"
+                </p>
+            </div>
+            <a href="https://afroboost.ch" 
+               style="display: inline-block; background: linear-gradient(135deg, #d91cd2, #8b5cf6); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                Voir la conversation
+            </a>
+            <p style="font-size: 12px; color: #666666; margin-top: 30px;">
+                Cet email a été envoyé car vous avez une notification en attente sur Afroboost.
+            </p>
+        </div>
+    </div>
+    """
+    
+    try:
+        params = {
+            "from": "Afroboost <onboarding@resend.dev>",
+            "to": [email],
+            "subject": "💬 Nouvelle réponse sur Afroboost",
+            "html": html_content
+        }
+        
+        # Appel non-bloquant
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Backup email sent to {email}: {email_result}")
+        return True
+    except Exception as e:
+        logger.error(f"Backup email failed: {str(e)}")
+        return False
+
+@api_router.post("/push/send")
+async def send_push_to_participant(request: Request):
+    """
+    Endpoint pour envoyer manuellement une notification push.
+    
+    Body attendu:
+    {
+        "participant_id": "xxx",
+        "title": "Nouveau message",
+        "body": "Vous avez une réponse...",
+        "send_email_backup": true
+    }
+    """
+    body = await request.json()
+    participant_id = body.get("participant_id")
+    title = body.get("title", "Afroboost")
+    message_body = body.get("body", "Vous avez un nouveau message")
+    send_email_backup = body.get("send_email_backup", True)
+    
+    if not participant_id:
+        raise HTTPException(status_code=400, detail="participant_id requis")
+    
+    # Essayer d'envoyer la notification push
+    push_sent = await send_push_notification(participant_id, title, message_body)
+    
+    email_sent = False
+    if not push_sent and send_email_backup:
+        # Planifier l'email de backup après 5 minutes
+        # Pour l'instant, on l'envoie directement si push échoue
+        email_sent = await send_backup_email(participant_id, message_body)
+    
+    return {
+        "push_sent": push_sent,
+        "email_sent": email_sent,
+        "participant_id": participant_id
+    }
+
 # Include router
 app.include_router(api_router)
 
