@@ -629,6 +629,43 @@ Les fonctions d'envoi sont maintenant **au niveau module** (hors React) pour év
    - Backend: 5/5 API tests (health, whatsapp-config GET/PUT, campaigns GET)
    - Frontend: 9/9 code implementation tests
 
+### Système de Chat Amélioré - Backend (21 Jan 2026)
+1. ✅ **Reconnaissance automatique des utilisateurs**:
+   - Modèle `ChatParticipant` avec `name`, `email`, `whatsapp`, `source`, `link_token`
+   - Endpoint `/api/chat/smart-entry` identifie les utilisateurs par nom/email/whatsapp
+   - Message personnalisé "Ravi de te revoir, {prénom}!" pour les utilisateurs reconnus
+   - Historique de chat restauré automatiquement pour les utilisateurs existants
+
+2. ✅ **Enregistrement CRM automatique**:
+   - Collection `chat_participants` pour stocker les contacts
+   - Source par défaut "chat_afroboost", identifie la provenance via `link_{token}`
+   - Endpoint `/api/chat/participants` pour lister/gérer les contacts
+   - Mise à jour automatique de `last_seen_at` à chaque reconnexion
+
+3. ✅ **Modes de conversation (IA/Humain/Communautaire)**:
+   - Modèle `ChatSession` avec champs `mode` et `is_ai_active`
+   - Mode "ai" : L'IA répond automatiquement
+   - Mode "human" : Seul le coach répond (toggle via `/api/chat/sessions/{id}/toggle-ai`)
+   - Mode "community" : Plusieurs participants humains (préparé pour futur)
+   - Endpoint `/api/chat/coach-response` pour les réponses du coach
+
+4. ✅ **Liens partageables uniques**:
+   - Chaque session a un `link_token` unique (12 caractères)
+   - Endpoint `/api/chat/generate-link` crée un nouveau lien avec titre personnalisé
+   - Endpoint `/api/chat/sessions/by-token/{token}` pour récupérer une session via lien
+   - Endpoint `/api/chat/links` liste tous les liens générés pour le coach
+   - Les utilisateurs arrivant via un lien sont enregistrés avec `source: "link_{token}"`
+
+5. ✅ **Suppression logique**:
+   - Champ `is_deleted` sur `ChatSession` et `EnhancedChatMessage`
+   - Endpoint `/api/chat/messages/{id}/delete` marque un message comme supprimé
+   - Paramètre `include_deleted=true` pour récupérer les éléments supprimés
+   - `deleted_at` timestamp pour traçabilité
+
+6. ✅ **Tests API complets**:
+   - 17/17 tests curl passés
+   - Flux complet testé : génération lien → inscription utilisateur → reconnaissance → messages
+
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
 - [x] ~~**Notifications email après réservation**~~ - ✅ COMPLÉTÉ
@@ -637,6 +674,8 @@ Les fonctions d'envoi sont maintenant **au niveau module** (hors React) pour év
 - [x] ~~**Séparation Cours/Produits**~~ - ✅ COMPLÉTÉ
 - [x] ~~**Archivage cours**~~ - ✅ COMPLÉTÉ
 - [x] ~~**Correction Bug DataCloneError**~~ - ✅ COMPLÉTÉ (20 Jan 2026)
+- [x] ~~**Système de Chat Backend**~~ - ✅ COMPLÉTÉ (21 Jan 2026)
+- [ ] **Frontend Chat Amélioré** : Connecter l'interface utilisateur à la nouvelle logique backend
 - [ ] **Migration CSS variables** : Refactoriser les styles inline (`style={{ color: '#D91CD2' }}`) pour utiliser les variables CSS `--primary-color` et `--glow-color`
 - [ ] **Lecteur Audio Côté Client** : Implémenter le lecteur audio sur la page publique pour les cours ayant une playlist
 - [ ] **Optimisation Backend MongoDB** - Appliquer pagination et projection sur les requêtes pour améliorer les performances en production.
@@ -649,6 +688,15 @@ Les fonctions d'envoi sont maintenant **au niveau module** (hors React) pour év
 - [ ] Envoi Instagram via ig.me
 - [ ] Dashboard analytics pour le coach
 - [ ] Ajouter une vue "Leads" dans le Mode Coach pour visualiser les contacts capturés
+
+---
+
+## Data Models (MongoDB) - Mis à jour
+
+### Collections Chat Amélioré (NOUVEAU)
+- `chat_participants`: `{id, name, whatsapp, email, source, link_token, created_at, last_seen_at}`
+- `chat_sessions`: `{id, participant_ids, mode, is_ai_active, is_deleted, link_token, title, notes, created_at, updated_at, deleted_at}`
+- `chat_messages`: `{id, session_id, sender_id, sender_name, sender_type, content, mode, is_deleted, created_at, deleted_at}`
 
 ---
 
