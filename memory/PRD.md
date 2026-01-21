@@ -874,6 +874,8 @@ Les fonctions d'envoi sont maintenant **au niveau module** (hors React) pour év
 - `chat_participants`: `{id, name, whatsapp, email, source, link_token, created_at, last_seen_at}`
 - `chat_sessions`: `{id, participant_ids, mode, is_ai_active, is_deleted, link_token, title, notes, created_at, updated_at, deleted_at}`
 - `chat_messages`: `{id, session_id, sender_id, sender_name, sender_type, content, mode, is_deleted, created_at, deleted_at}`
+- `push_subscriptions` **(NOUVEAU)**: `{participant_id, subscription (endpoint, keys), active, created_at, updated_at}`
+- `custom_emojis`: `{id, name, image_data (base64), category, active, created_at}`
 
 ---
 
