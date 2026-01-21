@@ -3281,15 +3281,6 @@ async def send_backup_email(participant_id: str, message_preview: str):
         logger.info(f"[SIMULATION EMAIL] Email would be sent successfully (Resend not configured)")
         return True  # Retourne True pour la simulation
     
-    # Récupérer les infos du participant
-    participant = await db.chat_participants.find_one({"id": participant_id}, {"_id": 0})
-    if not participant or not participant.get("email"):
-        logger.info(f"No email for participant {participant_id}")
-        return False
-    
-    email = participant["email"]
-    name = participant.get("name", "")
-    
     html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #d91cd2, #8b5cf6); padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
