@@ -5665,29 +5665,66 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                           {selectedSession.title || 'Conversation'}
                         </p>
                       </div>
-                      {/* Toggle IA/Humain */}
-                      <button
-                        onClick={() => toggleSessionAI(selectedSession.id)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all"
-                        style={{ 
-                          background: selectedSession.is_ai_active ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)',
-                          color: '#fff'
-                        }}
-                        data-testid="toggle-ai-btn"
-                      >
-                        {selectedSession.is_ai_active ? (
-                          <>🤖 IA Active</>
-                        ) : (
-                          <>👤 Mode Humain</>
-                        )}
-                      </button>
+                      {/* Sélecteur de mode */}
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selectedSession.mode || 'ai'}
+                          onChange={(e) => setSessionMode(selectedSession.id, e.target.value)}
+                          className="px-2 py-1 rounded text-xs"
+                          style={{ 
+                            background: selectedSession.mode === 'ai' 
+                              ? 'rgba(34, 197, 94, 0.3)' 
+                              : selectedSession.mode === 'community'
+                              ? 'rgba(139, 92, 246, 0.3)'
+                              : 'rgba(234, 179, 8, 0.3)',
+                            color: '#fff',
+                            border: '1px solid rgba(255,255,255,0.2)'
+                          }}
+                          data-testid="session-mode-select"
+                        >
+                          <option value="ai">🤖 IA</option>
+                          <option value="human">👤 Humain</option>
+                          <option value="community">👥 Communauté</option>
+                        </select>
+                      </div>
                     </div>
 
-                    {/* Messages */}
+                    {/* Indicateur de mode */}
+                    <div 
+                      className="text-center text-xs py-2 rounded mb-2"
+                      style={{ 
+                        background: selectedSession.mode === 'ai' 
+                          ? 'rgba(34, 197, 94, 0.1)' 
+                          : selectedSession.mode === 'community'
+                          ? 'rgba(139, 92, 246, 0.1)'
+                          : 'rgba(234, 179, 8, 0.1)',
+                        color: selectedSession.mode === 'ai' 
+                          ? '#4ade80' 
+                          : selectedSession.mode === 'community'
+                          ? '#a78bfa'
+                          : '#fbbf24'
+                      }}
+                    >
+                      {selectedSession.mode === 'ai' && '🤖 L\'IA répond automatiquement'}
+                      {selectedSession.mode === 'human' && '👤 Mode Humain - Répondez aux messages'}
+                      {selectedSession.mode === 'community' && '👥 Mode Communauté - Chat de groupe'}
+                    </div>
+
+                    {/* Messages avec liens cliquables */}
                     <div 
                       className="space-y-2 mb-4 p-3 rounded-lg"
                       style={{ background: 'rgba(0,0,0,0.3)', maxHeight: '250px', overflowY: 'auto' }}
                     >
+                      <style>{`
+                        .msg-link {
+                          color: #a78bfa;
+                          text-decoration: underline;
+                          word-break: break-all;
+                        }
+                        .msg-link:hover {
+                          color: #c4b5fd;
+                        }
+                      `}</style>
                       {sessionMessages.length === 0 ? (
                         <p className="text-white/50 text-sm text-center py-4">Aucun message</p>
                       ) : (
@@ -5710,21 +5747,25 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                                 {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                            <p className="text-white text-sm">{msg.content}</p>
+                            {/* Contenu avec liens cliquables */}
+                            <p 
+                              className="text-white text-sm"
+                              dangerouslySetInnerHTML={{ __html: linkifyText(msg.content) }}
+                            />
                           </div>
                         ))
                       )}
                     </div>
 
-                    {/* Input réponse coach (visible uniquement si IA désactivée) */}
-                    {!selectedSession.is_ai_active && (
+                    {/* Input réponse coach (visible si IA désactivée ou mode communauté) */}
+                    {(selectedSession.mode === 'human' || selectedSession.mode === 'community') && (
                       <div className="flex gap-2">
                         <input
                           type="text"
                           value={coachMessage}
                           onChange={(e) => setCoachMessage(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && sendCoachMessage()}
-                          placeholder="Votre réponse..."
+                          placeholder="Votre réponse... (les URLs seront cliquables)"
                           className="flex-1 px-3 py-2 rounded-lg text-sm"
                           style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
                           data-testid="coach-message-input"
@@ -5745,9 +5786,9 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                       </div>
                     )}
 
-                    {selectedSession.is_ai_active && (
+                    {selectedSession.mode === 'ai' && (
                       <div className="text-center text-white/50 text-xs py-2">
-                        💡 L'IA répond automatiquement. Cliquez sur le bouton ci-dessus pour passer en mode humain.
+                        💡 L'IA répond automatiquement. Changez le mode ci-dessus pour répondre manuellement.
                       </div>
                     )}
                   </>
