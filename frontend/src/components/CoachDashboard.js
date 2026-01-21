@@ -1237,6 +1237,73 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }
   };
 
+  // === CUSTOM EMOJIS FUNCTIONS ===
+  const loadCustomEmojis = async () => {
+    try {
+      const res = await axios.get(`${API}/chat/emojis`);
+      setCustomEmojis(res.data);
+    } catch (err) {
+      console.error("Error loading emojis:", err);
+    }
+  };
+
+  const uploadCustomEmoji = async (file) => {
+    if (!file || !newEmojiName.trim()) {
+      alert("Veuillez donner un nom à l'emoji");
+      return;
+    }
+    
+    // Valider le type de fichier
+    if (!file.type.startsWith('image/')) {
+      alert("Format non supporté. Utilisez PNG, JPG ou GIF.");
+      return;
+    }
+    
+    // Convertir en base64
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const imageData = e.target.result;
+        const res = await axios.post(`${API}/chat/emojis`, {
+          name: newEmojiName.trim(),
+          image_data: imageData,
+          category: "custom"
+        });
+        setCustomEmojis(prev => [res.data, ...prev]);
+        setNewEmojiName("");
+        if (emojiInputRef.current) emojiInputRef.current.value = "";
+      } catch (err) {
+        console.error("Error uploading emoji:", err);
+        alert("Erreur lors de l'upload de l'emoji");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const deleteCustomEmoji = async (emojiId) => {
+    if (!window.confirm("Supprimer cet emoji ?")) return;
+    try {
+      await axios.delete(`${API}/chat/emojis/${emojiId}`);
+      setCustomEmojis(prev => prev.filter(e => e.id !== emojiId));
+    } catch (err) {
+      console.error("Error deleting emoji:", err);
+    }
+  };
+
+  const insertEmoji = (emoji) => {
+    // Insérer l'emoji sous forme de balise image dans le message
+    const emojiTag = `[emoji:${emoji.id}]`;
+    setCoachMessage(prev => prev + ` ${emojiTag} `);
+    setShowEmojiPicker(false);
+  };
+
+  // Charger les emojis au montage
+  useEffect(() => {
+    if (tab === "conversations") {
+      loadCustomEmojis();
+    }
+  }, [tab]);
+
   const toggleSessionAI = async (sessionId) => {
     try {
       const res = await axios.post(`${API}/chat/sessions/${sessionId}/toggle-ai`);
@@ -1268,10 +1335,20 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
 
   const sendCoachMessage = async () => {
     if (!selectedSession || !coachMessage.trim()) return;
+    
+    // Remplacer les tags emoji par les images
+    let messageContent = coachMessage.trim();
+    for (const emoji of customEmojis) {
+      const tag = `[emoji:${emoji.id}]`;
+      if (messageContent.includes(tag)) {
+        messageContent = messageContent.replace(tag, `<img src="${emoji.image_data}" alt="${emoji.name}" style="width:24px;height:24px;display:inline;vertical-align:middle" />`);
+      }
+    }
+    
     try {
       await axios.post(`${API}/chat/coach-response`, {
         session_id: selectedSession.id,
-        message: coachMessage.trim(),
+        message: messageContent,
         coach_name: user?.name || 'Coach'
       });
       setCoachMessage('');
