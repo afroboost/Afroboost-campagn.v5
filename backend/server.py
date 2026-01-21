@@ -3320,7 +3320,7 @@ async def send_backup_email(participant_id: str, message_preview: str):
     
     try:
         params = {
-            "from": "Afroboost <onboarding@resend.dev>",
+            "from": "Afroboost <notifications@afroboosteur.com>",
             "to": [email],
             "subject": "💬 Nouvelle réponse sur Afroboost",
             "html": html_content
