@@ -688,6 +688,46 @@ Les fonctions d'envoi sont maintenant **au niveau module** (hors React) pour év
    - Mode chat activé après soumission
    - Reconnaissance utilisateur testée
 
+### Système de Chat - Finalisation (21 Jan 2026)
+1. ✅ **Notifications sonores et visuelles**:
+   - Service `notificationService.js` avec `playNotificationSound()` utilisant Web Audio API
+   - Sons différenciés: 'message' (standard), 'coach' (double bip grave), 'user' (bip aigu)
+   - Polling toutes les 3-5 secondes pour détecter les nouveaux messages en mode humain/communautaire
+   - Notification sonore automatique quand coach/IA répond à l'utilisateur
+   - Notification sonore pour le coach quand un utilisateur envoie un message
+
+2. ✅ **Chat Communautaire (100% humain)**:
+   - Création via `POST /api/chat/sessions` avec `mode: "community"` et `is_ai_active: false`
+   - Bouton "👥 Créer" dans le dashboard pour créer un groupe communautaire
+   - Support multi-participants via lien unique partageable
+   - IA désactivée par défaut, seuls les humains peuvent répondre
+   - Indicateur visuel "👥 Mode Communauté - Plusieurs participants"
+
+3. ✅ **Liens cliquables (Rich Text)**:
+   - Fonction `linkifyText()` dans `notificationService.js`
+   - Convertit automatiquement les URLs en liens `<a href="..." target="_blank">`
+   - Style CSS `.chat-link` avec couleur violet et underline
+   - Fonctionne dans ChatWidget ET CoachDashboard
+   - Les liens s'ouvrent dans un nouvel onglet
+
+4. ✅ **Suppression de l'historique (Widget)**:
+   - Menu burger "⋮" dans le header du ChatWidget
+   - Option "🗑️ Supprimer l'historique" avec confirmation
+   - Appelle `PUT /api/chat/messages/{id}/delete` pour chaque message (soft delete)
+   - Option "🔄 Changer d'identité" pour réinitialiser le client
+
+5. ✅ **Sélecteur de mode dans CoachDashboard**:
+   - Dropdown avec 3 options: 🤖 IA, 👤 Humain, 👥 Communauté
+   - Change le mode via `PUT /api/chat/sessions/{id}`
+   - Indicateur visuel coloré selon le mode
+   - Input de réponse visible uniquement en mode Humain/Communauté
+
+6. ✅ **Tests automatisés complets**:
+   - iteration_28: 17/17 backend tests (100%)
+   - Tous les modes (ai/human/community) testés
+   - Suppression et restauration de messages testées
+   - Liens cliquables vérifiés
+
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
 - [x] ~~**Notifications email après réservation**~~ - ✅ COMPLÉTÉ
