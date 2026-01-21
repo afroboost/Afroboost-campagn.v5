@@ -386,6 +386,12 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [showManualContactForm, setShowManualContactForm] = useState(false);
   const [manualContact, setManualContact] = useState({ name: "", email: "", whatsapp: "" });
 
+  // Custom Emojis state
+  const [customEmojis, setCustomEmojis] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [newEmojiName, setNewEmojiName] = useState("");
+  const emojiInputRef = useRef(null);
+
   // ========== AUDIO PLAYLIST STATE ==========
   const [showAudioModal, setShowAudioModal] = useState(false);
   const [selectedCourseForAudio, setSelectedCourseForAudio] = useState(null);
