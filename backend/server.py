@@ -2976,6 +2976,151 @@ async def send_coach_response(request: Request):
         "mode": session.get("mode")
     }
 
+# --- Private Chat from Community ---
+@api_router.post("/chat/start-private")
+async def start_private_chat(request: Request):
+    """
+    Crée une session de chat privée entre deux participants.
+    Utilisé quand un utilisateur clique sur un autre dans un chat communautaire.
+    
+    Body attendu:
+    {
+        "initiator_id": "xxx",  # ID du participant qui initie
+        "target_id": "xxx",     # ID du participant cible
+        "community_session_id": "xxx"  # ID de la session communautaire d'origine
+    }
+    """
+    body = await request.json()
+    initiator_id = body.get("initiator_id")
+    target_id = body.get("target_id")
+    community_session_id = body.get("community_session_id")
+    
+    if not initiator_id or not target_id:
+        raise HTTPException(status_code=400, detail="initiator_id et target_id sont requis")
+    
+    # Vérifier que les deux participants existent
+    initiator = await db.chat_participants.find_one({"id": initiator_id}, {"_id": 0})
+    target = await db.chat_participants.find_one({"id": target_id}, {"_id": 0})
+    
+    if not initiator or not target:
+        raise HTTPException(status_code=404, detail="Participant non trouvé")
+    
+    # Vérifier s'il existe déjà une session privée entre ces deux personnes
+    existing_session = await db.chat_sessions.find_one({
+        "participant_ids": {"$all": [initiator_id, target_id], "$size": 2},
+        "mode": "human",
+        "is_deleted": {"$ne": True}
+    }, {"_id": 0})
+    
+    if existing_session:
+        return {
+            "session": existing_session,
+            "is_new": False,
+            "message": f"Reprise de la conversation avec {target.get('name', 'ce participant')}"
+        }
+    
+    # Créer une nouvelle session privée
+    private_session = ChatSession(
+        mode="human",
+        is_ai_active=False,
+        participant_ids=[initiator_id, target_id],
+        title=f"Discussion privée: {initiator.get('name', '')} & {target.get('name', '')}"
+    )
+    await db.chat_sessions.insert_one(private_session.model_dump())
+    
+    # Message d'accueil
+    welcome_message = EnhancedChatMessage(
+        session_id=private_session.id,
+        sender_id="system",
+        sender_name="Système",
+        sender_type="ai",
+        content=f"💬 Discussion privée créée entre {initiator.get('name', '')} et {target.get('name', '')}.",
+        mode="human"
+    )
+    await db.chat_messages.insert_one(welcome_message.model_dump())
+    
+    return {
+        "session": private_session.model_dump(),
+        "is_new": True,
+        "message": f"Nouvelle discussion privée avec {target.get('name', 'ce participant')}"
+    }
+
+# --- Custom Emojis/Stickers ---
+@api_router.get("/chat/emojis")
+async def get_custom_emojis():
+    """Récupère tous les emojis personnalisés uploadés par le coach"""
+    emojis = await db.custom_emojis.find({"active": True}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return emojis
+
+@api_router.post("/chat/emojis")
+async def upload_custom_emoji(request: Request):
+    """
+    Upload un emoji personnalisé (image base64).
+    
+    Body attendu:
+    {
+        "name": "happy",
+        "image_data": "data:image/png;base64,...",
+        "category": "emotions"  # optionnel
+    }
+    """
+    body = await request.json()
+    name = body.get("name", "").strip()
+    image_data = body.get("image_data", "")
+    category = body.get("category", "custom")
+    
+    if not name or not image_data:
+        raise HTTPException(status_code=400, detail="name et image_data sont requis")
+    
+    # Valider le format base64
+    if not image_data.startswith("data:image/"):
+        raise HTTPException(status_code=400, detail="Format d'image invalide. Utilisez base64 (data:image/...)")
+    
+    emoji_obj = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "image_data": image_data,
+        "category": category,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.custom_emojis.insert_one(emoji_obj)
+    
+    # Retourner sans _id
+    del emoji_obj["_id"] if "_id" in emoji_obj else None
+    return emoji_obj
+
+@api_router.delete("/chat/emojis/{emoji_id}")
+async def delete_custom_emoji(emoji_id: str):
+    """Supprime un emoji personnalisé"""
+    result = await db.custom_emojis.delete_one({"id": emoji_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Emoji non trouvé")
+    return {"success": True, "message": "Emoji supprimé"}
+
+# --- Get Session Participants (for community chat) ---
+@api_router.get("/chat/sessions/{session_id}/participants")
+async def get_session_participants(session_id: str):
+    """Récupère les détails des participants d'une session"""
+    session = await db.chat_sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session non trouvée")
+    
+    participant_ids = session.get("participant_ids", [])
+    participants = []
+    
+    for pid in participant_ids:
+        participant = await db.chat_participants.find_one({"id": pid}, {"_id": 0})
+        if participant:
+            participants.append({
+                "id": participant.get("id"),
+                "name": participant.get("name"),
+                "last_seen_at": participant.get("last_seen_at")
+            })
+    
+    return participants
+
 # Include router
 app.include_router(api_router)
 
