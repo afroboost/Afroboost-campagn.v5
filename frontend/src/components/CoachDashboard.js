@@ -6014,30 +6014,104 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
 
                     {/* Input réponse coach (visible si IA désactivée ou mode communauté) */}
                     {(selectedSession.mode === 'human' || selectedSession.mode === 'community') && (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={coachMessage}
-                          onChange={(e) => setCoachMessage(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && sendCoachMessage()}
-                          placeholder="Votre réponse... (les URLs seront cliquables)"
-                          className="flex-1 px-3 py-2 rounded-lg text-sm"
-                          style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
-                          data-testid="coach-message-input"
-                        />
-                        <button
-                          onClick={sendCoachMessage}
-                          disabled={!coachMessage.trim()}
-                          className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                          style={{ 
-                            background: coachMessage.trim() ? 'linear-gradient(135deg, #d91cd2, #8b5cf6)' : 'rgba(255,255,255,0.1)',
-                            color: '#fff',
-                            opacity: coachMessage.trim() ? 1 : 0.5
-                          }}
-                          data-testid="send-coach-message-btn"
-                        >
-                          📤 Envoyer
-                        </button>
+                      <div className="space-y-2">
+                        {/* Bouton Emoji et Picker */}
+                        <div className="relative">
+                          <div className="flex gap-2 items-center">
+                            <button
+                              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                              className="px-3 py-2 rounded-lg text-sm transition-all"
+                              style={{ background: showEmojiPicker ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.1)', color: '#fff' }}
+                              title="Emojis personnalisés"
+                            >
+                              😊
+                            </button>
+                            <input
+                              type="text"
+                              value={coachMessage}
+                              onChange={(e) => setCoachMessage(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && sendCoachMessage()}
+                              placeholder="Votre réponse... (les URLs seront cliquables)"
+                              className="flex-1 px-3 py-2 rounded-lg text-sm"
+                              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+                              data-testid="coach-message-input"
+                            />
+                            <button
+                              onClick={sendCoachMessage}
+                              disabled={!coachMessage.trim()}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                              style={{ 
+                                background: coachMessage.trim() ? 'linear-gradient(135deg, #d91cd2, #8b5cf6)' : 'rgba(255,255,255,0.1)',
+                                color: '#fff',
+                                opacity: coachMessage.trim() ? 1 : 0.5
+                              }}
+                              data-testid="send-coach-message-btn"
+                            >
+                              📤
+                            </button>
+                          </div>
+                          
+                          {/* Emoji Picker Panel */}
+                          {showEmojiPicker && (
+                            <div 
+                              className="absolute bottom-full left-0 mb-2 p-3 rounded-lg z-10"
+                              style={{ background: '#1a1a1a', border: '1px solid rgba(139, 92, 246, 0.3)', minWidth: '280px' }}
+                            >
+                              <div className="text-white text-xs mb-2 font-semibold">😊 Emojis personnalisés</div>
+                              
+                              {/* Liste des emojis existants */}
+                              <div className="flex flex-wrap gap-2 mb-3" style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                                {customEmojis.length === 0 ? (
+                                  <p className="text-white/50 text-xs">Aucun emoji. Uploadez-en ci-dessous !</p>
+                                ) : (
+                                  customEmojis.map(emoji => (
+                                    <button
+                                      key={emoji.id}
+                                      onClick={() => insertEmoji(emoji)}
+                                      className="relative group"
+                                      title={emoji.name}
+                                    >
+                                      <img 
+                                        src={emoji.image_data} 
+                                        alt={emoji.name}
+                                        style={{ width: '32px', height: '32px', borderRadius: '4px', cursor: 'pointer' }}
+                                      />
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); deleteCustomEmoji(emoji.id); }}
+                                        className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center"
+                                      >
+                                        ×
+                                      </button>
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                              
+                              {/* Upload nouvel emoji */}
+                              <div className="border-t border-white/10 pt-2">
+                                <div className="text-white/60 text-xs mb-1">Ajouter un emoji :</div>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={newEmojiName}
+                                    onChange={(e) => setNewEmojiName(e.target.value)}
+                                    placeholder="Nom"
+                                    className="w-20 px-2 py-1 rounded text-xs"
+                                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+                                  />
+                                  <input
+                                    type="file"
+                                    ref={emojiInputRef}
+                                    accept="image/png,image/gif,image/jpeg"
+                                    onChange={(e) => uploadCustomEmoji(e.target.files[0])}
+                                    className="text-xs text-white/60"
+                                    style={{ maxWidth: '120px' }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 
