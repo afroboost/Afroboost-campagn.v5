@@ -3410,7 +3410,8 @@ async def send_campaign_email(request: Request):
         "to_email": "destinataire@example.com",
         "to_name": "Nom Destinataire",
         "subject": "Sujet de l'email",
-        "message": "Contenu HTML ou texte"
+        "message": "Contenu HTML ou texte",
+        "media_url": "URL du visuel ou lien interne /v/slug (optionnel)"
     }
     """
     body = await request.json()
@@ -3418,6 +3419,7 @@ async def send_campaign_email(request: Request):
     to_name = body.get("to_name", "")
     subject = body.get("subject", "Message d'Afroboost")
     message = body.get("message", "")
+    media_url = body.get("media_url", None)
     
     if not to_email:
         raise HTTPException(status_code=400, detail="to_email requis")
@@ -3429,14 +3431,64 @@ async def send_campaign_email(request: Request):
         logger.warning("Resend non configuré pour les campagnes")
         return {"success": False, "error": "Resend non configuré"}
     
-    # Template HTML stylisé
+    # === TRAITEMENT DU MEDIA URL ===
+    media_html = ""
+    if media_url:
+        thumbnail_url = None
+        click_url = media_url
+        
+        # Vérifier si c'est un lien média interne (afroboosteur.com/v/slug ou /v/slug)
+        slug = None
+        if '/v/' in media_url:
+            # Extraire le slug: afroboosteur.com/v/my-slug -> my-slug
+            slug = media_url.split('/v/')[-1].split('?')[0].split('#')[0].strip('/')
+        
+        if slug:
+            # Récupérer la thumbnail depuis la base de données
+            media_link = await db.media_links.find_one({"slug": slug.lower()}, {"_id": 0})
+            if media_link:
+                thumbnail_url = media_link.get("thumbnail") or media_link.get("custom_thumbnail")
+                click_url = f"https://afroboosteur.com/v/{slug}"
+                logger.info(f"Media link found for slug {slug}: thumbnail={thumbnail_url}")
+            else:
+                logger.warning(f"Media link not found for slug: {slug}")
+        else:
+            # URL externe directe (image)
+            thumbnail_url = media_url
+        
+        # Générer le HTML de l'image cliquable
+        if thumbnail_url:
+            media_html = f"""
+            <div style="margin: 20px 0; text-align: center;">
+                <a href="{click_url}" target="_blank" style="display: inline-block;">
+                    <img src="{thumbnail_url}" alt="Voir la vidéo" 
+                         style="max-width: 100%; width: 560px; height: auto; border-radius: 12px; 
+                                box-shadow: 0 4px 20px rgba(217, 28, 210, 0.3);
+                                border: 2px solid rgba(217, 28, 210, 0.5);" />
+                </a>
+                <p style="margin-top: 12px;">
+                    <a href="{click_url}" target="_blank" 
+                       style="display: inline-block; padding: 12px 24px; 
+                              background: linear-gradient(135deg, #d91cd2, #8b5cf6); 
+                              color: white; text-decoration: none; border-radius: 8px;
+                              font-weight: bold; font-size: 14px;">
+                        ▶️ Voir la vidéo
+                    </a>
+                </p>
+            </div>
+            """
+    
+    # Template HTML stylisé avec média
     html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #d91cd2, #8b5cf6); padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
             <h1 style="color: white; margin: 0; font-size: 24px;">Afroboost</h1>
         </div>
         <div style="background: #1a1a1a; padding: 30px; color: #ffffff; border-radius: 0 0 12px 12px;">
-            {message.replace(chr(10), '<br>')}
+            <div style="font-size: 16px; line-height: 1.6;">
+                {message.replace(chr(10), '<br>')}
+            </div>
+            {media_html}
             <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
             <p style="font-size: 12px; color: #888; text-align: center;">
                 Cet email vous a été envoyé par Afroboost<br>
