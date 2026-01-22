@@ -55,7 +55,7 @@ const performEmailSend = async (destination, recipientName = 'Client', subject =
     console.log('========================================');
     
     // Appel API backend Resend
-    const response = await fetch(`${API}/api/campaigns/send-email`, {
+    const response = await fetch(`${BACKEND_URL}/api/campaigns/send-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
