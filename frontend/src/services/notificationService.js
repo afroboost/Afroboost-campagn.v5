@@ -230,12 +230,28 @@ export const showBrowserNotification = async (title, body, options = {}) => {
 export const linkifyText = (text) => {
   if (!text) return '';
   
+  // Si le texte contient déjà du HTML (emojis img), le préserver
+  // D'abord, extraire les balises img pour les protéger
+  const imgTags = [];
+  let protectedText = text.replace(/<img[^>]+>/gi, (match) => {
+    imgTags.push(match);
+    return `__IMG_PLACEHOLDER_${imgTags.length - 1}__`;
+  });
+  
   // Regex pour détecter les URLs
   const urlRegex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
   
-  return text.replace(urlRegex, (url) => {
+  // Convertir les URLs en liens
+  protectedText = protectedText.replace(urlRegex, (url) => {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${url}</a>`;
   });
+  
+  // Restaurer les balises img
+  imgTags.forEach((img, index) => {
+    protectedText = protectedText.replace(`__IMG_PLACEHOLDER_${index}__`, img);
+  });
+  
+  return protectedText;
 };
 
 /**
