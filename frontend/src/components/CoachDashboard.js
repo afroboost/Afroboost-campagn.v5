@@ -1007,6 +1007,9 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   // === RESOLVED THUMBNAIL FOR PREVIEW ===
   const [resolvedThumbnail, setResolvedThumbnail] = useState(null);
   const [testEmailStatus, setTestEmailStatus] = useState(null);
+  
+  // === ÉDITION MÉDIA ===
+  const [editingMediaLink, setEditingMediaLink] = useState(null);
 
   // === WHATSAPP API STATE ===
   const [whatsAppConfig, setWhatsAppConfig] = useState(() => getWhatsAppConfig());
