@@ -1933,99 +1933,46 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }
   };
 
-  // === EMAILJS FUNCTIONS ===
+  // === FONCTIONS EMAIL RESEND (remplacent EmailJS) ===
   
-  // Sauvegarder la configuration EmailJS
-  const handleSaveEmailJSConfig = () => {
-    console.log('💾 Saving EmailJS config:', emailJSConfig);
-    const success = saveEmailJSConfig(emailJSConfig);
-    if (success) {
-      setShowEmailJSConfig(false);
-      alert('✅ Configuration EmailJS sauvegardée !');
-      console.log('✅ EmailJS config saved successfully');
-    } else {
-      alert('❌ Erreur lors de la sauvegarde');
-      console.error('❌ Failed to save EmailJS config');
+  // Tester l'envoi email via Resend
+  const handleTestEmail = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-  };
-
-  // === FONCTION TEST EMAILJS - CONNEXION TECHNIQUE RÉPARÉE ===
-  // Utilise la fonction autonome performEmailSend avec debug avancé
-  const handleTestEmailJS = async (e) => {
-    // === SUPPRESSION DU CRASH - BLOCAGE POSTHOG ===
-    e.preventDefault();
-    e.stopPropagation();
     
-    console.log('EMAILJS_DEBUG: Test déclenché');
-    
-    // Validation basique
     if (!testEmailAddress || !testEmailAddress.includes('@')) {
-      console.log('EMAILJS_DEBUG: Email invalide -', testEmailAddress);
-      alert('Veuillez entrer une adresse email valide pour le test');
+      alert('Veuillez entrer une adresse email valide');
       return;
     }
     
-    console.log('EMAILJS_DEBUG: Email validé -', testEmailAddress);
+    setTestEmailStatus('sending');
     
-    // Mise à jour UI - dans un try/catch séparé
     try {
-      setTestEmailStatus('sending');
-    } catch (stateError) {
-      console.warn('EMAILJS_DEBUG: setState bloqué (PostHog) mais envoi maintenu');
-    }
-    
-    // === ENVOI TECHNIQUE - LIAISON RÉELLE EMAILJS ===
-    try {
-      console.log('EMAILJS_DEBUG: Appel performEmailSend...');
-      
-      // Le texte est injecté dans {{message}} du template EmailJS
       const result = await performEmailSend(
         testEmailAddress,
-        'Client',
-        'Test Afroboost',
-        'Ceci est un test de configuration EmailJS. Si vous recevez ce message, tout fonctionne !'
+        'Client Test',
+        'Test Afroboost - Resend',
+        'Ceci est un test d\'envoi via Resend. Si vous recevez ce message, tout fonctionne !'
       );
       
-      // === DEBUG RÉSULTAT ===
-      console.log('EMAILJS_DEBUG: Résultat =', result.success ? 'SUCCÈS' : 'ÉCHEC');
-      if (result.debug) {
-        console.log(result.debug);
-      }
-      
-      // Gestion du résultat
-      try {
-        if (result.success) {
-          setTestEmailStatus('success');
-          console.log('EMAILJS_DEBUG: UI mise à jour - succès');
-          alert('✅ Email de test envoyé avec succès !');
-          setTimeout(() => setTestEmailStatus(null), 5000);
-        } else {
-          setTestEmailStatus('error');
-          console.log('EMAILJS_DEBUG: UI mise à jour - erreur');
-          alert(`❌ Erreur EmailJS: ${result.error}\n\nDébug: ${result.debug || 'N/A'}`);
-          setTimeout(() => setTestEmailStatus(null), 3000);
-        }
-      } catch (uiError) {
-        console.warn('EMAILJS_DEBUG: UI bloquée par PostHog mais envoi réussi');
-        if (result.success) {
-          alert('✅ Email envoyé (UI bloquée par PostHog)');
-        }
-      }
-    } catch (sendError) {
-      console.error('EMAILJS_DEBUG: Exception globale -', sendError.message);
-      try {
+      if (result.success) {
+        setTestEmailStatus('success');
+        alert('✅ Email de test envoyé avec succès via Resend !');
+      } else {
         setTestEmailStatus('error');
-        alert(`❌ Erreur technique: ${sendError.message}`);
-        setTimeout(() => setTestEmailStatus(null), 3000);
-      } catch (e) {
-        console.warn('EMAILJS_DEBUG: Erreur signalée malgré blocage PostHog');
-        alert(`❌ Erreur: ${sendError.message}`);
+        alert(`❌ Erreur: ${result.error}`);
       }
+    } catch (error) {
+      setTestEmailStatus('error');
+      alert(`❌ Erreur: ${error.message}`);
     }
+    
+    setTimeout(() => setTestEmailStatus(null), 3000);
   };
 
-  // Envoyer la campagne email automatiquement
-  // === ENVOI CAMPAGNE EMAIL - CONNEXION DIRECTE AVEC IDS HARDCODÉS ===
+  // Envoyer la campagne email via Resend
   const handleSendEmailCampaign = async (e) => {
     // === BYPASS CRASH POSTHOG ===
     if (e) {
