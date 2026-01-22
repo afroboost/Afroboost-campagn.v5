@@ -5814,7 +5814,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                               type="text"
                               value={coachMessage}
                               onChange={(e) => setCoachMessage(e.target.value)}
-                              onKeyPress={(e) => e.key === 'Enter' && sendCoachMessage()}
+                              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                               placeholder="Votre réponse... (les URLs seront cliquables)"
                               className="flex-1 px-3 py-2 rounded-lg text-sm"
                               style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
