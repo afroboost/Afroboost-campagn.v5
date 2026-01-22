@@ -6034,6 +6034,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                         <div className="relative">
                           <div className="flex gap-2 items-center">
                             <button
+                              type="button"
                               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                               className="px-3 py-2 rounded-lg text-sm transition-all"
                               style={{ background: showEmojiPicker ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.1)', color: '#fff' }}
