@@ -1657,6 +1657,43 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }
   };
 
+  // Mettre à jour un media link existant
+  const handleUpdateMediaLink = async () => {
+    if (!editingMediaLink) return;
+    
+    try {
+      const res = await axios.put(`${API}/media/${editingMediaLink.slug}`, {
+        title: editingMediaLink.title,
+        description: editingMediaLink.description || '',
+        video_url: editingMediaLink.video_url,
+        custom_thumbnail: editingMediaLink.custom_thumbnail || null,
+        cta_text: editingMediaLink.cta_text || null,
+        cta_link: editingMediaLink.cta_link || null
+      });
+      
+      if (res.data.success) {
+        alert('✅ Média mis à jour !');
+        setEditingMediaLink(null);
+        loadMediaLinks();
+      }
+    } catch (err) {
+      alert(`❌ Erreur: ${err.response?.data?.detail || err.message}`);
+    }
+  };
+
+  // Ouvrir l'édition d'un média
+  const startEditingMedia = (link) => {
+    setEditingMediaLink({
+      slug: link.slug,
+      title: link.title || '',
+      description: link.description || '',
+      video_url: link.video_url || '',
+      custom_thumbnail: link.custom_thumbnail || '',
+      cta_text: link.cta_text || '',
+      cta_link: link.cta_link || ''
+    });
+  };
+
   // Load media links when tab changes
   useEffect(() => {
     if (tab === "media") {
