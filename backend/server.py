@@ -3735,6 +3735,54 @@ async def delete_media_link(slug: str):
         raise HTTPException(status_code=404, detail="Média non trouvé")
     return {"success": True, "deleted": slug}
 
+@api_router.put("/media/{slug}")
+async def update_media_link(slug: str, request: Request):
+    """Met à jour un lien média existant"""
+    body = await request.json()
+    
+    # Vérifier que le média existe
+    existing = await db.media_links.find_one({"slug": slug.lower()})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Média non trouvé")
+    
+    # Préparer les champs à mettre à jour
+    update_fields = {}
+    
+    if "title" in body and body["title"]:
+        update_fields["title"] = body["title"]
+    if "description" in body:
+        update_fields["description"] = body["description"] or ""
+    if "video_url" in body and body["video_url"]:
+        update_fields["video_url"] = body["video_url"]
+        # Extraire l'ID YouTube si c'est une URL YouTube
+        youtube_id = extract_youtube_id(body["video_url"])
+        if youtube_id:
+            update_fields["youtube_id"] = youtube_id
+            # Mettre à jour la thumbnail si pas de custom
+            if not body.get("custom_thumbnail"):
+                update_fields["thumbnail"] = f"https://img.youtube.com/vi/{youtube_id}/maxresdefault.jpg"
+    if "custom_thumbnail" in body:
+        update_fields["custom_thumbnail"] = body["custom_thumbnail"] or None
+        if body["custom_thumbnail"]:
+            update_fields["thumbnail"] = body["custom_thumbnail"]
+    if "cta_text" in body:
+        update_fields["cta_text"] = body["cta_text"] or None
+    if "cta_link" in body:
+        update_fields["cta_link"] = body["cta_link"] or None
+    
+    if not update_fields:
+        return {"success": True, "message": "Aucune modification"}
+    
+    # Mettre à jour
+    await db.media_links.update_one(
+        {"slug": slug.lower()},
+        {"$set": update_fields}
+    )
+    
+    # Retourner le média mis à jour
+    updated = await db.media_links.find_one({"slug": slug.lower()}, {"_id": 0})
+    return {"success": True, "media_link": updated}
+
 # ==================== ENDPOINT DE PARTAGE AVEC OPENGRAPH ====================
 # Cet endpoint est ACCESSIBLE via /api/share/{slug} et sert les balises OG pour WhatsApp
 
