@@ -2287,6 +2287,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
       }
       
       console.log("ENVOI A:", contact.email);
+      console.log("MEDIA_URL_DEBUG: newCampaign.mediaUrl =", newCampaign.mediaUrl);
       
       // === ENVOI VIA BACKEND RESEND ===
       const result = await performEmailSend(
