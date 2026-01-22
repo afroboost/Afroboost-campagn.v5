@@ -1573,9 +1573,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }
   };
 
-  // Launch campaign WITH REAL SENDING via EmailJS and Twilio
+  // Launch campaign WITH REAL SENDING via Resend and Twilio
   // === BOUTON LANCER - ISOLATION COMPLÈTE ===
-  // Utilise les fonctions autonomes pour éviter tout conflit PostHog/state
   const launchCampaignWithSend = async (e, campaignId) => {
     // === BLOCAGE CRASH POSTHOG ===
     // Ces lignes DOIVENT être en premier, avant toute autre logique
