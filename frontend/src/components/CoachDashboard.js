@@ -429,16 +429,6 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     loadData();
   }, []);
 
-  // === INITIALISATION SDK EMAILJS ===
-  useEffect(() => {
-    try {
-      emailjs.init(EMAILJS_PUBLIC_KEY);
-      console.log('✅ EmailJS SDK initialized with public key:', EMAILJS_PUBLIC_KEY.substring(0, 5) + '...');
-    } catch (error) {
-      console.error('❌ Failed to initialize EmailJS:', error);
-    }
-  }, []);
-
   // Fonction de nettoyage manuel (peut être appelée depuis l'interface)
   const manualSanitize = async () => {
     try {
