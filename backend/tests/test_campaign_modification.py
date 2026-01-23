@@ -19,22 +19,14 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
     BASE_URL = "https://mediahub-973.preview.emergentagent.com"
 
+API_URL = f"{BASE_URL}/api"
+
 
 class TestCampaignModification:
     """Test suite for campaign modification (PUT /api/campaigns/{campaign_id})"""
     
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        """Setup test data"""
-        self.test_campaign_id = None
-        self.api_url = f"{BASE_URL}/api"
-        yield
-        # Cleanup: Delete test campaign if created
-        if self.test_campaign_id:
-            try:
-                requests.delete(f"{self.api_url}/campaigns/{self.test_campaign_id}")
-            except:
-                pass
+    # Class-level variable to store campaign ID across tests
+    created_campaign_id = None
     
     def test_01_health_check(self):
         """Test API health endpoint"""
@@ -44,7 +36,7 @@ class TestCampaignModification:
     
     def test_02_get_campaigns_returns_list(self):
         """Test GET /api/campaigns returns a list with required fields"""
-        response = requests.get(f"{self.api_url}/campaigns")
+        response = requests.get(f"{API_URL}/campaigns")
         assert response.status_code == 200, f"GET campaigns failed: {response.text}"
         
         campaigns = response.json()
@@ -75,7 +67,7 @@ class TestCampaignModification:
             "scheduledAt": None
         }
         
-        response = requests.post(f"{self.api_url}/campaigns", json=payload)
+        response = requests.post(f"{API_URL}/campaigns", json=payload)
         assert response.status_code == 200, f"POST campaigns failed: {response.text}"
         
         campaign = response.json()
@@ -84,20 +76,18 @@ class TestCampaignModification:
         assert campaign["message"] == "Original message for testing", "Message should match"
         assert campaign["status"] in ["draft", "scheduled"], f"Status should be draft or scheduled, got: {campaign['status']}"
         
-        # Store for later tests
-        self.__class__.created_campaign_id = campaign["id"]
-        self.test_campaign_id = campaign["id"]
+        # Store for later tests at class level
+        TestCampaignModification.created_campaign_id = campaign["id"]
         
         print(f"✅ Created test campaign: {campaign['id']} with status: {campaign['status']}")
-        return campaign
     
     def test_04_get_single_campaign(self):
         """Test GET /api/campaigns/{campaign_id} - Retrieve created campaign"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign created in previous test")
         
-        response = requests.get(f"{self.api_url}/campaigns/{campaign_id}")
+        response = requests.get(f"{API_URL}/campaigns/{campaign_id}")
         assert response.status_code == 200, f"GET campaign failed: {response.text}"
         
         campaign = response.json()
@@ -109,26 +99,26 @@ class TestCampaignModification:
             assert field in campaign, f"Missing field for edit form: {field}"
         
         print(f"✅ GET /api/campaigns/{campaign_id} returns all required fields")
-        return campaign
     
     def test_05_update_campaign_name(self):
         """Test PUT /api/campaigns/{campaign_id} - Update campaign name"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign created in previous test")
         
         new_name = f"UPDATED_Campaign_{uuid.uuid4().hex[:6]}"
         payload = {"name": new_name}
         
-        response = requests.put(f"{self.api_url}/campaigns/{campaign_id}", json=payload)
+        response = requests.put(f"{API_URL}/campaigns/{campaign_id}", json=payload)
         assert response.status_code == 200, f"PUT campaign failed: {response.text}"
         
         updated = response.json()
+        assert updated is not None, "PUT should return updated campaign"
         assert updated["name"] == new_name, f"Name should be updated to {new_name}"
         assert "updatedAt" in updated, "updatedAt should be set"
         
         # Verify persistence via GET
-        get_response = requests.get(f"{self.api_url}/campaigns/{campaign_id}")
+        get_response = requests.get(f"{API_URL}/campaigns/{campaign_id}")
         assert get_response.status_code == 200
         persisted = get_response.json()
         assert persisted["name"] == new_name, "Name change should persist"
@@ -137,21 +127,22 @@ class TestCampaignModification:
     
     def test_06_update_campaign_message(self):
         """Test PUT /api/campaigns/{campaign_id} - Update campaign message"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign created in previous test")
         
         new_message = "Updated message with special chars: éàü 🎉"
         payload = {"message": new_message}
         
-        response = requests.put(f"{self.api_url}/campaigns/{campaign_id}", json=payload)
+        response = requests.put(f"{API_URL}/campaigns/{campaign_id}", json=payload)
         assert response.status_code == 200, f"PUT campaign failed: {response.text}"
         
         updated = response.json()
+        assert updated is not None, "PUT should return updated campaign"
         assert updated["message"] == new_message, "Message should be updated"
         
         # Verify persistence
-        get_response = requests.get(f"{self.api_url}/campaigns/{campaign_id}")
+        get_response = requests.get(f"{API_URL}/campaigns/{campaign_id}")
         persisted = get_response.json()
         assert persisted["message"] == new_message, "Message change should persist"
         
@@ -159,21 +150,22 @@ class TestCampaignModification:
     
     def test_07_update_campaign_media_url(self):
         """Test PUT /api/campaigns/{campaign_id} - Update mediaUrl"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign created in previous test")
         
         new_media_url = "https://example.com/new-media-image.png"
         payload = {"mediaUrl": new_media_url}
         
-        response = requests.put(f"{self.api_url}/campaigns/{campaign_id}", json=payload)
+        response = requests.put(f"{API_URL}/campaigns/{campaign_id}", json=payload)
         assert response.status_code == 200, f"PUT campaign failed: {response.text}"
         
         updated = response.json()
+        assert updated is not None, "PUT should return updated campaign"
         assert updated["mediaUrl"] == new_media_url, "mediaUrl should be updated"
         
         # Verify persistence
-        get_response = requests.get(f"{self.api_url}/campaigns/{campaign_id}")
+        get_response = requests.get(f"{API_URL}/campaigns/{campaign_id}")
         persisted = get_response.json()
         assert persisted["mediaUrl"] == new_media_url, "mediaUrl change should persist"
         
@@ -181,22 +173,23 @@ class TestCampaignModification:
     
     def test_08_update_campaign_target_type(self):
         """Test PUT /api/campaigns/{campaign_id} - Update targetType"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign created in previous test")
         
         # Change from 'all' to 'selected'
         payload = {"targetType": "selected", "selectedContacts": ["contact1", "contact2"]}
         
-        response = requests.put(f"{self.api_url}/campaigns/{campaign_id}", json=payload)
+        response = requests.put(f"{API_URL}/campaigns/{campaign_id}", json=payload)
         assert response.status_code == 200, f"PUT campaign failed: {response.text}"
         
         updated = response.json()
+        assert updated is not None, "PUT should return updated campaign"
         assert updated["targetType"] == "selected", "targetType should be updated"
         assert updated["selectedContacts"] == ["contact1", "contact2"], "selectedContacts should be updated"
         
         # Verify persistence
-        get_response = requests.get(f"{self.api_url}/campaigns/{campaign_id}")
+        get_response = requests.get(f"{API_URL}/campaigns/{campaign_id}")
         persisted = get_response.json()
         assert persisted["targetType"] == "selected", "targetType change should persist"
         
@@ -204,23 +197,24 @@ class TestCampaignModification:
     
     def test_09_update_campaign_channels(self):
         """Test PUT /api/campaigns/{campaign_id} - Update channels"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign created in previous test")
         
         new_channels = {"whatsapp": False, "email": True, "instagram": True}
         payload = {"channels": new_channels}
         
-        response = requests.put(f"{self.api_url}/campaigns/{campaign_id}", json=payload)
+        response = requests.put(f"{API_URL}/campaigns/{campaign_id}", json=payload)
         assert response.status_code == 200, f"PUT campaign failed: {response.text}"
         
         updated = response.json()
+        assert updated is not None, "PUT should return updated campaign"
         assert updated["channels"]["whatsapp"] == False, "WhatsApp should be disabled"
         assert updated["channels"]["email"] == True, "Email should be enabled"
         assert updated["channels"]["instagram"] == True, "Instagram should be enabled"
         
         # Verify persistence
-        get_response = requests.get(f"{self.api_url}/campaigns/{campaign_id}")
+        get_response = requests.get(f"{API_URL}/campaigns/{campaign_id}")
         persisted = get_response.json()
         assert persisted["channels"] == new_channels, "Channels change should persist"
         
@@ -228,7 +222,7 @@ class TestCampaignModification:
     
     def test_10_update_multiple_fields_at_once(self):
         """Test PUT /api/campaigns/{campaign_id} - Update multiple fields simultaneously"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign created in previous test")
         
@@ -240,10 +234,11 @@ class TestCampaignModification:
             "channels": {"whatsapp": True, "email": True, "instagram": False}
         }
         
-        response = requests.put(f"{self.api_url}/campaigns/{campaign_id}", json=payload)
+        response = requests.put(f"{API_URL}/campaigns/{campaign_id}", json=payload)
         assert response.status_code == 200, f"PUT campaign failed: {response.text}"
         
         updated = response.json()
+        assert updated is not None, "PUT should return updated campaign"
         assert updated["name"] == "Final Updated Name"
         assert updated["message"] == "Final updated message"
         assert updated["mediaUrl"] == "/v/test-slug"
@@ -257,7 +252,7 @@ class TestCampaignModification:
         fake_id = f"nonexistent-{uuid.uuid4().hex}"
         payload = {"name": "Should not work"}
         
-        response = requests.put(f"{self.api_url}/campaigns/{fake_id}", json=payload)
+        response = requests.put(f"{API_URL}/campaigns/{fake_id}", json=payload)
         # The endpoint returns null for non-existent campaigns (no 404)
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         result = response.json()
@@ -268,7 +263,7 @@ class TestCampaignModification:
     def test_12_media_link_not_broken_after_campaign_update(self):
         """Test that existing /v/{slug} links still work after campaign modification"""
         # First, check if session-finale media link exists
-        response = requests.get(f"{self.api_url}/media/session-finale")
+        response = requests.get(f"{API_URL}/media/session-finale")
         
         if response.status_code == 200:
             media = response.json()
@@ -280,22 +275,22 @@ class TestCampaignModification:
     
     def test_13_cleanup_test_campaign(self):
         """Cleanup: Delete the test campaign"""
-        campaign_id = getattr(self.__class__, 'created_campaign_id', None)
+        campaign_id = TestCampaignModification.created_campaign_id
         if not campaign_id:
             pytest.skip("No campaign to cleanup")
         
-        response = requests.delete(f"{self.api_url}/campaigns/{campaign_id}")
+        response = requests.delete(f"{API_URL}/campaigns/{campaign_id}")
         assert response.status_code == 200, f"DELETE campaign failed: {response.text}"
         
         result = response.json()
         assert result.get("success") == True, "Delete should return success"
         
         # Verify deletion
-        get_response = requests.get(f"{self.api_url}/campaigns/{campaign_id}")
+        get_response = requests.get(f"{API_URL}/campaigns/{campaign_id}")
         assert get_response.status_code == 404, "Deleted campaign should return 404"
         
         # Clear the stored ID
-        self.__class__.created_campaign_id = None
+        TestCampaignModification.created_campaign_id = None
         
         print(f"✅ Test campaign {campaign_id} deleted successfully")
 
@@ -305,7 +300,7 @@ class TestCampaignListFields:
     
     def test_campaigns_list_has_status_field(self):
         """Verify campaigns list includes status field for showing edit button"""
-        response = requests.get(f"{BASE_URL}/api/campaigns")
+        response = requests.get(f"{API_URL}/campaigns")
         assert response.status_code == 200
         
         campaigns = response.json()
@@ -320,7 +315,7 @@ class TestCampaignListFields:
     
     def test_campaigns_list_has_all_editable_fields(self):
         """Verify campaigns list includes all fields needed for edit form pre-fill"""
-        response = requests.get(f"{BASE_URL}/api/campaigns")
+        response = requests.get(f"{API_URL}/campaigns")
         assert response.status_code == 200
         
         campaigns = response.json()
