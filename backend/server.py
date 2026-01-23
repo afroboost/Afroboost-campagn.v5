@@ -3571,8 +3571,6 @@ Cet email vous a été envoyé par Afroboost<br>
 
 </body>
 </html>'''
-</body>
-</html>'''
     
     try:
         params = {
