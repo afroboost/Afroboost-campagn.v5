@@ -268,10 +268,23 @@ const styles = {
     top: 0,
     left: 0,
     right: 0,
-    height: '50px',
-    background: 'transparent',
+    height: '55px',
+    background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)',
     cursor: 'default',
     zIndex: 10,
+    pointerEvents: 'auto',
+  },
+  // Overlay inférieur pour masquer "Watch on YouTube"
+  videoOverlayBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '60px',
+    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
+    cursor: 'default',
+    zIndex: 10,
+    pointerEvents: 'auto',
   },
   
   // Description - Texte blanc, supporte les sauts de ligne
