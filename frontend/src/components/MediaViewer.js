@@ -40,16 +40,9 @@ const MediaViewer = ({ slug }) => {
     if (slug) loadMedia();
   }, [slug]);
 
-  // Gérer le play/pause
+  // Gérer le play - Pour YouTube, on bascule simplement l'état pour afficher l'iframe
   const handlePlayClick = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
+    setIsPlaying(true);
   };
 
   // État de chargement - Mode Cinéma
