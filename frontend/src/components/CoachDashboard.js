@@ -5701,19 +5701,17 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                           </td>
                           <td className="py-3">
                             <div className="flex gap-2">
-                              {/* Bouton Modifier - Disponible pour draft et scheduled */}
-                              {(campaign.status === 'draft' || campaign.status === 'scheduled') && (
-                                <button 
-                                  type="button"
-                                  onClick={() => handleEditCampaign(campaign)} 
-                                  className="px-3 py-1 rounded text-xs bg-yellow-600 hover:bg-yellow-700"
-                                  data-testid={`edit-campaign-${campaign.id}`}
-                                  title="Modifier la campagne"
-                                >
-                                  ✏️
-                                </button>
-                              )}
-                              {/* Bouton Lancer */}
+                              {/* Bouton Modifier - Disponible pour TOUTES les campagnes */}
+                              <button 
+                                type="button"
+                                onClick={() => handleEditCampaign(campaign)} 
+                                className="px-3 py-1 rounded text-xs bg-yellow-600 hover:bg-yellow-700"
+                                data-testid={`edit-campaign-${campaign.id}`}
+                                title="Modifier la campagne"
+                              >
+                                ✏️
+                              </button>
+                              {/* Bouton Lancer - Uniquement pour draft et scheduled */}
                               {(campaign.status === 'draft' || campaign.status === 'scheduled') && (
                                 <button 
                                   type="button"
@@ -5722,6 +5720,17 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                                   data-testid={`launch-campaign-${campaign.id}`}
                                 >
                                   🚀 Lancer
+                                </button>
+                              )}
+                              {/* Bouton Relancer - Pour les campagnes envoyées */}
+                              {(campaign.status === 'sent' || campaign.status === 'completed' || campaign.status === 'sending') && (
+                                <button 
+                                  type="button"
+                                  onClick={(e) => launchCampaignWithSend(e, campaign.id)} 
+                                  className="px-3 py-1 rounded text-xs bg-green-600 hover:bg-green-700"
+                                  data-testid={`relaunch-campaign-${campaign.id}`}
+                                >
+                                  🔄 Relancer
                                 </button>
                               )}
                               {campaign.status === 'sending' && (
