@@ -2068,6 +2068,7 @@ function App() {
   useEffect(() => {
     const path = window.location.pathname;
     console.log('App.js - Current path:', path);
+    console.log('App.js - Full URL:', window.location.href);
     
     if (path.startsWith('/validate/')) {
       const code = path.replace('/validate/', '').toUpperCase();
@@ -2076,12 +2077,14 @@ function App() {
         setShowCoachLogin(true);
       }
     }
-    // Check for /v/:slug URL (Media Viewer)
+    // Check for /v/:slug URL (Media Viewer) - PRIORITAIRE
     if (path.startsWith('/v/')) {
-      const slug = path.replace('/v/', '').split('/')[0].split('?')[0].toLowerCase();
+      const slug = path.replace('/v/', '').split('/')[0].split('?')[0].split('#')[0].trim();
       console.log('App.js - Media slug detected:', slug);
-      if (slug) {
-        setMediaSlug(slug);
+      if (slug && slug.length > 0) {
+        setMediaSlug(slug.toLowerCase());
+        // Ne pas continuer si on a un slug valide
+        return;
       }
     }
   }, []);
