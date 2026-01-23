@@ -1,6 +1,6 @@
 /**
- * MediaViewer - Lecteur Afroboost Mode Cinéma
- * Design épuré, responsive, sans bandes noires
+ * MediaViewer - Lecteur Afroboost Mode Cinéma V2
+ * Spécification utilisateur: Design cinéma, bouton CTA #E91E63, lecteur white-label
  */
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -15,9 +15,12 @@ const MediaViewer = ({ slug }) => {
   useEffect(() => {
     const loadMedia = async () => {
       try {
+        console.log('[MediaViewer] Chargement du slug:', slug);
         const response = await axios.get(`${API}/api/media/${slug}`);
+        console.log('[MediaViewer] Données reçues:', JSON.stringify(response.data));
         setMedia(response.data);
       } catch (err) {
+        console.error('[MediaViewer] Erreur:', err);
         setError(err.response?.data?.detail || 'Média non trouvé');
       } finally {
         setLoading(false);
@@ -26,6 +29,7 @@ const MediaViewer = ({ slug }) => {
     if (slug) loadMedia();
   }, [slug]);
 
+  // État de chargement - Mode Cinéma
   if (loading) {
     return (
       <div style={styles.loadingContainer}>
@@ -35,6 +39,7 @@ const MediaViewer = ({ slug }) => {
     );
   }
 
+  // État d'erreur
   if (error) {
     return (
       <div style={styles.errorContainer}>
@@ -44,9 +49,19 @@ const MediaViewer = ({ slug }) => {
     );
   }
 
-  // URL YouTube White-Label
+  // Protection: vérifier que media existe
+  if (!media) {
+    return (
+      <div style={styles.errorContainer}>
+        <p style={styles.errorText}>Données non disponibles</p>
+        <a href="https://afroboosteur.com" style={styles.errorLink}>Retour à l'accueil</a>
+      </div>
+    );
+  }
+
+  // URL YouTube WHITE-LABEL - Paramètres pour masquer tout le branding YouTube
   const youtubeUrl = media.youtube_id 
-    ? `https://www.youtube.com/embed/${media.youtube_id}?modestbranding=1&rel=0&iv_load_policy=3&controls=1&playsinline=1`
+    ? `https://www.youtube.com/embed/${media.youtube_id}?modestbranding=1&rel=0&iv_load_policy=3&controls=1&playsinline=1&showinfo=0&disablekb=1&fs=1&cc_load_policy=0&origin=${encodeURIComponent(window.location.origin)}`
     : media.video_url;
 
   return (
@@ -61,29 +76,31 @@ const MediaViewer = ({ slug }) => {
 
       {/* Main Content */}
       <main style={styles.main}>
-        {/* Titre */}
-        <h1 style={styles.title} data-testid="media-title">{media.title}</h1>
+        {/* Titre - Au-dessus de la vidéo */}
+        <h1 style={styles.title} data-testid="media-title">{media.title || 'Sans titre'}</h1>
 
-        {/* Lecteur Vidéo - Mode Cinéma 16:9 */}
+        {/* Lecteur Vidéo - Mode Cinéma 16:9 avec overlay anti-clic */}
         <div style={styles.videoWrapper} data-testid="video-container">
           <iframe
             src={youtubeUrl}
-            title={media.title}
+            title={media.title || 'Vidéo Afroboost'}
             style={styles.videoIframe}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
           />
+          {/* Overlay transparent pour bloquer les clics vers YouTube (partie haute) */}
+          <div style={styles.videoOverlayTop}></div>
         </div>
 
-        {/* Description - Supporte les retours à la ligne */}
-        {media.description && (
+        {/* Description - En dessous de la vidéo, supporte les sauts de ligne */}
+        {media.description && media.description.trim() !== '' && (
           <p style={styles.description} data-testid="media-description">
             {media.description}
           </p>
         )}
 
-        {/* Bouton CTA - Rose Afroboost */}
+        {/* Bouton CTA ROSE #E91E63 - Après la description */}
         {media.cta_text && media.cta_link && (
           <div style={styles.ctaContainer} data-testid="cta-section">
             <a
@@ -98,7 +115,7 @@ const MediaViewer = ({ slug }) => {
           </div>
         )}
 
-        {/* Partage */}
+        {/* Section Partage */}
         <div style={styles.shareSection}>
           <button
             onClick={() => {
@@ -106,14 +123,16 @@ const MediaViewer = ({ slug }) => {
               alert('Lien copié !');
             }}
             style={styles.shareButton}
+            data-testid="copy-link-btn"
           >
             📋 Copier le lien
           </button>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(media.title + '\nhttps://afroboosteur.com/v/' + media.slug)}`}
+            href={`https://wa.me/?text=${encodeURIComponent((media.title || 'Vidéo') + '\nhttps://afroboosteur.com/v/' + media.slug)}`}
             target="_blank"
             rel="noopener noreferrer"
             style={styles.whatsappButton}
+            data-testid="whatsapp-share-btn"
           >
             WhatsApp
           </a>
