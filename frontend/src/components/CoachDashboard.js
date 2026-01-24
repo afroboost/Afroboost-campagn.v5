@@ -7117,6 +7117,13 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                         .msg-link:hover {
                           color: #c4b5fd;
                         }
+                        @keyframes slideIn {
+                          from { opacity: 0; transform: translateX(100px); }
+                          to { opacity: 1; transform: translateX(0); }
+                        }
+                        .animate-slideIn {
+                          animation: slideIn 0.3s ease-out;
+                        }
                       `}</style>
                       {sessionMessages.length === 0 ? (
                         <p className="text-white/50 text-sm text-center py-4">Aucun message</p>
