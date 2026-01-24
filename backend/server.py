@@ -2572,87 +2572,125 @@ async def chat_with_ai(data: ChatMessage):
     if not ai_config.get("enabled"):
         return {"response": "L'assistant IA est actuellement désactivé. Veuillez contacter le coach directement.", "responseTime": 0}
     
-    # === 3. CONSTRUIRE LE CONTEXTE DYNAMIQUE ===
-    context = ""
+    # === 3. CONSTRUIRE LE CONTEXTE DYNAMIQUE (VISION TOTALE DU SITE) ===
+    context = "\n\n========== CONNAISSANCES DU SITE AFROBOOST ==========\n"
+    context += "Utilise EXCLUSIVEMENT ces informations pour répondre sur les cours, offres et articles.\n"
+    context += "Si une nouveauté est présente, mets-la en avant !\n"
     
     # Prénom du client
     if first_name:
-        context += f"\n\nLe client qui te parle s'appelle {first_name}. Utilise son prénom dans ta réponse pour être chaleureux."
+        context += f"\n👤 CLIENT: {first_name} - Utilise son prénom pour être chaleureux.\n"
     
     # Concept/Description du site
     try:
         concept = await db.concept.find_one({"id": "concept"}, {"_id": 0})
-        if concept:
-            context += f"\n\nContexte Afroboost: {concept.get('description', '')}"
+        if concept and concept.get('description'):
+            context += f"\n📌 À PROPOS D'AFROBOOST:\n{concept.get('description', '')[:500]}\n"
     except Exception as e:
         logger.warning(f"[CHAT-IA] Erreur récupération concept: {e}")
     
-    # === SYNCHRONISATION OFFRES (DYNAMIQUE) ===
+    # === SECTION 1: OFFRES ET TARIFS ===
     try:
-        offers = await db.offers.find({"visible": {"$ne": False}}, {"_id": 0}).to_list(50)
+        offers = await db.offers.find({"visible": {"$ne": False}}, {"_id": 0}).to_list(20)
         if offers:
-            offers_info = []
-            for o in offers:
-                offer_line = f"- {o.get('name', '')} - {o.get('price', 0)} CHF"
-                if o.get('description'):
-                    # Limiter la description à 100 caractères
-                    desc = o.get('description', '')[:100]
-                    offer_line += f" ({desc}{'...' if len(o.get('description', '')) > 100 else ''})"
-                offers_info.append(offer_line)
-            
-            context += f"\n\n=== OFFRES ACTUELLES (utilise ces infos si le client pose des questions sur les tarifs, prix ou services) ===\n"
-            context += "\n".join(offers_info[:10])  # Max 10 offres
-            context += "\n=== FIN DES OFFRES ==="
+            context += "\n\n💰 OFFRES ET TARIFS ACTUELS:\n"
+            for o in offers[:10]:  # Max 10 offres
+                name = o.get('name', 'Offre')
+                price = o.get('price', 0)
+                desc = o.get('description', '')[:100] if o.get('description') else ''
+                validity = o.get('validity', '')
+                
+                context += f"  • {name} : {price} CHF"
+                if desc:
+                    context += f" - {desc}"
+                if validity:
+                    context += f" (Validité: {validity})"
+                context += "\n"
         else:
-            context += "\n\n(Aucune offre actuellement disponible. Si le client demande les tarifs, invite-le à contacter directement le coach.)"
+            context += "\n\n💰 OFFRES: Aucune offre spéciale actuellement. Invite le client à contacter le coach.\n"
     except Exception as e:
-        logger.warning(f"[CHAT-IA] Erreur récupération offres (non bloquant): {e}")
-        context += "\n\n(Les offres ne sont pas disponibles pour le moment. Réponds normalement aux autres questions.)"
+        logger.warning(f"[CHAT-IA] Erreur récupération offres: {e}")
+        context += "\n\n💰 OFFRES: Informations temporairement indisponibles.\n"
     
-    # === SYNCHRONISATION COURS (DYNAMIQUE) ===
+    # === SECTION 2: COURS DISPONIBLES ===
     try:
         courses = await db.courses.find({"visible": {"$ne": False}}, {"_id": 0}).to_list(20)
         if courses:
-            courses_info = []
-            for c in courses:
-                course_line = f"- {c.get('name', '')} le {c.get('date', '')} à {c.get('time', '')}"
-                if c.get('location'):
-                    course_line += f" ({c.get('location', '')})"
-                if c.get('price'):
-                    course_line += f" - {c.get('price', '')} CHF"
-                courses_info.append(course_line)
-            
-            context += f"\n\n=== COURS DISPONIBLES ===\n"
-            context += "\n".join(courses_info[:10])  # Max 10 cours
-            context += "\n=== FIN DES COURS ==="
+            context += "\n\n🎯 COURS DISPONIBLES:\n"
+            for c in courses[:10]:  # Max 10 cours
+                name = c.get('name', 'Cours')
+                date = c.get('date', '')
+                time_slot = c.get('time', '')
+                location = c.get('location', '')
+                price = c.get('price', '')
+                description = c.get('description', '')[:80] if c.get('description') else ''
+                
+                context += f"  • {name}"
+                if date:
+                    context += f" - {date}"
+                if time_slot:
+                    context += f" à {time_slot}"
+                if location:
+                    context += f" ({location})"
+                if price:
+                    context += f" - {price} CHF"
+                context += "\n"
+                if description:
+                    context += f"    → {description}\n"
+        else:
+            context += "\n\n🎯 COURS: Aucun cours programmé actuellement. Invite le client à suivre nos réseaux pour les prochaines dates.\n"
     except Exception as e:
-        logger.warning(f"[CHAT-IA] Erreur récupération cours (non bloquant): {e}")
+        logger.warning(f"[CHAT-IA] Erreur récupération cours: {e}")
+        context += "\n\n🎯 COURS: Informations temporairement indisponibles.\n"
     
-    # === SYNCHRONISATION ARTICLES/BLOG (DYNAMIQUE) ===
+    # === SECTION 3: ARTICLES ET ACTUALITÉS ===
     try:
-        # Vérifier si une collection 'articles' ou 'blog' existe
-        articles = await db.articles.find({"visible": {"$ne": False}}, {"_id": 0}).to_list(10)
+        # Récupérer les 10 articles les plus récents
+        articles = await db.articles.find(
+            {"visible": {"$ne": False}}, 
+            {"_id": 0}
+        ).sort("createdAt", -1).to_list(10)
+        
         if articles:
-            articles_info = []
-            for a in articles:
-                article_line = f"- {a.get('title', '')} - {a.get('summary', '')[:80]}"
-                articles_info.append(article_line)
-            
-            context += f"\n\n=== ARTICLES DU BLOG ===\n"
-            context += "\n".join(articles_info[:5])  # Max 5 articles
-            context += "\n=== FIN DES ARTICLES ==="
+            context += "\n\n📰 DERNIERS ARTICLES ET ACTUALITÉS:\n"
+            for a in articles[:5]:  # Max 5 articles dans le contexte
+                title = a.get('title', 'Article')
+                summary = a.get('summary', '')[:120] if a.get('summary') else ''
+                link = a.get('link', '')
+                
+                context += f"  • {title}\n"
+                if summary:
+                    context += f"    → {summary}\n"
+                if link:
+                    context += f"    🔗 Lien: {link}\n"
+        else:
+            context += "\n\n📰 ARTICLES: Pas d'articles récents. Le blog arrive bientôt !\n"
     except Exception as e:
-        # Pas de collection articles = pas grave
-        pass
+        logger.warning(f"[CHAT-IA] Erreur récupération articles: {e}")
+        # Silencieux si pas de collection articles
     
-    # === INSTRUCTION IMPORTANTE POUR L'IA ===
+    # === SECTION 4: PROMOS SPÉCIALES (codes promo) ===
+    try:
+        promos = await db.discount_codes.find({"active": True}, {"_id": 0}).to_list(5)
+        if promos:
+            context += "\n\n🎁 CODES PROMO ACTIFS:\n"
+            for p in promos[:3]:
+                code = p.get('code', '')
+                discount = p.get('discountPercent', 0)
+                context += f"  • Code '{code}' : -{discount}% de réduction\n"
+    except:
+        pass  # Pas de promos = silencieux
+    
+    # === RÈGLES STRICTES POUR L'IA ===
     context += """
-
-=== RÈGLES IMPORTANTES ===
-1. N'invente JAMAIS d'offres, cours ou articles qui ne sont pas listés ci-dessus.
-2. Si le client demande quelque chose qui n'est pas dans la liste, réponds : "Je n'ai pas cette information actuellement. Je vous invite à contacter directement le coach pour plus de détails."
-3. Sois toujours chaleureux et professionnel.
-=== FIN DES RÈGLES ==="""
+\n========== RÈGLES STRICTES ==========
+1. Tu es l'assistant d'Afroboost, expert en fitness et danse afro.
+2. Utilise UNIQUEMENT les informations ci-dessus pour parler des offres, cours et articles.
+3. N'INVENTE JAMAIS de cours, prix, ou articles qui ne sont pas listés.
+4. Si le client demande quelque chose qui n'est pas dans le contexte, dis : "Je n'ai pas cette information. Contacte directement le coach via WhatsApp ou email."
+5. Mets en avant les NOUVEAUTÉS et les articles récents si pertinent.
+6. Sois chaleureux, utilise des emojis 🎉 et le prénom du client.
+========================================"""
     
     full_system_prompt = ai_config.get("systemPrompt", "Tu es l'assistant IA d'Afroboost, une application de réservation de cours de fitness.") + context
     
