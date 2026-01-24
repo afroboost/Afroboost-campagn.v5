@@ -552,6 +552,7 @@ class EnhancedChatMessage(BaseModel):
     content: str
     mode: str = "ai"  # Mode au moment de l'envoi: "ai", "human", "community"
     is_deleted: bool = False  # Suppression logique
+    notified: bool = False  # Pour les notifications coach/client
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     deleted_at: Optional[str] = None
 
