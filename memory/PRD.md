@@ -84,6 +84,34 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
 
 ---
 
+### 🗂️ CRM Avancé - Historique Conversations (24 Jan 2026)
+**Objectif:** Transformer la section Conversations en un tableau de bord professionnel avec recherche et scroll performant.
+
+**Backend (`/app/backend/server.py`):**
+- Nouvel endpoint `GET /api/conversations` (lignes 2883-2993)
+- Paramètres: `page`, `limit` (max 100), `query`, `include_deleted`
+- Recherche dans: noms participants, emails, contenu des messages, titres
+- Enrichissement: dernier message, infos participants, compteur de messages
+- Retour: `conversations`, `total`, `page`, `pages`, `has_more`
+
+**Frontend (`/app/frontend/src/components/CoachDashboard.js`):**
+- États CRM: `conversationsPage`, `conversationsTotal`, `conversationsHasMore`, `enrichedConversations`
+- `loadConversations()`: Charge les conversations avec pagination
+- `loadMoreConversations()`: Infinite scroll (80% du scroll)
+- `handleSearchChange()`: Recherche avec debounce 300ms
+- `formatConversationDate()`: Badges (Aujourd'hui, Hier, date complète)
+- `groupedConversations`: Groupement par date via useMemo
+
+**UI:**
+- Barre de recherche avec clear button et compteur de résultats
+- Liste avec Infinite Scroll (maxHeight 450px)
+- Badges de date sticky entre les groupes
+- Messages avec timestamps et séparateurs de date
+
+**Test report:** `/app/test_reports/iteration_37.json` - 100% passed
+
+---
+
 ### Fonctionnalité "Modifier une Campagne" (23 Jan 2026)
 1. ✅ **Bouton ✏️ (Modifier)** : Visible dans le tableau pour campagnes draft/scheduled
 2. ✅ **Pré-remplissage du formulaire** : Nom, message, mediaUrl, contacts, canaux
