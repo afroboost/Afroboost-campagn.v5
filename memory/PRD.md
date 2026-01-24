@@ -210,7 +210,15 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **FALLBACK TOAST** si notifications browser bloquées
   - **Option "Notifier réponses IA"** pour suivre l'activité de l'IA
   - Permission persistée: polling auto si déjà autorisé au refresh
+  - Protection contre erreurs son/notif (try/catch, pas de boucle)
   - Garde-fous: Vision IA (café 10 CHF) et Twint non impactés ✅
+
+- [x] **Boutons de Suppression Restaurés** (24 Jan 2026) - RÉPARÉ ✅
+  - Nouveau endpoint `DELETE /api/chat/links/{link_id}` pour supprimer les liens
+  - Fonction `deleteChatLink()` avec confirmation "Êtes-vous sûr ?"
+  - `deleteChatSession()` avec confirmation (suppression logique)
+  - `deleteChatParticipant()` avec confirmation (suppression définitive)
+  - Tous les boutons 🗑️ fonctionnels avec data-testid
 - [x] **Fix Permissions Notifications** (24 Jan 2026) - NOUVEAU ✅
   - Banner de demande de permission au premier accès à l'onglet Conversations
   - Fallback Toast interne si notifications browser bloquées
