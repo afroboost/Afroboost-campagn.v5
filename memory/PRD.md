@@ -203,14 +203,14 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - Badges de date (Aujourd'hui, Hier, date complète)
   - Timestamps précis sur chaque message
   - Séparateurs de date dans l'historique des conversations
-- [x] **Notifications Sonores et Visuelles** (24 Jan 2026) - NOUVEAU ✅
-  - Backend: Champ `notified` sur messages, endpoints `GET /api/notifications/unread` et `PUT /api/notifications/mark-read`
-  - Frontend: Polling toutes les 10s, son de notification (Web Audio API), notifications browser
-  - Badge de compteur sur l'onglet "💬 Conversations (n)"
-  - **BOUTON DE TEST** visible dans l'onglet Conversations pour tester les notifications
+- [x] **Notifications Sonores et Visuelles** (24 Jan 2026) - STABILISÉ ✅
+  - Backend: Champ `notified` sur messages, endpoints optimisés avec `include_ai` param
+  - Frontend: Polling toutes les 10s avec cleanup `clearInterval` propre
+  - **BOUTON DE TEST** visible avec logs de debug (NOTIF_DEBUG:)
   - **FALLBACK TOAST** si notifications browser bloquées
-  - Logs de debug (console.log NOTIF_DEBUG:) pour traçabilité
-  - Garde-fous: Vision IA (café) et Twint non impactés ✅
+  - **Option "Notifier réponses IA"** pour suivre l'activité de l'IA
+  - Permission persistée: polling auto si déjà autorisé au refresh
+  - Garde-fous: Vision IA (café 10 CHF) et Twint non impactés ✅
 - [x] **Fix Permissions Notifications** (24 Jan 2026) - NOUVEAU ✅
   - Banner de demande de permission au premier accès à l'onglet Conversations
   - Fallback Toast interne si notifications browser bloquées
