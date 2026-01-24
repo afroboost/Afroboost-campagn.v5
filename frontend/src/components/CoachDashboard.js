@@ -1621,11 +1621,62 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   }, [chatParticipants, conversationSearch]);
 
   // === NOTIFICATIONS SONORES ET VISUELLES (Coach) ===
-  const [notificationPermission, setNotificationPermission] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState('default'); // 'granted' | 'denied' | 'default' | 'unsupported'
+  const [showPermissionBanner, setShowPermissionBanner] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [toastNotifications, setToastNotifications] = useState([]); // Fallback toasts
   const lastNotifiedIdsRef = useRef(new Set());
   
-  // Demander la permission de notification au premier accès aux conversations
+  // Ajouter un toast de notification (fallback quand les notifications browser sont bloquées)
+  const addToastNotification = useCallback((message) => {
+    const id = Date.now();
+    const toast = {
+      id,
+      senderName: message.sender_name,
+      content: message.content,
+      sessionId: message.session_id,
+      createdAt: new Date().toISOString()
+    };
+    
+    setToastNotifications(prev => [...prev.slice(-4), toast]); // Garder max 5 toasts
+    
+    // Auto-dismiss après 10 secondes
+    setTimeout(() => {
+      setToastNotifications(prev => prev.filter(t => t.id !== id));
+    }, 10000);
+  }, []);
+  
+  // Supprimer un toast
+  const dismissToast = useCallback((toastId) => {
+    setToastNotifications(prev => prev.filter(t => t.id !== toastId));
+  }, []);
+  
+  // Cliquer sur un toast pour aller à la conversation
+  const handleToastClick = useCallback((toast) => {
+    const session = chatSessions.find(s => s.id === toast.sessionId);
+    if (session) {
+      setSelectedSession(session);
+      loadSessionMessages(session.id);
+    }
+    dismissToast(toast.id);
+  }, [chatSessions, dismissToast]);
+  
+  // Vérifier le statut de permission au chargement
+  useEffect(() => {
+    const checkPermission = async () => {
+      const { getNotificationPermissionStatus } = await import('../services/notificationService');
+      const status = getNotificationPermissionStatus();
+      setNotificationPermission(status);
+      
+      // Afficher le banner si permission pas encore demandée
+      if (status === 'default') {
+        setShowPermissionBanner(true);
+      }
+    };
+    checkPermission();
+  }, []);
+  
+  // Demander la permission de notification explicitement (appelé par le bouton)
   const requestNotificationAccess = useCallback(async () => {
     try {
       // Déverrouiller l'audio (nécessaire sur iOS)
@@ -1633,11 +1684,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
       await unlockAudio();
       
       // Demander la permission des notifications browser
-      const granted = await requestNotificationPermission();
-      setNotificationPermission(granted);
+      const permission = await requestNotificationPermission();
+      setNotificationPermission(permission);
+      setShowPermissionBanner(false);
       
-      if (granted) {
-        console.log('[NOTIFICATIONS] Permission accordée');
+      if (permission === 'granted') {
+        console.log('[NOTIFICATIONS] Permission accordée!');
+        // Afficher une notification de test
+        const { showBrowserNotification } = await import('../services/notificationService');
+        await showBrowserNotification(
+          '✅ Notifications activées',
+          'Vous recevrez désormais les alertes de nouveaux messages.',
+          { tag: 'afroboost-permission-granted' }
+        );
+      } else if (permission === 'denied') {
+        console.log('[NOTIFICATIONS] Permission refusée - utilisation du fallback toast');
       }
     } catch (err) {
       console.warn('[NOTIFICATIONS] Erreur permission:', err);
@@ -1662,20 +1723,23 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         
         if (newMessages.length > 0) {
           // Importer les fonctions de notification
-          const { playNotificationSound, showBrowserNotification } = await import('../services/notificationService');
+          const { playNotificationSound, showBrowserNotification, getNotificationPermissionStatus } = await import('../services/notificationService');
           
           // Jouer le son pour le premier nouveau message
           await playNotificationSound('user');
           
-          // Afficher une notification browser pour chaque nouveau message (max 3)
+          // Vérifier la permission actuelle
+          const currentPermission = getNotificationPermissionStatus();
+          
+          // Afficher une notification pour chaque nouveau message (max 3)
           for (const msg of newMessages.slice(0, 3)) {
-            await showBrowserNotification(
+            // Essayer d'afficher une notification browser
+            const result = await showBrowserNotification(
               '💬 Nouveau message - Afroboost',
               `${msg.sender_name}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}`,
               {
                 tag: `afroboost-msg-${msg.id}`,
                 onClick: () => {
-                  window.focus();
                   // Sélectionner la session correspondante
                   const session = chatSessions.find(s => s.id === msg.session_id);
                   if (session) {
@@ -1685,6 +1749,11 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 }
               }
             );
+            
+            // Si la notification browser a échoué, utiliser le fallback toast
+            if (result.fallbackNeeded) {
+              addToastNotification(msg);
+            }
             
             // Ajouter à la liste des messages notifiés localement
             lastNotifiedIdsRef.current.add(msg.id);
@@ -1702,16 +1771,13 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
       }
     } catch (err) {
       // Fallback vers l'ancienne méthode si le nouvel endpoint n'est pas disponible
-      console.warn('[NOTIFICATIONS] Fallback mode');
+      console.warn('[NOTIFICATIONS] Erreur polling:', err);
     }
-  }, [tab, chatSessions]);
+  }, [tab, chatSessions, addToastNotification]);
   
   // Polling des notifications toutes les 10 secondes
   useEffect(() => {
     if (tab !== 'conversations') return;
-    
-    // Demander la permission au premier accès
-    requestNotificationAccess();
     
     // Vérifier immédiatement
     checkUnreadNotifications();
@@ -1722,7 +1788,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }, 10000);
     
     return () => clearInterval(interval);
-  }, [tab, requestNotificationAccess, checkUnreadNotifications]);
+  }, [tab, checkUnreadNotifications]);
 
   // === POLLING LEGACY pour les sessions en mode humain ===
   const lastMessageCountRef = useRef({});
