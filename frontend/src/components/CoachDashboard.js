@@ -6821,10 +6821,10 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                       {selectedSession.mode === 'community' && '👥 Mode Communauté - Chat de groupe'}
                     </div>
 
-                    {/* Messages avec liens cliquables */}
+                    {/* Messages avec liens cliquables et dates/heures précises */}
                     <div 
                       className="space-y-2 mb-4 p-3 rounded-lg"
-                      style={{ background: 'rgba(0,0,0,0.3)', maxHeight: '250px', overflowY: 'auto' }}
+                      style={{ background: 'rgba(0,0,0,0.3)', maxHeight: '300px', overflowY: 'auto' }}
                     >
                       <style>{`
                         .msg-link {
@@ -6839,32 +6839,55 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                       {sessionMessages.length === 0 ? (
                         <p className="text-white/50 text-sm text-center py-4">Aucun message</p>
                       ) : (
-                        sessionMessages.map(msg => (
-                          <div
-                            key={msg.id}
-                            className={`p-2 rounded-lg text-sm ${
-                              msg.sender_type === 'user' 
-                                ? 'bg-purple-600/20 ml-4' 
-                                : msg.sender_type === 'coach'
-                                ? 'bg-yellow-600/20 mr-4'
-                                : 'bg-green-600/20 mr-4'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-white/70 text-xs font-medium">
-                                {msg.sender_type === 'user' ? '👤' : msg.sender_type === 'coach' ? '🏋️' : '🤖'} {msg.sender_name}
-                              </span>
-                              <span className="text-white/40 text-xs">
-                                {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            {/* Contenu avec liens cliquables */}
-                            <p 
-                              className="text-white text-sm"
-                              dangerouslySetInnerHTML={{ __html: linkifyText(msg.content) }}
-                            />
-                          </div>
-                        ))
+                        <>
+                          {/* Grouper les messages par date */}
+                          {sessionMessages.reduce((acc, msg, idx) => {
+                            const msgDate = new Date(msg.created_at);
+                            const dateKey = msgDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                            const prevMsg = sessionMessages[idx - 1];
+                            const prevDateKey = prevMsg ? new Date(prevMsg.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+                            
+                            // Ajouter un séparateur de date si c'est un nouveau jour
+                            if (dateKey !== prevDateKey) {
+                              acc.push(
+                                <div key={`date-${dateKey}`} className="flex items-center gap-2 my-3">
+                                  <div className="flex-1 h-px bg-white/10"></div>
+                                  <span className="text-xs text-white/40 px-2">{dateKey}</span>
+                                  <div className="flex-1 h-px bg-white/10"></div>
+                                </div>
+                              );
+                            }
+                            
+                            acc.push(
+                              <div
+                                key={msg.id}
+                                className={`p-2 rounded-lg text-sm ${
+                                  msg.sender_type === 'user' 
+                                    ? 'bg-purple-600/20 ml-4' 
+                                    : msg.sender_type === 'coach'
+                                    ? 'bg-yellow-600/20 mr-4'
+                                    : 'bg-green-600/20 mr-4'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-white/70 text-xs font-medium">
+                                    {msg.sender_type === 'user' ? '👤' : msg.sender_type === 'coach' ? '🏋️' : '🤖'} {msg.sender_name}
+                                  </span>
+                                  <span className="text-white/40 text-xs" title={msgDate.toLocaleString('fr-FR')}>
+                                    {msgDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                {/* Contenu avec liens cliquables */}
+                                <p 
+                                  className="text-white text-sm"
+                                  dangerouslySetInnerHTML={{ __html: linkifyText(msg.content) }}
+                                />
+                              </div>
+                            );
+                            
+                            return acc;
+                          }, [])}
+                        </>
                       )}
                     </div>
 
