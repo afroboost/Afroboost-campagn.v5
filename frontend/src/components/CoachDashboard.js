@@ -1735,7 +1735,10 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     
     try {
       const res = await axios.get(`${API}/notifications/unread`, {
-        params: { target: 'coach' }
+        params: { 
+          target: 'coach',
+          include_ai: notifyOnAiResponse  // Inclure les réponses IA si option activée
+        }
       });
       
       const { count, messages } = res.data;
