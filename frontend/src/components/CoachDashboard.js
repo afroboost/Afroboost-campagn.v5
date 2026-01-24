@@ -4695,35 +4695,55 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         {/* Promo Codes Tab with Beneficiary Dropdown */}
         {tab === "codes" && (
           <div className="card-gradient rounded-xl p-4 sm:p-6">
-            <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
+            {/* En-tête avec recherche */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
               <h2 className="font-semibold text-white text-lg sm:text-xl">{t('promoCodes')}</h2>
-              <div className="flex gap-2 flex-wrap">
-                {/* Add Manual Contact Button */}
-                <button 
-                  type="button"
-                  onClick={() => setShowManualContactForm(!showManualContactForm)} 
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-white text-xs sm:text-sm transition-all"
-                  style={{ 
-                    background: showManualContactForm ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)',
-                    border: showManualContactForm ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(34, 197, 94, 0.4)'
-                  }}
-                  data-testid="add-manual-contact-btn"
-                >
-                  {showManualContactForm ? '✕ Fermer' : t('addManualContact')}
-                </button>
-                <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImportCSV} style={{ display: 'none' }} />
-                <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-2 rounded-lg glass text-white text-xs sm:text-sm" data-testid="import-csv-btn">
-                  <FolderIcon /> {t('importCSV')}
-                </button>
-                <button 
-                  onClick={exportPromoCodesCSV} 
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-white text-xs sm:text-sm"
-                  style={{ background: 'rgba(139, 92, 246, 0.3)', border: '1px solid rgba(139, 92, 246, 0.5)' }}
-                  data-testid="export-csv-btn"
-                >
-                  📥 {t('exportCSV')}
-                </button>
+              <div className="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  placeholder="🔍 Rechercher un code..."
+                  value={codesSearch}
+                  onChange={(e) => setCodesSearch(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#fff' }}
+                  data-testid="codes-search-input"
+                />
+                {codesSearch && (
+                  <button
+                    onClick={() => setCodesSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  >✕</button>
+                )}
               </div>
+            </div>
+            
+            {/* Boutons d'action */}
+            <div className="flex justify-end mb-4 flex-wrap gap-2">
+              {/* Add Manual Contact Button */}
+              <button 
+                type="button"
+                onClick={() => setShowManualContactForm(!showManualContactForm)} 
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-white text-xs sm:text-sm transition-all"
+                style={{ 
+                  background: showManualContactForm ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)',
+                  border: showManualContactForm ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(34, 197, 94, 0.4)'
+                }}
+                data-testid="add-manual-contact-btn"
+              >
+                {showManualContactForm ? '✕ Fermer' : t('addManualContact')}
+              </button>
+              <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImportCSV} style={{ display: 'none' }} />
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-2 rounded-lg glass text-white text-xs sm:text-sm" data-testid="import-csv-btn">
+                <FolderIcon /> {t('importCSV')}
+              </button>
+              <button 
+                onClick={exportPromoCodesCSV} 
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-white text-xs sm:text-sm"
+                style={{ background: 'rgba(139, 92, 246, 0.3)', border: '1px solid rgba(139, 92, 246, 0.5)' }}
+                data-testid="export-csv-btn"
+              >
+                📥 {t('exportCSV')}
+              </button>
             </div>
             
             {/* Manual Contact Form */}
