@@ -3325,6 +3325,22 @@ async def get_all_chat_links():
     
     return sessions
 
+@api_router.delete("/chat/links/{link_id}")
+async def delete_chat_link(link_id: str):
+    """
+    Supprime un lien de chat (suppression logique).
+    Le lien ne sera plus accessible et n'apparaîtra plus dans la liste.
+    """
+    result = await db.chat_sessions.update_one(
+        {"$or": [{"id": link_id}, {"link_token": link_id}]},
+        {"$set": {"is_deleted": True, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Lien non trouvé")
+    
+    return {"success": True, "message": "Lien supprimé"}
+
 # --- Intelligent Chat Entry Point ---
 @api_router.post("/chat/smart-entry")
 async def smart_chat_entry(request: Request):
