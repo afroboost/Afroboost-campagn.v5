@@ -1174,23 +1174,147 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   }, [newCampaign.mediaUrl]);
 
   // === CONVERSATIONS FUNCTIONS ===
-  const loadConversations = async () => {
+  // === CRM AVANCÉ - Chargement des conversations avec pagination ===
+  const loadConversations = async (reset = true) => {
+    if (conversationsLoading) return;
+    
     setLoadingConversations(true);
+    setConversationsLoading(true);
+    
     try {
-      const [sessionsRes, participantsRes, linksRes] = await Promise.all([
-        axios.get(`${API}/chat/sessions`),
+      const page = reset ? 1 : conversationsPage;
+      const searchQuery = conversationSearch.trim();
+      
+      const [conversationsRes, participantsRes, linksRes] = await Promise.all([
+        axios.get(`${API}/conversations`, {
+          params: { page, limit: 20, query: searchQuery }
+        }),
         axios.get(`${API}/chat/participants`),
         axios.get(`${API}/chat/links`)
       ]);
-      setChatSessions(sessionsRes.data);
+      
+      const { conversations, total, has_more } = conversationsRes.data;
+      
+      if (reset) {
+        setEnrichedConversations(conversations);
+        setChatSessions(conversations); // Compatibilité avec l'ancien code
+        setConversationsPage(1);
+      } else {
+        setEnrichedConversations(prev => [...prev, ...conversations]);
+        setChatSessions(prev => [...prev, ...conversations]);
+      }
+      
+      setConversationsTotal(total);
+      setConversationsHasMore(has_more);
       setChatParticipants(participantsRes.data);
       setChatLinks(linksRes.data);
+      
     } catch (err) {
       console.error("Error loading conversations:", err);
+      // Fallback vers l'ancien endpoint
+      try {
+        const [sessionsRes, participantsRes, linksRes] = await Promise.all([
+          axios.get(`${API}/chat/sessions`),
+          axios.get(`${API}/chat/participants`),
+          axios.get(`${API}/chat/links`)
+        ]);
+        setChatSessions(sessionsRes.data);
+        setEnrichedConversations(sessionsRes.data);
+        setChatParticipants(participantsRes.data);
+        setChatLinks(linksRes.data);
+      } catch (fallbackErr) {
+        console.error("Fallback error:", fallbackErr);
+      }
     } finally {
       setLoadingConversations(false);
+      setConversationsLoading(false);
     }
   };
+  
+  // === CRM AVANCÉ - Charger plus de conversations (Infinite Scroll) ===
+  const loadMoreConversations = async () => {
+    if (!conversationsHasMore || conversationsLoading) return;
+    
+    setConversationsLoading(true);
+    try {
+      const nextPage = conversationsPage + 1;
+      const searchQuery = conversationSearch.trim();
+      
+      const res = await axios.get(`${API}/conversations`, {
+        params: { page: nextPage, limit: 20, query: searchQuery }
+      });
+      
+      const { conversations, has_more } = res.data;
+      
+      setEnrichedConversations(prev => [...prev, ...conversations]);
+      setChatSessions(prev => [...prev, ...conversations]);
+      setConversationsPage(nextPage);
+      setConversationsHasMore(has_more);
+      
+    } catch (err) {
+      console.error("Error loading more conversations:", err);
+    } finally {
+      setConversationsLoading(false);
+    }
+  };
+  
+  // === CRM AVANCÉ - Gestionnaire de scroll pour infinite scroll ===
+  const handleConversationsScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    // Charger plus quand on arrive à 80% du scroll
+    if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+      loadMoreConversations();
+    }
+  }, [conversationsHasMore, conversationsLoading, conversationsPage, conversationSearch]);
+  
+  // === CRM AVANCÉ - Recherche avec debounce ===
+  const handleSearchChange = (value) => {
+    setConversationSearch(value);
+    
+    // Debounce de 300ms pour la recherche
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      setConversationsPage(1);
+      loadConversations(true);
+    }, 300);
+  };
+  
+  // === CRM AVANCÉ - Formatage des dates ===
+  const formatConversationDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const conversationDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (conversationDate.getTime() === today.getTime()) {
+      return 'Aujourd\'hui';
+    } else if (conversationDate.getTime() === yesterday.getTime()) {
+      return 'Hier';
+    } else {
+      return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+  };
+  
+  // === CRM AVANCÉ - Grouper les conversations par date ===
+  const groupedConversations = useMemo(() => {
+    const groups = {};
+    
+    enrichedConversations.forEach(conv => {
+      const dateKey = formatConversationDate(conv.created_at);
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(conv);
+    });
+    
+    return groups;
+  }, [enrichedConversations]);
 
   const loadSessionMessages = async (sessionId) => {
     try {
