@@ -6803,7 +6803,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
             </div>
             
             {/* Statut notifications (petit badge) */}
-            <div className="flex items-center gap-2 text-xs text-white/40">
+            <div className="flex items-center gap-2 flex-wrap text-xs text-white/40">
               {notificationPermission === 'granted' && (
                 <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-600/20 text-green-400">
                   🔔 Notifications actives
@@ -6819,6 +6819,16 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                   📬 {unreadCount} non lu(s)
                 </span>
               )}
+              {/* Option: Notifier quand l'IA répond */}
+              <label className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={notifyOnAiResponse}
+                  onChange={toggleNotifyOnAiResponse}
+                  className="w-3 h-3 rounded"
+                />
+                <span className="text-white/60">Notifier réponses IA</span>
+              </label>
             </div>
 
             {/* Header avec recherche globale */}
