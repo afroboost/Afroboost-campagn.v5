@@ -1922,10 +1922,10 @@ const ConfirmPaymentOverlay = ({ t, onConfirm, onCancel }) => (
 // Main App
 function App() {
   const [lang, setLang] = useState(localStorage.getItem("af_lang") || "fr");
-  const [showSplash, setShowSplash] = useState(false); // TESTING: disabled splash
+  const [showSplash, setShowSplash] = useState(true);
   const [showCoachLogin, setShowCoachLogin] = useState(false);
-  const [coachMode, setCoachMode] = useState(true); // TESTING: enabled coach mode
-  const [coachUser, setCoachUser] = useState({name: 'Test Coach', email: 'test@test.com'}); // TESTING: mock user
+  const [coachMode, setCoachMode] = useState(false);
+  const [coachUser, setCoachUser] = useState(null); // Utilisateur connecté via Google OAuth
   const [validationCode, setValidationCode] = useState(null); // For /validate/:code URL
 
   const [courses, setCourses] = useState([]);
