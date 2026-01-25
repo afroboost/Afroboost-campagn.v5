@@ -122,7 +122,11 @@ export const QRScannerModal = ({ onClose, onValidate, scanResult, scanError, onM
       // Utiliser la référence globale Html5Qrcode
       const Html5Qrcode = window.Html5Qrcode;
       if (!Html5Qrcode) {
-        throw new Error("Html5Qrcode library not loaded");
+        setCameraError("La librairie de scan QR n'est pas disponible. Utilisez le mode manuel ci-dessous.");
+        setManualMode(true);
+        setScanning(false);
+        setInitializingCamera(false);
+        return;
       }
 
       const html5QrCode = new Html5Qrcode("qr-reader");
