@@ -3439,7 +3439,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         {/* Reservations Tab - Responsive: Table on PC, Cards on Mobile */}
         {tab === "reservations" && (
           <div className="card-gradient rounded-xl p-4 sm:p-6">
-            <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
               <div>
                 <h2 className="font-semibold text-white text-lg sm:text-xl">{t('reservationsList')}</h2>
                 <p className="text-white/50 text-xs mt-1">
@@ -3454,6 +3454,42 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 </button>
                 <button onClick={exportCSV} className="csv-btn text-xs sm:text-sm" data-testid="export-csv">{t('downloadCSV')}</button>
               </div>
+            </div>
+            
+            {/* Barre de recherche réservations */}
+            <div className="mb-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="🔍 Rechercher par nom, email, WhatsApp, date, code..."
+                  value={reservationsSearch}
+                  onChange={(e) => setReservationsSearch(e.target.value)}
+                  className="w-full px-4 py-2.5 pl-10 rounded-lg text-sm"
+                  style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#fff' }}
+                  data-testid="reservations-search-input"
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">🔍</span>
+                {reservationsSearch && (
+                  <button
+                    onClick={() => setReservationsSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  >✕</button>
+                )}
+              </div>
+              {reservationsSearch && (
+                <p className="text-xs text-purple-400 mt-1">
+                  {reservations.filter(r => {
+                    const q = reservationsSearch.toLowerCase();
+                    const dateStr = new Date(r.datetime).toLocaleDateString('fr-FR');
+                    return r.userName?.toLowerCase().includes(q) ||
+                           r.userEmail?.toLowerCase().includes(q) ||
+                           r.userWhatsapp?.includes(q) ||
+                           r.reservationCode?.toLowerCase().includes(q) ||
+                           dateStr.includes(q) ||
+                           r.courseName?.toLowerCase().includes(q);
+                  }).length} résultat(s)
+                </p>
+              )}
             </div>
             
             {/* Pagination Controls */}
