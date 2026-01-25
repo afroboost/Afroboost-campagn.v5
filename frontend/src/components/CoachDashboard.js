@@ -1648,7 +1648,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         return filtered;
       });
       setChatSessions(prev => {
-        const filtered = prev.filter(s => s.id !== linkId && s.link_token !== linkId);
+        const filtered = prev.filter(s => s.id !== linkId && s._id !== linkId && s.link_token !== linkId);
         console.log('DELETE_DEBUG: chatSessions filtré:', prev.length, '->', filtered.length);
         return filtered;
       });
