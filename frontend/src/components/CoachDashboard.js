@@ -1320,6 +1320,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     return groups;
   }, [enrichedConversations]);
 
+  // === RÉSERVATIONS - Filtrage optimisé avec useMemo ===
+  const filteredReservations = useMemo(() => {
+    if (!reservationsSearch) return reservations;
+    const q = reservationsSearch.toLowerCase();
+    return reservations.filter(r => {
+      const dateStr = new Date(r.datetime).toLocaleDateString('fr-FR');
+      return r.userName?.toLowerCase().includes(q) ||
+             r.userEmail?.toLowerCase().includes(q) ||
+             r.userWhatsapp?.includes(q) ||
+             r.reservationCode?.toLowerCase().includes(q) ||
+             dateStr.includes(q) ||
+             r.courseName?.toLowerCase().includes(q);
+    });
+  }, [reservations, reservationsSearch]);
+
   const loadSessionMessages = async (sessionId) => {
     try {
       const res = await axios.get(`${API}/chat/sessions/${sessionId}/messages`);
