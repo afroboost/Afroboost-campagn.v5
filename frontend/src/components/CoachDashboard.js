@@ -756,32 +756,43 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     if (!window.confirm("⚠️ SUPPRESSION DÉFINITIVE\n\nCe contact sera supprimé de la base de données.\nSon email sera retiré de tous les codes promo.\n\nConfirmer la suppression ?")) return;
     try {
       // Récupérer l'email AVANT suppression du state
-      const userToDelete = users.find(u => u.id === userId);
+      const userToDelete = users.find(u => u.id === userId || u._id === userId);
       const userEmail = userToDelete?.email;
       
       // 1. Supprimer en base de données
       await axios.delete(`${API}/users/${userId}`);
       
-      // 2. Mettre à jour le state local
-      setUsers(prev => prev.filter(u => u.id !== userId));
+      // 2. Mettre à jour TOUS les states locaux - supporte id ET _id
+      setUsers(prev => {
+        const filtered = prev.filter(u => u.id !== userId && u._id !== userId);
+        console.log(`DELETE_UI: users filtré: ${prev.length} -> ${filtered.length}`);
+        return filtered;
+      });
       
-      // 3. Nettoyer les codes promo localement
+      // 3. AUSSI mettre à jour chatParticipants au cas où
+      setChatParticipants(prev => {
+        const filtered = prev.filter(p => p.id !== userId && p._id !== userId);
+        console.log(`DELETE_UI: chatParticipants filtré: ${prev.length} -> ${filtered.length}`);
+        return filtered;
+      });
+      
+      // 4. Nettoyer les codes promo localement
       if (userEmail) {
         setDiscountCodes(prev => prev.map(c => 
           c.assignedEmail === userEmail ? { ...c, assignedEmail: null } : c
         ));
       }
       
-      // 4. Appeler sanitizeData pour s'assurer que la base est propre
+      // 5. Appeler sanitizeData pour s'assurer que la base est propre
       try {
         await axios.post(`${API}/sanitize-data`);
       } catch (sanitizeErr) {
         console.warn("Sanitize warning:", sanitizeErr);
       }
       
-      console.log(`✅ Contact ${userId} supprimé définitivement`);
+      console.log(`DELETE_UI: ✅ Contact ${userId} supprimé définitivement`);
     } catch (err) {
-      console.error("Erreur suppression contact:", err);
+      console.error("DELETE_UI: ❌ Erreur suppression contact:", err);
       alert("❌ Erreur lors de la suppression");
     }
   };
