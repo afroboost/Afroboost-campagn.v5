@@ -1,4 +1,15 @@
-# Afroboost - Product Requirements Document
+# Afroboost - Document de Référence Produit (PRD)
+
+## Mise à jour du 26 Janvier 2025 - Widget Chat Mobile
+
+### Modifications apportées :
+- **Affichage des noms** : Chaque message reçu affiche maintenant le nom de l'expéditeur AU-DESSUS de la bulle
+- **Différenciation des types** :
+  - Coach humain → Bulle violette (#8B5CF6), nom en jaune/or, badge "🏋️ Coach"
+  - Assistant IA → Bulle gris foncé, nom en violet clair "🤖 Assistant"
+  - Membres → Bulle gris foncé, nom en cyan
+- **Alignement corrigé** : Messages envoyés à droite, messages reçus à gauche
+- **Fichier modifié** : `/app/frontend/src/components/ChatWidget.js`
 
 ## Original Problem Statement
 Application de réservation de casques audio pour des cours de fitness Afroboost. Design sombre néon avec fond noir pur (#000000) et accents rose/violet.
