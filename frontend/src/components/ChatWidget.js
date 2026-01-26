@@ -577,7 +577,8 @@ export const ChatWidget = () => {
     
     const userMessage = inputMessage.trim();
     setInputMessage('');
-    setMessages(prev => [...prev, { type: 'user', text: userMessage }]);
+    // Ajouter le senderId pour identifier les messages de l'utilisateur actuel
+    setMessages(prev => [...prev, { type: 'user', text: userMessage, senderId: participantId }]);
     setLastMessageCount(prev => prev + 1);
     setMessageCount(prev => prev + 1);
     setIsLoading(true);
