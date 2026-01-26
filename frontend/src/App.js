@@ -596,11 +596,12 @@ const MediaDisplay = ({ url, className }) => {
   };
 
   // Petite icône discrète en bas à droite - VISIBLE quand muted
+  // z-index réduit pour ne pas passer au-dessus du widget chat (z-50)
   const smallMuteStyle = {
     position: 'absolute',
     bottom: '12px',
     right: '12px',
-    zIndex: 100,
+    zIndex: 40, // Réduit de 100 à 40 pour rester SOUS le widget chat
     padding: isMuted ? '8px 16px' : '8px',
     minWidth: isMuted ? 'auto' : '32px',
     height: '32px',
