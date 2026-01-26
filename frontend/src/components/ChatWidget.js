@@ -56,20 +56,33 @@ const GroupIcon = () => (
 /**
  * Composant pour afficher un message avec liens cliquables et emojis
  * Affiche le nom de l'expéditeur au-dessus de chaque bulle
- * Couleurs: Violet (#8B5CF6) pour le Coach, Gris foncé pour les membres
+ * Couleurs: Violet (#8B5CF6) pour le Coach, Gris foncé pour les membres/IA
  */
 const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUserId }) => {
   // Convertir le texte en HTML avec liens cliquables
   const htmlContent = linkifyText(msg.text);
   const isOtherUser = isCommunity && msg.type === 'user' && msg.senderId && msg.senderId !== currentUserId;
   
-  // Déterminer si c'est un message du Coach (type 'coach' ou is_admin)
+  // Déterminer si c'est un message du Coach HUMAIN (pas l'IA)
   const isCoachMessage = msg.type === 'coach' || msg.is_admin === true || msg.role === 'coach';
   
+  // Message IA (assistant automatique)
+  const isAIMessage = msg.type === 'ai';
+  
   // Déterminer le nom à afficher
-  const displayName = isCoachMessage 
-    ? '🏋️ Coach' 
-    : (msg.sender || msg.senderName || 'Membre');
+  const getDisplayName = () => {
+    if (isCoachMessage) return '🏋️ Coach';
+    if (isAIMessage) return '🤖 Assistant';
+    return msg.sender || msg.senderName || 'Membre';
+  };
+  const displayName = getDisplayName();
+  
+  // Couleur du nom selon le type
+  const getNameColor = () => {
+    if (isCoachMessage) return '#FBBF24'; // Jaune/Or pour Coach
+    if (isAIMessage) return '#A78BFA';    // Violet clair pour IA
+    return '#22D3EE';                      // Cyan pour membres
+  };
   
   // Couleur de la bulle selon le type
   const getBubbleBackground = () => {
@@ -78,10 +91,10 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
       return 'linear-gradient(135deg, #d91cd2, #8b5cf6)';
     }
     if (isCoachMessage) {
-      // Messages du Coach: Violet solide
+      // Messages du Coach HUMAIN: Violet solide
       return '#8B5CF6';
     }
-    // Messages des autres membres: Gris foncé
+    // Messages IA et autres membres: Gris foncé
     return '#2D2D2D';
   };
   
@@ -100,7 +113,7 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
             fontWeight: '600',
             marginBottom: '3px',
             marginLeft: '4px',
-            color: isCoachMessage ? '#FBBF24' : '#22D3EE', // Jaune pour Coach, Cyan pour membres
+            color: getNameColor(),
             letterSpacing: '0.3px'
           }}
         >
@@ -137,8 +150,8 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
             : '16px 16px 16px 4px',
           fontSize: '13px',
           lineHeight: '1.4',
-          // Bordure subtile pour les bulles Coach
-          border: isCoachMessage && !isUser ? '1px solid rgba(251, 191, 36, 0.3)' : 'none'
+          // Bordure subtile dorée pour les bulles Coach
+          border: isCoachMessage && !isUser ? '1px solid rgba(251, 191, 36, 0.4)' : 'none'
         }}
       >
         {/* Rendu du texte avec liens cliquables */}
