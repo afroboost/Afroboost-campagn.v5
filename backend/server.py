@@ -2764,12 +2764,11 @@ NE MENTIONNE AUCUN CODE PROMO OU RÉDUCTION !
     # Règle conditionnelle pour Twint
     if twint_payment_url and twint_payment_url.strip():
         rules += f"""
-7. PAIEMENT TWINT: Si le client confirme vouloir acheter un produit ou un cours, propose-lui de payer via ce lien Twint sécurisé: {twint_payment_url}
-   Exemple de réponse: "Pour régler ton achat, clique sur ce lien Twint: {twint_payment_url} 💳"
+\n💳 PAIEMENT TWINT: Si le client confirme vouloir acheter, propose ce lien: {twint_payment_url}
 ========================================"""
     else:
         rules += """
-7. PAIEMENT: Si le client veut acheter, oriente-le vers le coach via WhatsApp ou email pour finaliser le paiement.
+\n💳 PAIEMENT: Oriente vers le coach WhatsApp ou email pour finaliser.
 ========================================"""
     
     context += rules
@@ -3787,12 +3786,11 @@ async def get_ai_response_with_session(request: Request):
     # Règle conditionnelle pour Twint
     if twint_payment_url and twint_payment_url.strip():
         rules += f"""
-7. PAIEMENT TWINT: Si le client confirme vouloir acheter un produit ou un cours, propose-lui de payer via ce lien Twint sécurisé: {twint_payment_url}
-   Exemple de réponse: "Pour régler ton achat, clique sur ce lien Twint: {twint_payment_url} 💳"
+\n💳 PAIEMENT TWINT: Si le client confirme vouloir acheter, propose ce lien: {twint_payment_url}
 ========================================"""
     else:
         rules += """
-7. PAIEMENT: Si le client veut acheter, oriente-le vers le coach via WhatsApp ou email pour finaliser le paiement.
+\n💳 PAIEMENT: Oriente vers le coach WhatsApp ou email pour finaliser.
 ========================================"""
     
     context += rules
