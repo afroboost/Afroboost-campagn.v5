@@ -380,19 +380,21 @@ export const ChatWidget = () => {
   useEffect(() => {
     // Connexion Socket.IO quand on a une session active
     if (sessionData?.id && step === 'chat' && !socketRef.current) {
-      console.log('[SOCKET.IO] 🔌 Connexion à', SOCKET_URL);
+      console.log('[SOCKET.IO] 🔌 Connexion WebSocket à', SOCKET_URL);
       
       const socket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
+        transports: ['websocket'], // WEBSOCKET UNIQUEMENT - Zéro polling
         reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000
+        reconnectionAttempts: 3,
+        reconnectionDelay: 500,
+        timeout: 5000,
+        upgrade: false // Pas de fallback
       });
       
       socketRef.current = socket;
       
       socket.on('connect', () => {
-        console.log('[SOCKET.IO] ✅ Connecté, rejoindre session:', sessionData.id);
+        console.log('[SOCKET.IO] ✅ WebSocket connecté! Session:', sessionData.id);
         // Rejoindre la room de la session
         socket.emit('join_session', {
           session_id: sessionData.id,
@@ -402,6 +404,17 @@ export const ChatWidget = () => {
       
       socket.on('joined_session', (data) => {
         console.log('[SOCKET.IO] 🎉 Session rejointe:', data);
+      });
+      
+      // Gestion erreur WebSocket
+      socket.on('connect_error', (error) => {
+        console.error('[SOCKET.IO] ❌ Erreur WebSocket:', error.message);
+        // Tenter une reconnexion avec polling en dernier recours
+        if (socket.io.opts.transports[0] === 'websocket') {
+          console.log('[SOCKET.IO] 🔄 Tentative fallback polling...');
+          socket.io.opts.transports = ['polling', 'websocket'];
+          socket.connect();
+        }
       });
       
       // Écouter les nouveaux messages en temps réel
