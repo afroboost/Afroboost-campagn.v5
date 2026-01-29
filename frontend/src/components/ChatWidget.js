@@ -571,35 +571,51 @@ export const ChatWidget = () => {
     }
   };
 
-  // Polling MP pour nouveaux messages
+  // === SOCKET.IO pour les MP - Remplace le polling ===
   useEffect(() => {
-    if (!activePrivateChat) return;
+    if (!socketRef.current || !activePrivateChat) return;
     
-    const pollPrivateMessages = async () => {
-      try {
-        const res = await axios.get(`${API}/private/messages/${activePrivateChat.id}`);
-        const newMessages = res.data.map(m => ({
-          id: m.id,
-          text: m.content,
-          sender: m.sender_name,
-          senderId: m.sender_id,
-          isMine: m.sender_id === participantId,
-          createdAt: m.created_at
-        }));
+    const socket = socketRef.current;
+    
+    // Écouter les messages privés en temps réel
+    const handlePrivateMessage = (data) => {
+      console.log('[SOCKET.IO] 📩 Message privé reçu:', data);
+      
+      // Vérifier que c'est pour notre conversation active
+      if (data.conversation_id !== activePrivateChat.id) return;
+      
+      // Ne pas dupliquer nos propres messages
+      if (data.senderId === participantId) return;
+      
+      // Ajouter le message à la liste
+      setPrivateMessages(prev => {
+        // Éviter les doublons
+        const exists = prev.some(m => m.id === data.id);
+        if (exists) return prev;
         
-        if (newMessages.length !== privateMessages.length) {
-          setPrivateMessages(newMessages);
-          // Marquer comme lus
-          await axios.put(`${API}/private/messages/read/${activePrivateChat.id}?reader_id=${participantId}`);
-        }
-      } catch (err) {
-        console.warn('Polling MP error:', err);
-      }
+        return [...prev, {
+          id: data.id,
+          text: data.text,
+          sender: data.sender,
+          senderId: data.senderId,
+          isMine: false,
+          createdAt: data.created_at
+        }];
+      });
+      
+      // Jouer un son de notification
+      playNotificationSound('message');
+      
+      // Marquer comme lu
+      axios.put(`${API}/private/messages/read/${activePrivateChat.id}?reader_id=${participantId}`).catch(() => {});
     };
     
-    const interval = setInterval(pollPrivateMessages, 3000);
-    return () => clearInterval(interval);
-  }, [activePrivateChat, participantId, privateMessages.length]);
+    socket.on('private_message_received', handlePrivateMessage);
+    
+    return () => {
+      socket.off('private_message_received', handlePrivateMessage);
+    };
+  }, [activePrivateChat, participantId]);
 
   // === DÉMARRER UNE DISCUSSION PRIVÉE (COMPAT ANCIEN CODE) ===
   const startPrivateChat = async (targetId, targetName) => {
@@ -607,7 +623,31 @@ export const ChatWidget = () => {
     openPrivateChat(targetId, targetName);
   };
 
-  // === Socket.IO remplace le polling - voir useEffect plus haut ===
+  // === CHARGER LES EMOJIS PERSONNALISÉS ===
+  const loadCustomEmojis = async () => {
+    try {
+      const res = await axios.get(`${API}/custom-emojis/list`);
+      setCustomEmojis(res.data.emojis || []);
+    } catch (err) {
+      console.warn('Erreur chargement emojis:', err);
+      // Fallback: essayer de charger les fichiers du dossier emojis
+      setCustomEmojis(['fire.svg', 'muscle.svg', 'heart.svg', 'thumbsup.svg', 'star.svg', 'celebration.svg']);
+    }
+  };
+
+  // Charger les emojis au montage
+  useEffect(() => {
+    loadCustomEmojis();
+  }, []);
+
+  // Insérer un emoji dans l'input
+  const insertEmoji = (emojiName) => {
+    // Ajouter le nom de l'emoji comme texte (ou l'URL de l'image)
+    const emojiUrl = `${API}/emojis/${emojiName}`;
+    const emojiTag = `[emoji:${emojiName}]`;
+    setInputMessage(prev => prev + emojiTag);
+    setShowEmojiPicker(false);
+  };
 
   // === MÉMORISATION CLIENT: Charger la session et configurer le chat ===
   useEffect(() => {
