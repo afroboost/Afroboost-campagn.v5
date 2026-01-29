@@ -528,6 +528,8 @@ class ChatSession(BaseModel):
     # Métadonnées pour le coach
     title: Optional[str] = None  # Titre optionnel pour identifier la session
     notes: Optional[str] = None  # Notes du coach sur cette session
+    # Prompt spécifique au lien (PRIORITAIRE sur campaignPrompt)
+    custom_prompt: Optional[str] = None  # Nullable - si vide, utilise campaignPrompt global
 
 class ChatSessionCreate(BaseModel):
     mode: str = "ai"
@@ -540,6 +542,7 @@ class ChatSessionUpdate(BaseModel):
     is_deleted: Optional[bool] = None
     title: Optional[str] = None
     notes: Optional[str] = None
+    custom_prompt: Optional[str] = None  # Prompt spécifique au lien
 
 class EnhancedChatMessage(BaseModel):
     """Message de chat amélioré avec session, sender et suppression logique"""
