@@ -60,7 +60,7 @@ export const unlockAudio = () => {
 /**
  * Joue un son de notification pour les messages entrants
  * Optimisé pour iOS et Android
- * @param {string} type - 'message' | 'coach' | 'user'
+ * @param {string} type - 'message' | 'coach' | 'user' | 'private'
  */
 export const playNotificationSound = async (type = 'message') => {
   try {
@@ -93,6 +93,19 @@ export const playNotificationSound = async (type = 'message') => {
 
     // Différents sons selon le type
     switch (type) {
+      case 'private':
+        // Son URGENT pour message privé (triple bip ascendant)
+        oscillator.frequency.setValueAtTime(440, now); // La4
+        oscillator.frequency.setValueAtTime(554, now + 0.1); // Do#5
+        oscillator.frequency.setValueAtTime(659, now + 0.2); // Mi5
+        gainNode.gain.setValueAtTime(0.4, now);
+        gainNode.gain.setValueAtTime(0.35, now + 0.1);
+        gainNode.gain.setValueAtTime(0.3, now + 0.2);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        oscillator.start(now);
+        oscillator.stop(now + 0.35);
+        break;
+        
       case 'coach':
         // Son distinctif pour réponse coach (double bip harmonieux)
         oscillator.frequency.setValueAtTime(523, now); // Do5
