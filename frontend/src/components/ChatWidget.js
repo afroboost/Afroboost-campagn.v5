@@ -300,24 +300,124 @@ export const ChatWidget = () => {
     }
   }, [sessionData, participantId, lastMessageCount]);
 
-  // === DÉMARRER UNE DISCUSSION PRIVÉE ===
-  const startPrivateChat = async (targetId, targetName) => {
-    if (!participantId || !targetId) return;
-    
-    const confirm = window.confirm(`💬 Voulez-vous démarrer une discussion privée avec ${targetName} ?`);
-    if (!confirm) return;
+  // === MESSAGERIE PRIVÉE (MP) - FENÊTRE FLOTTANTE ===
+  const openPrivateChat = async (targetId, targetName) => {
+    if (!participantId || !targetId || targetId === participantId) return;
     
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API}/chat/start-private`, {
-        initiator_id: participantId,
-        target_id: targetId,
-        community_session_id: sessionData?.id
+      // Créer ou récupérer la conversation privée
+      const response = await axios.post(`${API}/private/conversations`, {
+        participant_1_id: participantId,
+        participant_1_name: leadData.firstName,
+        participant_2_id: targetId,
+        participant_2_name: targetName
       });
       
-      const { session, is_new, message } = response.data;
+      const conversation = response.data;
       
-      // Sauvegarder la nouvelle session
+      // Charger les messages existants
+      const messagesRes = await axios.get(`${API}/private/messages/${conversation.id}`);
+      
+      // Ouvrir la fenêtre flottante MP
+      setActivePrivateChat({
+        id: conversation.id,
+        recipientId: targetId,
+        recipientName: targetName
+      });
+      setPrivateMessages(messagesRes.data.map(m => ({
+        id: m.id,
+        text: m.content,
+        sender: m.sender_name,
+        senderId: m.sender_id,
+        isMine: m.sender_id === participantId,
+        createdAt: m.created_at
+      })));
+      
+      console.log(`💬 MP ouverte avec ${targetName}`);
+      
+    } catch (err) {
+      console.error('Erreur ouverture MP:', err);
+      alert('Erreur lors de l\'ouverture de la conversation privée');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fermer la fenêtre MP
+  const closePrivateChat = () => {
+    setActivePrivateChat(null);
+    setPrivateMessages([]);
+    setPrivateInput('');
+  };
+
+  // Envoyer un message privé
+  const sendPrivateMessage = async () => {
+    if (!activePrivateChat || !privateInput.trim()) return;
+    
+    const content = privateInput.trim();
+    setPrivateInput('');
+    
+    try {
+      const response = await axios.post(`${API}/private/messages`, {
+        conversation_id: activePrivateChat.id,
+        sender_id: participantId,
+        sender_name: leadData.firstName,
+        recipient_id: activePrivateChat.recipientId,
+        recipient_name: activePrivateChat.recipientName,
+        content: content
+      });
+      
+      // Ajouter le message à la liste
+      setPrivateMessages(prev => [...prev, {
+        id: response.data.id,
+        text: content,
+        sender: leadData.firstName,
+        senderId: participantId,
+        isMine: true,
+        createdAt: response.data.created_at
+      }]);
+      
+    } catch (err) {
+      console.error('Erreur envoi MP:', err);
+    }
+  };
+
+  // Polling MP pour nouveaux messages
+  useEffect(() => {
+    if (!activePrivateChat) return;
+    
+    const pollPrivateMessages = async () => {
+      try {
+        const res = await axios.get(`${API}/private/messages/${activePrivateChat.id}`);
+        const newMessages = res.data.map(m => ({
+          id: m.id,
+          text: m.content,
+          sender: m.sender_name,
+          senderId: m.sender_id,
+          isMine: m.sender_id === participantId,
+          createdAt: m.created_at
+        }));
+        
+        if (newMessages.length !== privateMessages.length) {
+          setPrivateMessages(newMessages);
+          // Marquer comme lus
+          await axios.put(`${API}/private/messages/read/${activePrivateChat.id}?reader_id=${participantId}`);
+        }
+      } catch (err) {
+        console.warn('Polling MP error:', err);
+      }
+    };
+    
+    const interval = setInterval(pollPrivateMessages, 3000);
+    return () => clearInterval(interval);
+  }, [activePrivateChat, participantId, privateMessages.length]);
+
+  // === DÉMARRER UNE DISCUSSION PRIVÉE (COMPAT ANCIEN CODE) ===
+  const startPrivateChat = async (targetId, targetName) => {
+    // Utilise la nouvelle fonction openPrivateChat avec fenêtre flottante
+    openPrivateChat(targetId, targetName);
+  };
       localStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(session));
       setSessionData(session);
       setIsCommunityMode(false);
