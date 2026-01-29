@@ -1367,12 +1367,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const generateShareableLink = async () => {
     try {
       const title = newLinkTitle.trim() || 'Lien Chat Afroboost';
-      const res = await axios.post(`${API}/chat/generate-link`, { title });
+      const customPrompt = newLinkCustomPrompt.trim() || null;  // Null si vide
+      const res = await axios.post(`${API}/chat/generate-link`, { 
+        title, 
+        custom_prompt: customPrompt 
+      });
       setChatLinks(prev => [res.data, ...prev]);
       setNewLinkTitle('');
+      setNewLinkCustomPrompt('');  // Reset le prompt
       // Recharger les sessions
       const sessionsRes = await axios.get(`${API}/chat/sessions`);
       setChatSessions(sessionsRes.data);
+      // Copier automatiquement le lien
+      if (res.data.link_token) {
+        copyLinkToClipboard(res.data.link_token);
+      }
       return res.data;
     } catch (err) {
       console.error("Error generating link:", err);
