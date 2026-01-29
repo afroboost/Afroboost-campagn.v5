@@ -6512,7 +6512,8 @@ def scheduler_loop():
                             if success:
                                 success_count += 1
                                 logger.info(f"[SCHEDULER] ✅ Message groupe envoyé ({target_group_id})")
-                                print(f"[SCHEDULER] ✅ Groupe OK: {target_group_id}")
+                                # LOG CLAIR DEMANDÉ: "Scheduled Group Message Sent"
+                                print(f"[SCHEDULER] ✅ Scheduled Group Message Sent: [Campaign: {campaign_name}] -> {target_group_id}")
                             else:
                                 fail_count += 1
                                 logger.error(f"[SCHEDULER] ❌ Message groupe échoué: {error}")
