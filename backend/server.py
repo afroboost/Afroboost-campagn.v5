@@ -163,6 +163,42 @@ async def emit_new_message(session_id: str, message_data: dict):
         await sio.emit('message_received', message_data, room=session_id)
         logger.info(f"[SOCKET.IO] Message émis dans session {session_id}")
 
+# ==================== TYPING INDICATOR ====================
+@sio.event
+async def typing_start(sid, data):
+    """
+    Un utilisateur commence à taper.
+    data = { "session_id": "xxx", "user_name": "Coach Bassi", "user_type": "coach" }
+    """
+    session_id = data.get("session_id")
+    user_name = data.get("user_name", "Quelqu'un")
+    user_type = data.get("user_type", "user")
+    
+    if session_id:
+        await sio.emit('user_typing', {
+            'session_id': session_id,
+            'user_name': user_name,
+            'user_type': user_type,
+            'is_typing': True
+        }, room=session_id, skip_sid=sid)
+        logger.info(f"[SOCKET.IO] {user_name} commence à écrire dans {session_id}")
+
+@sio.event
+async def typing_stop(sid, data):
+    """Un utilisateur arrête de taper."""
+    session_id = data.get("session_id")
+    user_name = data.get("user_name", "Quelqu'un")
+    
+    if session_id:
+        await sio.emit('user_typing', {
+            'session_id': session_id,
+            'user_name': user_name,
+            'is_typing': False
+        }, room=session_id, skip_sid=sid)
+
+# ==================== CONSTANTE EMAIL COACH ====================
+COACH_EMAIL = "contact.artboost@gmail.com"
+
 # Créer l'app ASGI combinée - C'EST CELLE-CI QUI EST EXPOSÉE COMME 'app'
 app = socketio.ASGIApp(sio, other_asgi_app=fastapi_app)
 
