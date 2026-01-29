@@ -283,7 +283,7 @@ export const ChatWidget = () => {
   const [privateMessages, setPrivateMessages] = useState([]); // Messages de la MP active
   const [privateInput, setPrivateInput] = useState(''); // Input de la MP
   const messagesEndRef = useRef(null);
-  const pollingRef = useRef(null);
+  const socketRef = useRef(null); // Référence Socket.IO
   const chatContainerRef = useRef(null); // Ref pour le mode plein écran
 
   // Email du coach autorisé
