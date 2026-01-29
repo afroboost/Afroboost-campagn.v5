@@ -346,5 +346,7 @@ export default {
   requestNotificationPermission,
   showBrowserNotification,
   linkifyText,
+  parseEmojis,
+  parseMessageContent,
   containsLinks
 };
