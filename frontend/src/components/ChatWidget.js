@@ -195,18 +195,42 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
 export const ChatWidget = () => {
   // === VÉRIFICATION PERSISTANCE AU MONTAGE (AVANT tout render) ===
   // Déterminer le step initial IMMÉDIATEMENT basé sur localStorage
+  // AVEC FALLBACK ROBUSTE pour données corrompues
   const getInitialStep = () => {
     try {
       const savedIdentity = localStorage.getItem(AFROBOOST_IDENTITY_KEY);
       const savedClient = localStorage.getItem(CHAT_CLIENT_KEY);
+      
       if (savedIdentity || savedClient) {
-        const data = JSON.parse(savedIdentity || savedClient);
-        if (data && data.firstName) {
+        const rawData = savedIdentity || savedClient;
+        
+        // Vérification de la validité JSON
+        if (!rawData || rawData === 'undefined' || rawData === 'null') {
+          throw new Error('Données localStorage invalides');
+        }
+        
+        const data = JSON.parse(rawData);
+        
+        // Vérification des données minimales requises
+        if (data && typeof data === 'object' && data.firstName && typeof data.firstName === 'string' && data.firstName.trim()) {
+          console.log('[PERSISTENCE] ✅ Utilisateur reconnu:', data.firstName);
           return 'chat'; // Utilisateur déjà identifié → DIRECT au chat
+        } else {
+          throw new Error('Données utilisateur incomplètes');
         }
       }
-    } catch (e) {}
-    return 'form'; // Nouvel utilisateur → formulaire
+    } catch (e) {
+      // FALLBACK: Nettoyer les données corrompues et rediriger vers le formulaire
+      console.warn('[PERSISTENCE] ⚠️ Données corrompues détectées, nettoyage...', e.message);
+      try {
+        localStorage.removeItem(AFROBOOST_IDENTITY_KEY);
+        localStorage.removeItem(CHAT_CLIENT_KEY);
+        localStorage.removeItem(CHAT_SESSION_KEY);
+      } catch (cleanupError) {
+        console.error('[PERSISTENCE] Erreur lors du nettoyage localStorage:', cleanupError);
+      }
+    }
+    return 'form'; // Nouvel utilisateur ou données corrompues → formulaire
   };
 
   const [isOpen, setIsOpen] = useState(false);
