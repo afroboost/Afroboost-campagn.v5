@@ -500,7 +500,12 @@ export const ChatWidget = () => {
         ...clientData,
         participantId: participant.id
       };
+      // Sauvegarder avec les deux clés pour compatibilité
       localStorage.setItem(CHAT_CLIENT_KEY, JSON.stringify(fullClientData));
+      localStorage.setItem(AFROBOOST_IDENTITY_KEY, JSON.stringify({
+        ...fullClientData,
+        savedAt: new Date().toISOString()
+      }));
       localStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(session));
 
       setParticipantId(participant.id);
