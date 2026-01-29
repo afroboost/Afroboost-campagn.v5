@@ -3425,6 +3425,132 @@ async def soft_delete_message(message_id: str):
     )
     return {"success": True, "message": "Message marqué comme supprimé"}
 
+# ==================== MESSAGERIE PRIVÉE (MP) - ISOLÉE DE L'IA ====================
+
+@api_router.post("/private/conversations")
+async def create_or_get_private_conversation(request: Request):
+    """
+    Crée ou récupère une conversation privée entre deux participants.
+    Les MP sont stockées dans une collection séparée et INVISIBLES pour l'IA.
+    """
+    body = await request.json()
+    participant_1_id = body.get("participant_1_id")
+    participant_1_name = body.get("participant_1_name")
+    participant_2_id = body.get("participant_2_id")
+    participant_2_name = body.get("participant_2_name")
+    
+    if not all([participant_1_id, participant_2_id]):
+        raise HTTPException(status_code=400, detail="IDs des participants requis")
+    
+    # Vérifier si une conversation existe déjà (dans les deux sens)
+    existing = await db.private_conversations.find_one({
+        "$or": [
+            {"participant_1_id": participant_1_id, "participant_2_id": participant_2_id},
+            {"participant_1_id": participant_2_id, "participant_2_id": participant_1_id}
+        ]
+    }, {"_id": 0})
+    
+    if existing:
+        logger.info(f"[MP] Conversation existante trouvée: {existing.get('id')}")
+        return existing
+    
+    # Créer une nouvelle conversation
+    conversation = PrivateConversation(
+        participant_1_id=participant_1_id,
+        participant_1_name=participant_1_name or "Membre",
+        participant_2_id=participant_2_id,
+        participant_2_name=participant_2_name or "Membre"
+    )
+    await db.private_conversations.insert_one(conversation.model_dump())
+    logger.info(f"[MP] Nouvelle conversation créée: {conversation.id}")
+    return conversation.model_dump()
+
+@api_router.get("/private/conversations/{participant_id}")
+async def get_private_conversations(participant_id: str):
+    """
+    Récupère toutes les conversations privées d'un participant.
+    """
+    conversations = await db.private_conversations.find({
+        "$or": [
+            {"participant_1_id": participant_id},
+            {"participant_2_id": participant_id}
+        ]
+    }, {"_id": 0}).sort("last_message_at", -1).to_list(50)
+    return conversations
+
+@api_router.post("/private/messages")
+async def send_private_message(request: Request):
+    """
+    Envoie un message privé. Ces messages sont ISOLÉS de l'IA.
+    """
+    body = await request.json()
+    conversation_id = body.get("conversation_id")
+    sender_id = body.get("sender_id")
+    sender_name = body.get("sender_name")
+    recipient_id = body.get("recipient_id")
+    recipient_name = body.get("recipient_name")
+    content = body.get("content")
+    
+    if not all([conversation_id, sender_id, content]):
+        raise HTTPException(status_code=400, detail="Données manquantes")
+    
+    # Créer le message privé
+    message = PrivateMessage(
+        conversation_id=conversation_id,
+        sender_id=sender_id,
+        sender_name=sender_name or "Membre",
+        recipient_id=recipient_id or "",
+        recipient_name=recipient_name or "Membre",
+        content=content
+    )
+    await db.private_messages.insert_one(message.model_dump())
+    
+    # Mettre à jour la conversation avec le dernier message
+    await db.private_conversations.update_one(
+        {"id": conversation_id},
+        {"$set": {
+            "last_message": content[:100],
+            "last_message_at": message.created_at
+        }}
+    )
+    
+    logger.info(f"[MP] Message envoyé de {sender_name} dans conversation {conversation_id}")
+    return message.model_dump()
+
+@api_router.get("/private/messages/{conversation_id}")
+async def get_private_messages(conversation_id: str, limit: int = 100):
+    """
+    Récupère les messages d'une conversation privée.
+    """
+    messages = await db.private_messages.find(
+        {"conversation_id": conversation_id, "is_deleted": {"$ne": True}},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(limit)
+    return messages
+
+@api_router.put("/private/messages/read/{conversation_id}")
+async def mark_private_messages_read(conversation_id: str, reader_id: str):
+    """
+    Marque tous les messages d'une conversation comme lus par un participant.
+    """
+    result = await db.private_messages.update_many(
+        {"conversation_id": conversation_id, "recipient_id": reader_id, "is_read": False},
+        {"$set": {"is_read": True}}
+    )
+    return {"success": True, "marked_read": result.modified_count}
+
+@api_router.get("/private/unread/{participant_id}")
+async def get_unread_private_count(participant_id: str):
+    """
+    Compte les messages privés non lus pour un participant.
+    """
+    count = await db.private_messages.count_documents({
+        "recipient_id": participant_id,
+        "is_read": False,
+        "is_deleted": {"$ne": True}
+    })
+    return {"unread_count": count}
+
 # ==================== NOTIFICATIONS (SONORES ET VISUELLES) ====================
 
 @api_router.get("/notifications/unread")
