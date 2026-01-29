@@ -3553,6 +3553,75 @@ async def soft_delete_message(message_id: str):
     )
     return {"success": True, "message": "Message marqué comme supprimé"}
 
+# ==================== ROUTES ADMIN SÉCURISÉES ====================
+
+@api_router.post("/admin/delete-history")
+async def admin_delete_history(request: Request):
+    """
+    Suppression de l'historique d'une session - ADMIN ONLY.
+    Vérifie que l'email de l'appelant est celui du coach.
+    """
+    body = await request.json()
+    session_id = body.get("session_id")
+    caller_email = body.get("email", "").lower().strip()
+    
+    # ===== VÉRIFICATION SÉCURITÉ : EMAIL COACH OBLIGATOIRE =====
+    if caller_email != COACH_EMAIL:
+        logger.warning(f"[SECURITY] Tentative non autorisée de suppression d'historique par: {caller_email}")
+        raise HTTPException(
+            status_code=403, 
+            detail="Accès refusé. Seul le coach peut supprimer l'historique."
+        )
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id requis")
+    
+    # Suppression logique de tous les messages de la session
+    result = await db.chat_messages.update_many(
+        {"session_id": session_id},
+        {"$set": {
+            "is_deleted": True,
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
+            "deleted_by": caller_email
+        }}
+    )
+    
+    logger.info(f"[ADMIN] Historique supprimé pour session {session_id} par {caller_email}. {result.modified_count} messages.")
+    
+    return {
+        "success": True, 
+        "message": f"Historique supprimé ({result.modified_count} messages)",
+        "deleted_count": result.modified_count
+    }
+
+@api_router.post("/admin/change-identity")
+async def admin_change_identity(request: Request):
+    """
+    Changement d'identité d'un participant - ADMIN ONLY.
+    Vérifie que l'email de l'appelant est celui du coach.
+    """
+    body = await request.json()
+    participant_id = body.get("participant_id")
+    caller_email = body.get("email", "").lower().strip()
+    
+    # ===== VÉRIFICATION SÉCURITÉ : EMAIL COACH OBLIGATOIRE =====
+    if caller_email != COACH_EMAIL:
+        logger.warning(f"[SECURITY] Tentative non autorisée de changement d'identité par: {caller_email}")
+        raise HTTPException(
+            status_code=403, 
+            detail="Accès refusé. Seul le coach peut changer l'identité."
+        )
+    
+    if not participant_id:
+        raise HTTPException(status_code=400, detail="participant_id requis")
+    
+    logger.info(f"[ADMIN] Changement d'identité demandé pour {participant_id} par {caller_email}")
+    
+    return {
+        "success": True, 
+        "message": "Identité réinitialisée. L'utilisateur devra se reconnecter."
+    }
+
 # ==================== MESSAGERIE PRIVÉE (MP) - ISOLÉE DE L'IA ====================
 
 @api_router.post("/private/conversations")
