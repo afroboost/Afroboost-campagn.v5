@@ -191,23 +191,85 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
  * Utilise l'API /api/chat/smart-entry pour identifier les utilisateurs
  */
 export const ChatWidget = () => {
+  // === VÉRIFICATION PERSISTANCE AU MONTAGE (AVANT tout render) ===
+  // Déterminer le step initial IMMÉDIATEMENT basé sur localStorage
+  const getInitialStep = () => {
+    try {
+      const savedIdentity = localStorage.getItem(AFROBOOST_IDENTITY_KEY);
+      const savedClient = localStorage.getItem(CHAT_CLIENT_KEY);
+      if (savedIdentity || savedClient) {
+        const data = JSON.parse(savedIdentity || savedClient);
+        if (data && data.firstName) {
+          return 'chat'; // Utilisateur déjà identifié → DIRECT au chat
+        }
+      }
+    } catch (e) {}
+    return 'form'; // Nouvel utilisateur → formulaire
+  };
+
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState('form'); // 'form' | 'chat' | 'coach'
-  const [leadData, setLeadData] = useState({ firstName: '', whatsapp: '', email: '' });
+  const [step, setStep] = useState(getInitialStep); // Initialisation DYNAMIQUE
+  const [leadData, setLeadData] = useState(() => {
+    // Charger les données du localStorage IMMÉDIATEMENT
+    try {
+      const savedIdentity = localStorage.getItem(AFROBOOST_IDENTITY_KEY);
+      const savedClient = localStorage.getItem(CHAT_CLIENT_KEY);
+      if (savedIdentity || savedClient) {
+        const data = JSON.parse(savedIdentity || savedClient);
+        if (data && data.firstName) {
+          return {
+            firstName: data.firstName || '',
+            email: data.email || '',
+            whatsapp: data.whatsapp || ''
+          };
+        }
+      }
+    } catch (e) {}
+    return { firstName: '', whatsapp: '', email: '' };
+  });
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isReturningClient, setIsReturningClient] = useState(false);
+  const [isReturningClient, setIsReturningClient] = useState(() => {
+    // Déterminer si c'est un client de retour IMMÉDIATEMENT
+    try {
+      const savedIdentity = localStorage.getItem(AFROBOOST_IDENTITY_KEY);
+      const savedClient = localStorage.getItem(CHAT_CLIENT_KEY);
+      return !!(savedIdentity || savedClient);
+    } catch (e) {}
+    return false;
+  });
   const [sessionData, setSessionData] = useState(null);
-  const [participantId, setParticipantId] = useState(null);
+  const [participantId, setParticipantId] = useState(() => {
+    try {
+      const savedIdentity = localStorage.getItem(AFROBOOST_IDENTITY_KEY);
+      const savedClient = localStorage.getItem(CHAT_CLIENT_KEY);
+      if (savedIdentity || savedClient) {
+        const data = JSON.parse(savedIdentity || savedClient);
+        return data?.participantId || null;
+      }
+    } catch (e) {}
+    return null;
+  });
   const [showMenu, setShowMenu] = useState(false);
   const [isCommunityMode, setIsCommunityMode] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [privateChatTarget, setPrivateChatTarget] = useState(null);
   const [messageCount, setMessageCount] = useState(0); // Compteur de messages pour prompt notif
   const [pushEnabled, setPushEnabled] = useState(false);
-  const [isCoachMode, setIsCoachMode] = useState(false); // Mode coach depuis le widget
+  const [isCoachMode, setIsCoachMode] = useState(() => {
+    // Vérifier si c'est le coach IMMÉDIATEMENT
+    try {
+      const savedIdentity = localStorage.getItem(AFROBOOST_IDENTITY_KEY);
+      const savedClient = localStorage.getItem(CHAT_CLIENT_KEY);
+      if (savedIdentity || savedClient) {
+        const data = JSON.parse(savedIdentity || savedClient);
+        return data?.email?.toLowerCase() === 'contact.artboost@gmail.com';
+      }
+    } catch (e) {}
+    return false;
+  });
   const [coachSessions, setCoachSessions] = useState([]); // Liste des sessions pour le coach
   const [selectedCoachSession, setSelectedCoachSession] = useState(null); // Session sélectionnée par le coach
   const [isFullscreen, setIsFullscreen] = useState(false); // Mode plein écran
