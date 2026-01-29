@@ -490,6 +490,7 @@ class ChatMessage(BaseModel):
     email: str = ""  # Email pour CRM auto-save
     whatsapp: str = ""  # WhatsApp pour CRM auto-save
     source: str = "chat_ia"  # Source du contact (lien chat IA)
+    link_token: str = ""  # Token du lien pour récupérer le custom_prompt
 
 # ==================== SYSTÈME DE CHAT AMÉLIORÉ ====================
 # Modèles pour la reconnaissance des utilisateurs, sessions et modes de conversation
