@@ -2841,13 +2841,14 @@ Si la question ne concerne pas un produit ou un cours Afroboost, réponds:
 💳 PAIEMENT: Oriente vers le coach WhatsApp ou email pour finaliser.
 """
 
-    # --- 3. CAMPAIGN_PROMPT : HIÉRARCHIE DE PRIORITÉ ---
-    # 1. custom_prompt (du lien spécifique) - Si défini, IGNORE campaignPrompt
-    # 2. campaignPrompt (global de la campagne) - Utilisé si custom_prompt est vide/null
-    # 3. Aucun prompt supplémentaire - Comportement par défaut
+    # --- 3. PROMPT PAR LIEN : LOGIQUE DE REMPLACEMENT (NON-CONCATÉNATION) ---
+    # RÈGLE CRITIQUE:
+    # - SI custom_prompt existe → IGNORER BASE_PROMPT, utiliser UNIQUEMENT SECURITY + CUSTOM
+    # - SINON → Utiliser BASE_PROMPT + CAMPAIGN_PROMPT (flux habituel)
     
     FINAL_PROMPT = ""
     prompt_source = "none"
+    use_strict_mode = False  # Mode strict = custom_prompt actif, BASE_PROMPT désactivé
     
     # Vérifier si on a un link_token (direct ou dans source)
     link_token = data.link_token.strip() if data.link_token else ""
@@ -2865,15 +2866,16 @@ Si la question ne concerne pas un produit ou un cours Afroboost, réponds:
         except Exception as e:
             logger.warning(f"[CHAT-IA] Erreur récupération session pour link_token {link_token}: {e}")
     
-    # Hiérarchie: custom_prompt > campaignPrompt
+    # Déterminer le mode : STRICT (custom_prompt) ou STANDARD (campaignPrompt)
     if session_with_prompt and session_with_prompt.get("custom_prompt"):
         custom_prompt = session_with_prompt.get("custom_prompt", "").strip()
         if custom_prompt:
             FINAL_PROMPT = custom_prompt
             prompt_source = "custom_prompt (lien)"
-            logger.info(f"[CHAT-IA] ✅ Utilisation du custom_prompt du lien {link_token}")
+            use_strict_mode = True  # ACTIVER MODE STRICT
+            logger.info(f"[CHAT-IA] 🔒 Mode STRICT : Prompt de lien activé, Base Prompt DÉSACTIVÉ")
     
-    # Fallback sur campaignPrompt global
+    # Fallback sur campaignPrompt global (mode standard)
     if not FINAL_PROMPT:
         FINAL_PROMPT = ai_config.get("campaignPrompt", "").strip()
         if FINAL_PROMPT:
@@ -2885,22 +2887,29 @@ Si la question ne concerne pas un produit ou un cours Afroboost, réponds:
         logger.warning("[CHAT-IA] ⚠️ PROMPT tronqué (dépassement " + str(MAX_CAMPAIGN_LENGTH) + " chars)")
         FINAL_PROMPT = FINAL_PROMPT[:MAX_CAMPAIGN_LENGTH] + "... [TRONQUÉ]"
     
-    # --- INJECTION FINALE : BASE + SECURITY + PROMPT PRIORITAIRE ---
-    context += BASE_PROMPT
-    context += SECURITY_PROMPT
-    
-    if FINAL_PROMPT:
-        # PRODUCTION-READY: Concaténation sécurisée (pas de f-string pour éviter les erreurs)
-        context += "\n\n--- INSTRUCTIONS PRIORITAIRES DE LA CAMPAGNE ACTUELLE (ÉCRASE TOUT LE RESTE) ---\n"
-        context += "╔══════════════════════════════════════════════════════════════════╗\n"
-        context += "║   🚨 PROMPT PRIORITAIRE - PRIORITÉ ABSOLUE (ÉCRASE TOUT LE RESTE)   ║\n"
+    # --- INJECTION FINALE : LOGIQUE DE REMPLACEMENT ---
+    if use_strict_mode:
+        # MODE STRICT: custom_prompt actif → BASE_PROMPT IGNORÉ
+        # Injecter message de réinitialisation + SECURITY + CUSTOM_PROMPT uniquement
+        context += "\n\n[SYSTÈME : Nouvel objectif détecté. Oublie les instructions de vente précédentes. Applique STRICTEMENT les instructions ci-dessous.]\n"
+        context += SECURITY_PROMPT
+        context += "\n\n╔══════════════════════════════════════════════════════════════════╗\n"
+        context += "║   🔒 MODE STRICT - INSTRUCTIONS EXCLUSIVES DU LIEN               ║\n"
         context += "╚══════════════════════════════════════════════════════════════════╝\n\n"
         context += FINAL_PROMPT
         context += "\n\n╔══════════════════════════════════════════════════════════════════╗\n"
-        context += "║              FIN DES INSTRUCTIONS PRIORITAIRES                   ║\n"
+        context += "║   🚫 NE PARLE PAS DE COURS/VENTE SAUF SI DEMANDÉ DANS CE PROMPT   ║\n"
         context += "╚══════════════════════════════════════════════════════════════════╝\n"
-        # LOG SÉCURISÉ: Uniquement la source et la longueur, pas le contenu
-        logger.info("[CHAT-IA] ✅ Prompt injecté (source: " + prompt_source + ", len: " + str(len(FINAL_PROMPT)) + ")")
+        logger.info("[CHAT-IA] 🔒 Mode STRICT activé - Base Prompt désactivé (source: " + prompt_source + ", len: " + str(len(FINAL_PROMPT)) + ")")
+    else:
+        # MODE STANDARD: Flux habituel BASE + SECURITY + CAMPAIGN
+        context += BASE_PROMPT
+        context += SECURITY_PROMPT
+        if FINAL_PROMPT:
+            context += "\n\n--- INSTRUCTIONS PRIORITAIRES DE LA CAMPAGNE ACTUELLE ---\n"
+            context += FINAL_PROMPT
+            context += "\n--- FIN DES INSTRUCTIONS ---\n"
+            logger.info("[CHAT-IA] ✅ Mode STANDARD - Prompt injecté (source: " + prompt_source + ", len: " + str(len(FINAL_PROMPT)) + ")")
     
     # Assemblage final du prompt système
     full_system_prompt = ai_config.get("systemPrompt", "Tu es l'assistant IA d'Afroboost.") + context
