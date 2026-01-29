@@ -6315,7 +6315,7 @@ def scheduler_loop():
     scheduler_db = mongo_client[os.environ.get('DB_NAME', 'test_database')]
     
     logger.info("[SCHEDULER] ✅ Thread démarré - Mode DAEMON actif")
-    print("[SYSTEM] ✅ Scheduler is ONLINE - Checking campaigns every 10s")
+    print("[SYSTEM] ✅ Scheduler is ONLINE - Checking campaigns every 60s")
     
     SCHEDULER_RUNNING = True
     
@@ -6325,16 +6325,13 @@ def scheduler_loop():
             now_str = now.strftime('%H:%M:%S')
             SCHEDULER_LAST_HEARTBEAT = now.isoformat()
             
-            # HEARTBEAT TOUTES LES 10 SECONDES (visible dans les logs)
-            print(f"[DEBUG-DAEMON] Heartbeat - Scan de la DB en cours... ({now_str} UTC)")
-            
             # Chercher les campagnes programmées (inclut pending_quota pour retry automatique)
             campaigns = list(scheduler_db.campaigns.find(
                 {"status": {"$in": ["scheduled", "sending", "pending_quota"]}},
                 {"_id": 0}
             ))
             
-            logger.info(f"[SCHEDULER] 📋 {len(campaigns)} campagne(s) à vérifier")
+            logger.info(f"[SCHEDULER] 📋 {len(campaigns)} campagne(s) à vérifier ({now_str} UTC)")
             
             for campaign in campaigns:
                 try:
