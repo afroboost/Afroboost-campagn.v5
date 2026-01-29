@@ -210,11 +210,46 @@ export const ChatWidget = () => {
   const [isCoachMode, setIsCoachMode] = useState(false); // Mode coach depuis le widget
   const [coachSessions, setCoachSessions] = useState([]); // Liste des sessions pour le coach
   const [selectedCoachSession, setSelectedCoachSession] = useState(null); // Session sélectionnée par le coach
+  const [isFullscreen, setIsFullscreen] = useState(false); // Mode plein écran
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Sélecteur d'emojis
+  const [customEmojis, setCustomEmojis] = useState([]); // Emojis personnalisés du coach
+  // === MESSAGERIE PRIVÉE (MP) ===
+  const [privateChats, setPrivateChats] = useState([]); // Liste des conversations MP actives
+  const [activePrivateChat, setActivePrivateChat] = useState(null); // MP actuellement ouverte
+  const [privateMessages, setPrivateMessages] = useState([]); // Messages de la MP active
+  const [privateInput, setPrivateInput] = useState(''); // Input de la MP
   const messagesEndRef = useRef(null);
   const pollingRef = useRef(null);
+  const chatContainerRef = useRef(null); // Ref pour le mode plein écran
 
   // Email du coach autorisé
   const COACH_EMAIL = 'contact.artboost@gmail.com';
+
+  // === FONCTIONS MODE PLEIN ÉCRAN ===
+  const toggleFullscreen = async () => {
+    if (!chatContainerRef.current) return;
+    
+    try {
+      if (!document.fullscreenElement) {
+        await chatContainerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Erreur fullscreen:', err);
+    }
+  };
+
+  // Écouter les changements de fullscreen (touche Escape, etc.)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   // Enregistrer le Service Worker au montage
   useEffect(() => {
