@@ -168,7 +168,7 @@ app = socketio.ASGIApp(sio, other_asgi_app=fastapi_app)
 
 # ==================== HEALTH CHECK (Required for Kubernetes) ====================
 
-@app.get("/health")
+@fastapi_app.get("/health")
 async def health_check():
     """Health check endpoint for Kubernetes liveness/readiness probes"""
     try:
@@ -185,13 +185,13 @@ async def health_check():
             content={"status": "unhealthy", "database": "disconnected", "error": str(e)}
         )
 
-@app.get("/api/health")
+@fastapi_app.get("/api/health")
 async def api_health_check():
     """Health check endpoint via /api prefix for Kubernetes"""
     return await health_check()
 
 # Favicon endpoint to prevent 404 errors
-@app.get("/api/favicon.ico")
+@fastapi_app.get("/api/favicon.ico")
 async def favicon():
     """Return empty response for favicon requests to prevent 404 errors"""
     from starlette.responses import Response
@@ -5711,7 +5711,7 @@ async def share_media_with_opengraph(slug: str, request: Request):
 # ==================== ROUTE RACINE /v/{slug} POUR OPENGRAPH ====================
 # Cette route est essentielle pour que WhatsApp puisse afficher les aperçus riches
 
-@app.get("/v/{slug}")
+@fastapi_app.get("/v/{slug}")
 async def serve_media_opengraph_page(slug: str, request: Request):
     """
     Sert une page HTML avec les meta tags OpenGraph pour les previews WhatsApp.
@@ -5855,9 +5855,9 @@ async def get_scheduler_health():
         }
 
 # Include router
-app.include_router(api_router)
+fastapi_app.include_router(api_router)
 
-app.add_middleware(
+fastapi_app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
@@ -5866,7 +5866,7 @@ app.add_middleware(
 )
 
 # Dynamic manifest.json endpoint for PWA
-@app.get("/api/manifest.json")
+@fastapi_app.get("/api/manifest.json")
 async def get_dynamic_manifest():
     """Serve dynamic manifest.json with logo and name from coach settings"""
     concept = await db.concept.find_one({})
@@ -6297,7 +6297,7 @@ def scheduler_loop():
 # Variable pour le thread du scheduler
 scheduler_thread = None
 
-@app.on_event("startup")
+@fastapi_app.on_event("startup")
 async def startup_scheduler():
     """Lance le scheduler dans un thread séparé au démarrage du serveur."""
     global scheduler_thread
@@ -6314,7 +6314,7 @@ async def startup_scheduler():
     
     logger.info("[SYSTEM] ✅ Scheduler thread lancé avec succès")
 
-@app.on_event("shutdown")
+@fastapi_app.on_event("shutdown")
 async def shutdown_db_client():
     global SCHEDULER_RUNNING
     SCHEDULER_RUNNING = False
