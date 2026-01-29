@@ -124,6 +124,18 @@ async def api_favicon():
     from starlette.responses import Response
     return Response(status_code=204)
 
+# === FICHIERS STATIQUES EMOJIS ===
+# Créer le dossier emojis s'il n'existe pas
+EMOJIS_DIR = ROOT_DIR / "uploads" / "emojis"
+EMOJIS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Monter les fichiers statiques pour les emojis
+try:
+    app.mount("/api/emojis", StaticFiles(directory=str(EMOJIS_DIR)), name="emojis")
+    logger.info(f"[EMOJIS] Dossier monté: {EMOJIS_DIR}")
+except Exception as e:
+    logger.warning(f"[EMOJIS] Impossible de monter le dossier: {e}")
+
 # ==================== MODELS ====================
 
 class Course(BaseModel):
