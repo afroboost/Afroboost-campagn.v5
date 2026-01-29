@@ -5,7 +5,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import { playNotificationSound, parseMessageContent } from '../services/notificationService';
+import { 
+  playNotificationSound, 
+  parseMessageContent, 
+  notifyPrivateMessage,
+  stopTitleFlash 
+} from '../services/notificationService';
 import { 
   isPushSupported, 
   promptForNotifications, 
