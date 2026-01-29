@@ -242,7 +242,16 @@ export const ChatWidget = () => {
     } catch (e) {}
     return false;
   });
-  const [sessionData, setSessionData] = useState(null);
+  const [sessionData, setSessionData] = useState(() => {
+    // Charger la session depuis localStorage IMMÉDIATEMENT
+    try {
+      const savedSession = localStorage.getItem(CHAT_SESSION_KEY);
+      if (savedSession) {
+        return JSON.parse(savedSession);
+      }
+    } catch (e) {}
+    return null;
+  });
   const [participantId, setParticipantId] = useState(() => {
     try {
       const savedIdentity = localStorage.getItem(AFROBOOST_IDENTITY_KEY);
