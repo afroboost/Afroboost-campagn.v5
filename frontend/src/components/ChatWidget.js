@@ -309,8 +309,7 @@ export const ChatWidget = () => {
   const [coachSessions, setCoachSessions] = useState([]); // Liste des sessions pour le coach
   const [selectedCoachSession, setSelectedCoachSession] = useState(null); // Session sélectionnée par le coach
   const [isFullscreen, setIsFullscreen] = useState(false); // Mode plein écran
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Sélecteur d'emojis
-  const [customEmojis, setCustomEmojis] = useState([]); // Emojis personnalisés du coach
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Sélecteur d'emojis (composant EmojiPicker)
   
   // === INDICATEUR DE SAISIE (Typing Indicator) ===
   const [typingUser, setTypingUser] = useState(null); // Qui est en train d'écrire
