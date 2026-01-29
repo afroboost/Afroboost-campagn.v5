@@ -1170,13 +1170,42 @@ export const ChatWidget = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 15px rgba(37, 211, 102, 0.4)'
+            boxShadow: '0 4px 15px rgba(37, 211, 102, 0.4)',
+            position: 'relative'
           }}
           data-testid="chat-widget-button"
         >
           <WhatsAppIcon />
-          {/* Badge si client reconnu */}
-          {isReturningClient && (
+          
+          {/* Badge MP non lus (pastille rouge) */}
+          {unreadPrivateCount > 0 && (
+            <span 
+              style={{
+                position: 'absolute',
+                top: '-6px',
+                right: '-6px',
+                minWidth: '22px',
+                height: '22px',
+                borderRadius: '11px',
+                background: '#ef4444',
+                border: '2px solid #0a0a0a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                color: '#fff',
+                padding: '0 4px',
+                animation: 'pulse 1.5s infinite'
+              }}
+              data-testid="unread-mp-badge"
+            >
+              {unreadPrivateCount > 99 ? '99+' : unreadPrivateCount}
+            </span>
+          )}
+          
+          {/* Badge si client reconnu (affiché seulement si pas de MP non lus) */}
+          {isReturningClient && unreadPrivateCount === 0 && (
             <span 
               style={{
                 position: 'absolute',
