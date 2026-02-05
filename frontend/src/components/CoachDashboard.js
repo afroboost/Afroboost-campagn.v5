@@ -996,14 +996,19 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [newCampaign, setNewCampaign] = useState({
     name: "", message: "", mediaUrl: "", mediaFormat: "16:9",
     targetType: "all", selectedContacts: [],
-    channels: { whatsapp: true, email: false, instagram: false, group: false },
+    channels: { whatsapp: true, email: false, instagram: false, group: false, internal: false },
     targetGroupId: 'community',
+    targetConversationId: '',
+    targetConversationName: '',
     scheduleSlots: [] // Multi-date scheduling
   });
   const [selectedContactsForCampaign, setSelectedContactsForCampaign] = useState([]);
   const [contactSearchQuery, setContactSearchQuery] = useState("");
   const [campaignLogs, setCampaignLogs] = useState([]); // Error logs
   const [editingCampaignId, setEditingCampaignId] = useState(null); // ID de la campagne en édition
+  
+  // === CONVERSATIONS ACTIVES POUR MESSAGERIE INTERNE ===
+  const [activeConversations, setActiveConversations] = useState([]);
   
   // === SCHEDULER HEALTH STATE ===
   const [schedulerHealth, setSchedulerHealth] = useState({ status: "unknown", last_run: null });
