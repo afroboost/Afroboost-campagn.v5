@@ -1005,6 +1005,17 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [campaignLogs, setCampaignLogs] = useState([]); // Error logs
   const [editingCampaignId, setEditingCampaignId] = useState(null); // ID de la campagne en édition
   
+  // === CONVERSATIONS ACTIVES POUR MESSAGERIE INTERNE ===
+  const [activeConversations, setActiveConversations] = useState([]);
+  const [conversationSearch, setConversationSearch] = useState(''); // Recherche dans le sélecteur
+  const [showConversationDropdown, setShowConversationDropdown] = useState(false); // Dropdown ouvert/fermé
+  
+  // === FILTRES HISTORIQUE CAMPAGNES ===
+  const [campaignHistoryFilter, setCampaignHistoryFilter] = useState('all'); // 'all', 'groups', 'individuals'
+  
+  // === SECTION CANAUX EXTERNES REPLIABLE ===
+  const [externalChannelsExpanded, setExternalChannelsExpanded] = useState(false);
+  
   // === SCHEDULER HEALTH STATE ===
   const [schedulerHealth, setSchedulerHealth] = useState({ status: "unknown", last_run: null });
   
