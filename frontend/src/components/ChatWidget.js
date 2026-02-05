@@ -418,6 +418,12 @@ export const ChatWidget = () => {
   });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   
+  // === MODALE RECADRAGE PHOTO ===
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [cropPosition, setCropPosition] = useState({ x: 0, y: 0, scale: 1 });
+  const cropCanvasRef = useRef(null);
+  
   // === MENU UTILISATEUR (Partage + Mode Visiteur) ===
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCoachMenu, setShowCoachMenu] = useState(false); // Menu coach minimaliste
