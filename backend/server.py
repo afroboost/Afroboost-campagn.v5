@@ -1279,61 +1279,6 @@ async def delete_campaign(campaign_id: str):
     await db.campaigns.delete_one({"id": campaign_id})
     return {"success": True}
 
-@api_router.get("/campaigns/logs")
-async def get_campaigns_error_logs():
-    """
-    Renvoie les 50 dernières erreurs d'envoi de campagnes.
-    Objectif: Permettre à l'utilisateur de savoir pourquoi un message n'est pas parti.
-    """
-    try:
-        # Récupérer les campagnes avec des erreurs dans leurs résultats
-        campaigns_with_results = await db.campaigns.find(
-            {"results": {"$exists": True, "$ne": []}},
-            {"_id": 0, "id": 1, "name": 1, "results": 1, "updatedAt": 1}
-        ).sort("updatedAt", -1).to_list(100)
-        
-        error_logs = []
-        
-        for campaign in campaigns_with_results:
-            campaign_id = campaign.get("id", "")
-            campaign_name = campaign.get("name", "Sans nom")
-            results = campaign.get("results", [])
-            
-            # Filtrer uniquement les résultats avec erreurs
-            for result in results:
-                if result.get("status") == "failed" or result.get("error"):
-                    error_entry = {
-                        "campaign_id": campaign_id,
-                        "campaign_name": campaign_name,
-                        "contact_id": result.get("contactId", ""),
-                        "contact_name": result.get("contactName", ""),
-                        "channel": result.get("channel", "unknown"),
-                        "error": result.get("error", "Erreur inconnue"),
-                        "sent_at": result.get("sentAt", campaign.get("updatedAt", "")),
-                        "status": result.get("status", "failed")
-                    }
-                    error_logs.append(error_entry)
-        
-        # Trier par date et limiter à 50
-        error_logs.sort(key=lambda x: x.get("sent_at", ""), reverse=True)
-        error_logs = error_logs[:50]
-        
-        return {
-            "success": True,
-            "total_errors": len(error_logs),
-            "errors": error_logs,
-            "message": f"{len(error_logs)} erreur(s) d'envoi trouvée(s)" if error_logs else "Aucune erreur d'envoi"
-        }
-        
-    except Exception as e:
-        logger.error(f"[CAMPAIGNS-LOGS] Erreur récupération logs: {e}")
-        return {
-            "success": False,
-            "total_errors": 0,
-            "errors": [],
-            "error": str(e)
-        }
-
 @api_router.post("/campaigns/{campaign_id}/launch")
 async def launch_campaign(campaign_id: str):
     """
