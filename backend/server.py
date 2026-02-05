@@ -1035,6 +1035,84 @@ async def create_reservation(reservation: ReservationCreate):
     doc = res_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.reservations.insert_one(doc)
+    
+    # === NOTIFICATION EMAIL AU COACH SI RÉSERVATION ABONNÉ ===
+    if reservation.type == 'abonné' and reservation.promoCode:
+        try:
+            if RESEND_AVAILABLE and RESEND_API_KEY:
+                coach_email = "contact.artboost@gmail.com"
+                
+                # Construire le message HTML
+                html_content = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #9333ea, #6366f1); padding: 20px; border-radius: 12px 12px 0 0;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">💎 Nouvelle Réservation Abonné</h1>
+                    </div>
+                    <div style="background: #1a1a2e; padding: 24px; color: #fff;">
+                        <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                            <strong style="color: #22c55e;">✅ Réservation confirmée via le Chat</strong>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #888;">👤 Nom</td>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #fff; font-weight: 600;">{reservation.userName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #888;">📱 WhatsApp</td>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <a href="https://wa.me/{reservation.userWhatsapp.replace('+', '').replace(' ', '')}" style="color: #25D366; text-decoration: none; font-weight: 600;">
+                                        {reservation.userWhatsapp} 📲
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #888;">📧 Email</td>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #fff;">{reservation.userEmail}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #888;">📅 Cours</td>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #a855f7; font-weight: 600;">{reservation.courseName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #888;">🕐 Horaire</td>
+                                <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #fff;">{reservation.courseTime}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; color: #888;">🎟️ Code Promo</td>
+                                <td style="padding: 10px 0; color: #22c55e; font-weight: 600;">{reservation.promoCode}</td>
+                            </tr>
+                        </table>
+                        
+                        <div style="margin-top: 24px; text-align: center;">
+                            <a href="https://wa.me/{reservation.userWhatsapp.replace('+', '').replace(' ', '')}" 
+                               style="display: inline-block; background: #25D366; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                                💬 Contacter sur WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                    <div style="background: #0d0d1a; padding: 16px; text-align: center; border-radius: 0 0 12px 12px;">
+                        <p style="color: #666; margin: 0; font-size: 12px;">
+                            Code réservation: <strong style="color: #a855f7;">{res_code}</strong>
+                        </p>
+                    </div>
+                </div>
+                """
+                
+                params = {
+                    "from": "Afroboost <notifications@afroboost.com>",
+                    "to": [coach_email],
+                    "subject": f"💎 Nouvelle réservation abonné - {reservation.userName}",
+                    "html": html_content
+                }
+                
+                # Envoi asynchrone (ne bloque pas la réponse)
+                email_response = await asyncio.to_thread(resend.Emails.send, params)
+                print(f"[NOTIFICATION] ✅ Email envoyé au coach: {email_response}")
+        except Exception as e:
+            # Log l'erreur mais ne bloque pas la réservation
+            print(f"[NOTIFICATION] ⚠️ Erreur envoi email: {str(e)}")
+    
     return res_obj
 
 @api_router.post("/reservations/{reservation_code}/validate")
