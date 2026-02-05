@@ -1126,10 +1126,17 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   useEffect(() => {
     const checkSchedulerHealth = async () => {
       try {
-        const res = await axios.get(`${API}/scheduler/health`);
-        setSchedulerHealth(res.data);
+        // Utiliser le nouvel endpoint avec infos APScheduler complètes
+        const res = await axios.get(`${API}/scheduler/status`);
+        setSchedulerHealth({
+          status: res.data.scheduler_running ? "active" : "stopped",
+          last_run: res.data.job?.next_run_time || null,
+          persistence: res.data.persistence || "unknown",
+          job_name: res.data.job?.name || null,
+          interval: res.data.interval_seconds || 60
+        });
       } catch (err) {
-        setSchedulerHealth({ status: "stopped", last_run: null });
+        setSchedulerHealth({ status: "stopped", last_run: null, persistence: "error" });
       }
     };
     
