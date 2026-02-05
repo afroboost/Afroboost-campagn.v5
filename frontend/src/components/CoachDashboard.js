@@ -6726,8 +6726,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                               >
                                 ✏️
                               </button>
-                              {/* Bouton Lancer - Uniquement pour draft et scheduled */}
-                              {(campaign.status === 'draft' || campaign.status === 'scheduled') && (
+                              {/* Bouton Lancer - UNIQUEMENT pour draft (Brouillon) */}
+                              {campaign.status === 'draft' && (
                                 <button 
                                   type="button"
                                   onClick={(e) => launchCampaignWithSend(e, campaign.id)} 
@@ -6737,8 +6737,17 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                                   🚀 Lancer
                                 </button>
                               )}
-                              {/* Bouton Relancer - Pour les campagnes envoyées */}
-                              {(campaign.status === 'sent' || campaign.status === 'completed' || campaign.status === 'sending') && (
+                              {/* Badge Automatique - Pour les campagnes programmées */}
+                              {campaign.status === 'scheduled' && (
+                                <span 
+                                  className="px-3 py-1 rounded text-xs bg-yellow-600/30 text-yellow-400 border border-yellow-500/30"
+                                  title={`Envoi automatique le ${campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString('fr-FR') : 'bientôt'}`}
+                                >
+                                  ⏳ Auto
+                                </span>
+                              )}
+                              {/* Bouton Relancer - Pour les campagnes envoyées ou échouées */}
+                              {(campaign.status === 'sent' || campaign.status === 'completed' || campaign.status === 'failed') && (
                                 <button 
                                   type="button"
                                   onClick={(e) => launchCampaignWithSend(e, campaign.id)} 
