@@ -2431,10 +2431,11 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         scheduleSlots: [] 
       });
       setSelectedContactsForCampaign([]);
-      alert(`✅ ${isImmediate ? 'Campagne créée' : `${scheduleSlots.length} campagne(s) programmée(s)`} avec succès !`);
+      showCampaignToast(`${isImmediate ? 'Campagne créée' : `${scheduleSlots.length} campagne(s) programmée(s)`} avec succès !`, 'success');
     } catch (err) { 
       console.error("Error creating campaign:", err);
       addCampaignLog('new', `Erreur création campagne: ${err.message}`, 'error');
+      showCampaignToast(`Erreur: ${err.message}`, 'error');
     }
   };
 
