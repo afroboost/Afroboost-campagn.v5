@@ -6216,19 +6216,28 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 
                 {/* PANIER DE TAGS */}
                 {selectedRecipients.length > 0 && (
-                  <div className="mb-3 p-3 rounded-lg bg-green-900/20 border border-green-500/30">
-                    <div className="flex flex-wrap gap-2">
+                  <div className="mb-3 p-3 rounded-lg bg-green-900/20 border border-green-500/30" data-testid="recipient-basket">
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                       {selectedRecipients.map(r => (
-                        <span key={r.id} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${r.type === 'group' ? 'bg-purple-600/40 text-purple-300' : 'bg-blue-600/40 text-blue-300'}`}>
-                          {r.type === 'group' ? '👥' : '👤'} {(r.name || 'Sans nom').substring(0, 20)}
+                        <span key={r.id} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${r.type === 'group' ? 'bg-purple-600/50 text-purple-200 border border-purple-400/30' : 'bg-blue-600/50 text-blue-200 border border-blue-400/30'}`}
+                          data-testid={`tag-${r.id}`}>
+                          <span className="text-sm">{r.type === 'group' ? '👥' : '👤'}</span>
+                          <span className="truncate max-w-[120px]">{(r.name || 'Sans nom').replace(/^👤 |^👥 /, '').substring(0, 20)}</span>
                           <button type="button" onClick={() => setSelectedRecipients(prev => prev.filter(x => x.id !== r.id))}
-                            className="ml-1 hover:text-red-400">×</button>
+                            className="ml-1 hover:text-red-400 text-sm font-bold" title="Retirer">×</button>
                         </span>
                       ))}
                     </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-xs text-green-400">{selectedRecipients.filter(r => r.type === 'group').length} groupe(s), {selectedRecipients.filter(r => r.type === 'user').length} utilisateur(s)</span>
-                      <button type="button" onClick={() => setSelectedRecipients([])} className="text-xs text-red-400 hover:text-red-300">Vider le panier</button>
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-green-500/20">
+                      <span className="text-xs text-green-400 font-medium">
+                        ✅ Prêt à envoyer à {selectedRecipients.length} destinataire(s) 
+                        ({selectedRecipients.filter(r => r.type === 'group').length} 👥, {selectedRecipients.filter(r => r.type === 'user').length} 👤)
+                      </span>
+                      <button type="button" onClick={() => { setSelectedRecipients([]); showCampaignToast('Panier vidé', 'info'); }} 
+                        className="px-2 py-1 rounded text-xs bg-red-600/30 hover:bg-red-600/50 text-red-400 font-medium"
+                        data-testid="clear-basket-btn">
+                        🗑️ Vider
+                      </button>
                     </div>
                   </div>
                 )}
