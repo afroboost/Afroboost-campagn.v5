@@ -339,6 +339,9 @@ export const ChatWidget = () => {
     } catch { return null; }
   });
   const [showReservationPanel, setShowReservationPanel] = useState(false);
+  const [availableCourses, setAvailableCourses] = useState([]); // Cours pour réservation
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null); // Cours sélectionné
 
   // Email du coach autorisé
   const COACH_EMAIL = 'contact.artboost@gmail.com';
@@ -349,6 +352,20 @@ export const ChatWidget = () => {
     localStorage.setItem('subscriber_data', JSON.stringify(data));
     setSubscriberData(data);
     console.log('[SUBSCRIBER] ✅ Données abonné sauvegardées:', data);
+  }, []);
+  
+  // Charger les cours disponibles
+  const loadAvailableCourses = useCallback(async () => {
+    setLoadingCourses(true);
+    try {
+      const res = await axios.get(`${API}/courses`);
+      const courses = res.data || [];
+      setAvailableCourses(courses);
+      console.log('[COURSES] ✅ Chargés:', courses.length);
+    } catch (err) {
+      console.error('[COURSES] ❌ Erreur:', err);
+    }
+    setLoadingCourses(false);
   }, []);
 
   // === FONCTIONS MODE PLEIN ÉCRAN (CSS - plus fiable) ===
