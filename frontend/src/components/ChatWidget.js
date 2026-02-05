@@ -2089,8 +2089,8 @@ export const ChatWidget = () => {
                   <div ref={messagesEndRef} />
                 </div>
                 
-                {/* === PANNEAU DE RÉSERVATION - SESSIONS DU COACH === */}
-                {showReservationPanel && (
+                {/* === PANNEAU DE RÉSERVATION - SESSIONS DU COACH (ABONNÉS UNIQUEMENT) === */}
+                {showReservationPanel && afroboostProfile && (
                   <div style={{
                     padding: '12px',
                     borderTop: '1px solid rgba(147, 51, 234, 0.3)',
@@ -2101,7 +2101,7 @@ export const ChatWidget = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <h4 style={{ color: '#a855f7', fontSize: '14px', fontWeight: '600', margin: 0 }}>
                         📅 {selectedCourse ? 'Confirmer la réservation' : 'Choisir un cours'}
-                        {subscriberData?.name && <span style={{ opacity: 0.7, marginLeft: '8px' }}>({subscriberData.name})</span>}
+                        <span style={{ opacity: 0.7, marginLeft: '8px' }}>({afroboostProfile?.name})</span>
                       </h4>
                       <button
                         type="button"
@@ -2109,6 +2109,21 @@ export const ChatWidget = () => {
                         style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '18px' }}
                       >×</button>
                     </div>
+                    
+                    {/* Badge code promo actif */}
+                    {afroboostProfile?.code && (
+                      <div style={{
+                        background: 'rgba(34, 197, 94, 0.2)',
+                        border: '1px solid rgba(34, 197, 94, 0.4)',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        marginBottom: '12px',
+                        fontSize: '12px',
+                        color: '#22c55e'
+                      }}>
+                        💎 Abonné • Code: <strong>{afroboostProfile.code}</strong>
+                      </div>
+                    )}
                     
                     {/* Chargement */}
                     {loadingCourses && (
