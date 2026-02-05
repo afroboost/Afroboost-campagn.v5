@@ -707,7 +707,6 @@ export const ChatWidget = () => {
   const handlePhotoUpload = async (e) => {
     handlePhotoSelect(e);
   };
-  };
   
   // === RESTAURER DM ACTIVE APRÈS F5 ===
   useEffect(() => {
