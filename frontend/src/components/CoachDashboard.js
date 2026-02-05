@@ -1160,8 +1160,19 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         setCampaigns(res.data);
       } catch (err) { console.error("Error loading campaigns:", err); }
     };
+    
+    const loadActiveConversations = async () => {
+      try {
+        const res = await axios.get(`${API}/conversations/active`);
+        if (res.data.success) {
+          setActiveConversations(res.data.conversations || []);
+        }
+      } catch (err) { console.error("Error loading active conversations:", err); }
+    };
+    
     if (tab === "campaigns") {
       loadCampaigns();
+      loadActiveConversations();
       loadAIConfig();
       loadAILogs();
     }
