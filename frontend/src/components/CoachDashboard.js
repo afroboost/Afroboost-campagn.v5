@@ -6435,7 +6435,15 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {campaigns.map(campaign => {
+                    {campaigns
+                      .filter(campaign => {
+                        if (campaignHistoryFilter === 'all') return true;
+                        const convType = activeConversations.find(ac => ac.conversation_id === campaign.targetConversationId)?.type;
+                        if (campaignHistoryFilter === 'groups') return campaign.channels?.group || convType === 'group';
+                        if (campaignHistoryFilter === 'individuals') return convType === 'user';
+                        return true;
+                      })
+                      .map(campaign => {
                       // Count failed results for this campaign
                       const failedCount = campaign.results?.filter(r => r.status === 'failed').length || 0;
                       const hasErrors = failedCount > 0 || campaignLogs.some(l => l.campaignId === campaign.id && l.type === 'error');
