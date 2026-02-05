@@ -1761,6 +1761,18 @@ export const ChatWidget = () => {
           }
         }
         
+        /* Animation points typing DM (minimaliste) */
+        @keyframes dmTypingDot {
+          0%, 80%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+          }
+          40% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
         /* Chat widget responsive - plus grand sur mobile */
         @media (max-width: 640px) {
           .chat-widget-window {
