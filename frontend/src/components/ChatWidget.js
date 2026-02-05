@@ -1670,6 +1670,44 @@ export const ChatWidget = () => {
     });
   };
 
+  // === FONCTION POUR ÉMETTRE L'ÉVÉNEMENT TYPING DANS LES DM ===
+  const emitDmTyping = (isTyping) => {
+    if (!socketRef.current || !activePrivateChat?.id) return;
+    
+    const now = Date.now();
+    // Éviter le spam (max 1 événement par seconde)
+    if (isTyping && now - lastDmTypingEmitRef.current < 1000) return;
+    lastDmTypingEmitRef.current = now;
+    
+    try {
+      const eventName = isTyping ? 'dm_typing_start' : 'dm_typing_stop';
+      socketRef.current.emit(eventName, {
+        conversation_id: activePrivateChat.id,
+        user_id: participantId,
+        user_name: afroboostProfile?.name || leadData?.firstName || 'Utilisateur'
+      });
+    } catch (e) {
+      // NULL-SAFE: Ne pas bloquer le chat si l'événement échoue
+      console.warn('[DM-TYPING] ⚠️ Erreur émission:', e.message);
+    }
+  };
+
+  // === FONCTION POUR ÉMETTRE LA MISE À JOUR D'AVATAR ===
+  const emitAvatarUpdate = (photoUrl) => {
+    if (!socketRef.current || !participantId) return;
+    
+    try {
+      socketRef.current.emit('avatar_updated', {
+        user_id: participantId,
+        user_name: afroboostProfile?.name || leadData?.firstName || 'Utilisateur',
+        photo_url: photoUrl
+      });
+      console.log('[AVATAR] 📷 Diffusion mise à jour avatar');
+    } catch (e) {
+      console.warn('[AVATAR] ⚠️ Erreur diffusion avatar:', e.message);
+    }
+  };
+
   // Handler pour l'input avec émission typing
   const handleInputChangeWithTyping = (e) => {
     const value = e.target.value;
