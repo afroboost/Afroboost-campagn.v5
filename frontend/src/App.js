@@ -3061,20 +3061,40 @@ function App() {
     } catch (err) {
       console.error('Erreur déconnexion:', err);
     }
+    // Nettoyer le localStorage coach
+    localStorage.removeItem('afroboost_coach_mode');
+    localStorage.removeItem('afroboost_coach_user');
+    localStorage.removeItem('afroboost_coach_tab');
+    localStorage.removeItem('afroboost_coach_session');
+    sessionStorage.clear();
+    
     setCoachMode(false);
     setCoachUser(null);
+    console.log('[APP] 🚪 Déconnexion coach effectuée');
   };
 
   // Fonction de connexion Google OAuth
   const handleGoogleLogin = (userData) => {
+    // Persister la session coach
+    localStorage.setItem('afroboost_coach_mode', 'true');
+    localStorage.setItem('afroboost_coach_user', JSON.stringify(userData));
+    
     setCoachUser(userData);
     setCoachMode(true);
     setShowCoachLogin(false);
+    console.log('[APP] ✅ Connexion coach réussie:', userData?.email);
+  };
+  
+  // Fonction pour quitter le mode coach sans déconnexion
+  const handleBackFromCoach = () => {
+    localStorage.removeItem('afroboost_coach_mode');
+    setCoachMode(false);
+    console.log('[APP] ↩️ Retour au site (session conservée)');
   };
 
   if (showSplash) return <SplashScreen logoUrl={concept.logoUrl} />;
   if (showCoachLogin) return <CoachLoginModal t={t} onLogin={handleGoogleLogin} onCancel={() => setShowCoachLogin(false)} />;
-  if (coachMode) return <CoachDashboard t={t} lang={lang} onBack={() => setCoachMode(false)} onLogout={handleLogout} coachUser={coachUser} />;
+  if (coachMode) return <CoachDashboard t={t} lang={lang} onBack={handleBackFromCoach} onLogout={handleLogout} coachUser={coachUser} />;
 
   // Filtrer les offres et cours selon visibilité, filtre actif et recherche
   // =====================================================
