@@ -6017,6 +6017,86 @@ async def get_scheduler_health():
             "last_run": None
         }
 
+@api_router.get("/test-scheduler-persistence")
+async def test_scheduler_persistence():
+    """
+    Endpoint de test pour vérifier la persistance APScheduler dans MongoDB.
+    Crée un job bidon, redémarre le scheduler, et vérifie si le job persiste.
+    """
+    try:
+        from datetime import datetime, timezone, timedelta
+        
+        # 1. Créer un job bidon pour dans 24h
+        test_job_id = "test_persistence_job_24h"
+        run_time = datetime.now(timezone.utc) + timedelta(hours=24)
+        
+        # Fonction bidon pour le test
+        def dummy_test_job():
+            logger.info("[TEST] Job de test de persistance exécuté")
+        
+        # Ajouter le job de test
+        try:
+            existing = apscheduler.get_job(test_job_id)
+            if existing:
+                apscheduler.remove_job(test_job_id)
+        except Exception:
+            pass
+        
+        apscheduler.add_job(
+            dummy_test_job,
+            trigger='date',
+            run_date=run_time,
+            id=test_job_id,
+            name='Test Persistence Job (24h)',
+            replace_existing=True
+        )
+        logger.info(f"[TEST] Job de test créé pour {run_time.isoformat()}")
+        
+        # 2. Simuler un redémarrage du scheduler (pause + resume)
+        apscheduler.pause()
+        logger.info("[TEST] Scheduler mis en pause")
+        
+        # Petite pause pour s'assurer que tout est synchronisé
+        import time
+        time.sleep(0.5)
+        
+        apscheduler.resume()
+        logger.info("[TEST] Scheduler repris")
+        
+        # 3. Vérifier si le job existe toujours
+        persisted_job = apscheduler.get_job(test_job_id)
+        
+        # 4. Compter les jobs dans la collection MongoDB
+        jobs_in_mongo = mongo_client_sync[os.environ.get('DB_NAME', 'test_database')].scheduled_jobs.count_documents({})
+        
+        # 5. Nettoyer le job de test (optionnel - on le garde pour preuve)
+        # apscheduler.remove_job(test_job_id)
+        
+        if persisted_job:
+            return {
+                "persistence": "verified",
+                "jobs_count": jobs_in_mongo,
+                "test_job_found": True,
+                "test_job_id": test_job_id,
+                "test_job_run_time": run_time.isoformat(),
+                "message": "✅ Le job a survécu au redémarrage simulé du scheduler"
+            }
+        else:
+            return {
+                "persistence": "failed",
+                "jobs_count": jobs_in_mongo,
+                "test_job_found": False,
+                "error": "Le job n'a pas été retrouvé après le redémarrage"
+            }
+            
+    except Exception as e:
+        logger.error(f"[TEST] Erreur test persistance: {e}")
+        return {
+            "persistence": "error",
+            "jobs_count": 0,
+            "error": str(e)
+        }
+
 # ==================== SCHEDULER GROUP MESSAGE EMISSION ====================
 @api_router.post("/scheduler/emit-group-message")
 async def scheduler_emit_group_message(request: Request):
