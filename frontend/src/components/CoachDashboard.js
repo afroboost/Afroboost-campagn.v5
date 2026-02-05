@@ -1085,7 +1085,6 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [newCommunityName, setNewCommunityName] = useState('');  // Nom pour le chat communautaire
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [copiedLinkId, setCopiedLinkId] = useState(null);
-  const [conversationSearch, setConversationSearch] = useState(''); // Recherche globale conversations
   
   // === CRM AVANCÉ - Pagination et Infinite Scroll ===
   const [conversationsPage, setConversationsPage] = useState(1);
