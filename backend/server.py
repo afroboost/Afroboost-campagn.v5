@@ -6072,6 +6072,11 @@ async def get_scheduler_health():
             "last_run": None
         }
 
+# Fonction de test de persistance (définie au niveau module pour sérialisation)
+def dummy_persistence_test_job():
+    """Job bidon pour tester la persistance APScheduler."""
+    logger.info("[TEST-PERSISTENCE] Job de test de persistance exécuté")
+
 @api_router.get("/test-scheduler-persistence")
 async def test_scheduler_persistence():
     """
@@ -6085,10 +6090,6 @@ async def test_scheduler_persistence():
         test_job_id = "test_persistence_job_24h"
         run_time = datetime.now(timezone.utc) + timedelta(hours=24)
         
-        # Fonction bidon pour le test
-        def dummy_test_job():
-            logger.info("[TEST] Job de test de persistance exécuté")
-        
         # Ajouter le job de test
         try:
             existing = apscheduler.get_job(test_job_id)
@@ -6097,8 +6098,9 @@ async def test_scheduler_persistence():
         except Exception:
             pass
         
+        # Utiliser la référence textuelle pour la sérialisation MongoDB
         apscheduler.add_job(
-            dummy_test_job,
+            'server:dummy_persistence_test_job',  # Référence textuelle
             trigger='date',
             run_date=run_time,
             id=test_job_id,
