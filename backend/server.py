@@ -1377,22 +1377,16 @@ async def delete_campaign(campaign_id: str):
 async def launch_campaign(campaign_id: str):
     """
     Lance une campagne immédiatement.
-    - WhatsApp: Envoi DIRECT via Twilio (pas de file d'attente)
+    - Internal: Envoi dans les conversations chat (groupes/utilisateurs)
+    - WhatsApp: Envoi DIRECT via Twilio
     - Email: Envoi DIRECT via Resend
     - Instagram: Non supporté (manuel)
     
-    Chaque canal est indépendant: l'échec d'un email ne bloque pas WhatsApp.
+    Chaque canal est indépendant: l'échec d'un envoi ne bloque pas les suivants.
     """
     campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    
-    # Get contacts based on targetType
-    if campaign.get("targetType") == "all":
-        contacts = await db.users.find({}, {"_id": 0}).to_list(1000)
-    else:
-        selected_ids = campaign.get("selectedContacts", [])
-        contacts = await db.users.find({"id": {"$in": selected_ids}}, {"_id": 0}).to_list(1000)
     
     # Prepare results and tracking
     results = []
@@ -1400,11 +1394,92 @@ async def launch_campaign(campaign_id: str):
     message_content = campaign.get("message", "")
     media_url = campaign.get("mediaUrl", "")
     campaign_name = campaign.get("name", "Campagne")
+    target_ids = campaign.get("targetIds", [])
     
     success_count = 0
     fail_count = 0
     
-    logger.info(f"[CAMPAIGN-LAUNCH] 🚀 Lancement campagne '{campaign_name}' - {len(contacts)} contact(s)")
+    logger.info(f"[CAMPAIGN-LAUNCH] 🚀 Lancement campagne '{campaign_name}' - targetIds: {len(target_ids)}, channels: {channels}")
+    
+    # ==================== ENVOI INTERNE (Chat) ====================
+    if channels.get("internal") and target_ids:
+        for target_id in target_ids:
+            internal_result = {
+                "targetId": target_id,
+                "channel": "internal",
+                "status": "pending",
+                "sentAt": None
+            }
+            
+            try:
+                # Déterminer le type de cible (groupe ou utilisateur)
+                # Chercher si c'est un groupe (session avec titre ou mode groupe)
+                session = await db.chat_sessions.find_one(
+                    {"$or": [{"id": target_id}, {"participant_ids": target_id}]},
+                    {"_id": 0, "id": 1, "mode": 1, "title": 1}
+                )
+                
+                if session:
+                    session_id = session.get("id")
+                else:
+                    # Créer une session pour cet utilisateur s'il n'en a pas
+                    session_id = str(uuid.uuid4())
+                    await db.chat_sessions.insert_one({
+                        "id": session_id,
+                        "mode": "user",
+                        "participant_ids": [target_id],
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    })
+                    logger.info(f"[CAMPAIGN-LAUNCH] 📝 Session créée pour {target_id}: {session_id}")
+                
+                # Insérer le message dans la conversation
+                msg_id = str(uuid.uuid4())
+                msg_timestamp = datetime.now(timezone.utc).isoformat()
+                
+                await db.chat_messages.insert_one({
+                    "id": msg_id,
+                    "session_id": session_id,
+                    "content": message_content,
+                    "media_url": media_url or None,
+                    "sender_type": "coach",
+                    "sender_name": "💪 Coach Bassi",
+                    "sender_id": "coach-campaign",
+                    "timestamp": msg_timestamp,
+                    "created_at": msg_timestamp
+                })
+                
+                # Mettre à jour la session
+                await db.chat_sessions.update_one(
+                    {"id": session_id},
+                    {"$set": {"last_message_at": msg_timestamp, "updated_at": msg_timestamp}}
+                )
+                
+                internal_result["status"] = "sent"
+                internal_result["sentAt"] = msg_timestamp
+                internal_result["messageId"] = msg_id
+                internal_result["sessionId"] = session_id
+                success_count += 1
+                logger.info(f"[CAMPAIGN-LAUNCH] ✅ Message interne envoyé à {target_id}")
+                
+            except Exception as e:
+                internal_result["status"] = "failed"
+                internal_result["error"] = str(e)
+                fail_count += 1
+                logger.error(f"[CAMPAIGN-LAUNCH] ❌ Erreur envoi interne à {target_id}: {str(e)}")
+            
+            results.append(internal_result)
+    
+    # ==================== ENVOI WHATSAPP/EMAIL (via contacts CRM) ====================
+    # Get contacts based on targetType (pour les canaux WhatsApp/Email)
+    contacts = []
+    if channels.get("whatsapp") or channels.get("email"):
+        if campaign.get("targetType") == "all":
+            contacts = await db.users.find({}, {"_id": 0}).to_list(1000)
+        else:
+            selected_ids = campaign.get("selectedContacts", [])
+            if selected_ids:
+                contacts = await db.users.find({"id": {"$in": selected_ids}}, {"_id": 0}).to_list(1000)
     
     for contact in contacts:
         contact_id = contact.get("id", "")
