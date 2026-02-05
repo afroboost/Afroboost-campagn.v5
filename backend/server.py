@@ -414,6 +414,10 @@ class ReservationCreate(BaseModel):
     # Multi-date selection support
     selectedDates: Optional[List[str]] = None  # Array of ISO date strings
     selectedDatesText: Optional[str] = None  # Formatted text of selected dates
+    # === NOUVEAUX CHAMPS: Origine et type abonné ===
+    promoCode: Optional[str] = None  # Code promo utilisé par l'abonné
+    source: Optional[str] = None  # chat_widget, web, manual
+    type: Optional[str] = None  # abonné, achat_direct
 
 class DiscountCode(BaseModel):
     model_config = ConfigDict(extra="ignore")
