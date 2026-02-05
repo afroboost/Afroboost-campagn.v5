@@ -552,27 +552,71 @@ export const ChatWidget = () => {
     }
   };
   
-  // === UPLOAD PHOTO DE PROFIL ===
+  // === COMPRESSION IMAGE CÔTÉ CLIENT ===
+  const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Calculer les nouvelles dimensions
+          let { width, height } = img;
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          
+          // Créer le canvas pour la compression
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Convertir en blob compressé
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+              } else {
+                reject(new Error('Compression échouée'));
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+  
+  // === UPLOAD PHOTO DE PROFIL (avec compression) ===
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Vérifier le type et la taille
+    // Vérifier le type
     if (!file.type.startsWith('image/')) {
       alert('Veuillez sélectionner une image');
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Image trop volumineuse (max 2MB)');
       return;
     }
     
     setUploadingPhoto(true);
     
     try {
+      // Compresser l'image côté client (max 200x200px)
+      console.log('[PHOTO] 🔄 Compression en cours...');
+      const compressedFile = await compressImage(file, 200, 200, 0.85);
+      console.log('[PHOTO] ✅ Compression terminée:', Math.round(compressedFile.size / 1024), 'KB');
+      
       // Créer un FormData
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressedFile);
       formData.append('participant_id', participantId || 'guest');
       
       // Upload vers le serveur
