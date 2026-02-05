@@ -6399,40 +6399,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 </div>
               </div>
               
-              {/* Error Logs Panel - Shows if there are errors */}
-              {campaignLogs.filter(l => l.type === 'error').length > 0 && (
-                  <div className="border border-purple-500/30 rounded-lg p-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input type="text" placeholder="🔍 Rechercher..." value={contactSearchQuery}
-                        onChange={e => setContactSearchQuery(e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-lg neon-input text-sm" />
-                      <button type="button" onClick={toggleAllContacts} className="px-3 py-2 rounded-lg glass text-white text-xs">
-                        {selectedContactsForCampaign.length === allContacts.length ? 'Désélectionner tout' : 'Tout sélectionner'}
-                      </button>
-                    </div>
-                    <div className="space-y-1">
-                      {filteredContacts.map(contact => (
-                        <div key={contact.id} className="flex items-center gap-2 text-white text-sm hover:bg-purple-500/10 p-1 rounded group">
-                          <input type="checkbox" checked={selectedContactsForCampaign.includes(contact.id)}
-                            onChange={() => toggleContactForCampaign(contact.id)} className="cursor-pointer" />
-                          <span className="truncate flex-1">{contact.name}</span>
-                          <span className="text-xs opacity-50 truncate">({contact.email})</span>
-                          {/* Bouton suppression (visible au hover) */}
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); deleteContact(contact.id); }}
-                            className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-red-400 hover:bg-red-500/20 text-xs transition-opacity"
-                            title="Supprimer définitivement"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-purple-400 mt-2">{selectedContactsForCampaign.length} contact(s) sélectionné(s)</p>
-                  </div>
-                )}
-              </div>
+            </form>
               
               {/* Message */}
               <div className="mb-4">
