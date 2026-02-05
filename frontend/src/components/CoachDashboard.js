@@ -6581,11 +6581,23 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 </div>
               )}
               
-              <button type="submit" className={`px-6 py-3 rounded-lg w-full md:w-auto ${editingCampaignId ? 'bg-green-600 hover:bg-green-700' : selectedRecipients.length === 0 ? 'bg-gray-600 cursor-not-allowed' : 'btn-primary'}`}
-                disabled={selectedRecipients.length === 0 && !newCampaign.channels.whatsapp && !newCampaign.channels.email && !newCampaign.channels.group}>
-                {selectedRecipients.length === 0 && !newCampaign.channels.whatsapp && !newCampaign.channels.email && !newCampaign.channels.group 
-                  ? '⚠️ Ajoutez des destinataires' 
-                  : editingCampaignId ? '💾 Enregistrer les modifications' : `🚀 Créer (${selectedRecipients.length} dest.)`}
+              <button type="submit" 
+                className={`px-6 py-3 rounded-lg w-full md:w-auto font-medium transition-all ${
+                  editingCampaignId 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : (selectedRecipients.length === 0 || !newCampaign.message.trim()) 
+                      ? 'bg-gray-600 cursor-not-allowed opacity-60' 
+                      : 'btn-primary'
+                }`}
+                disabled={(selectedRecipients.length === 0 && !newCampaign.channels.whatsapp && !newCampaign.channels.email && !newCampaign.channels.group) || !newCampaign.message.trim()}
+                data-testid="create-campaign-btn">
+                {!newCampaign.message.trim() 
+                  ? '⚠️ Écrivez un message' 
+                  : selectedRecipients.length === 0 && !newCampaign.channels.whatsapp && !newCampaign.channels.email && !newCampaign.channels.group 
+                    ? '⚠️ Ajoutez des destinataires' 
+                    : editingCampaignId 
+                      ? '💾 Enregistrer' 
+                      : `🚀 Créer (${selectedRecipients.length} dest.)`}
               </button>
             </form>
             
