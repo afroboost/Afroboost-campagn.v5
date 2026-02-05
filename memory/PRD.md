@@ -1,5 +1,26 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - RECADRAGE PHOTO ET DM FINALISÉS ✅
+
+### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 14/14, Frontend: 11/11)
+
+#### Recadrage Photo de Profil ✅
+- **Modal de crop** : Interface circulaire avec preview temps réel
+- **Contrôles** : Slider zoom (1-3x), boutons position (↑←↓→), Reset
+- **Compression** : Canvas 200x200px, JPEG 85%
+- **Upload** : Sauvegarde immédiate dans `afroboost_profile.photoUrl`
+
+#### Messages Privés (DM) ✅
+- **API Backend** : 
+  - `POST /api/private/conversations` - Création/récupération
+  - `POST /api/private/messages` - Envoi
+  - `GET /api/private/messages/{id}` - Lecture
+  - `PUT /api/private/messages/read/{id}` - Marquer lu
+- **Frontend** : `startPrivateChat(targetId, targetName)` depuis MessageBubble
+- **Badge** : Point rouge sur ⋮ pour messages non lus
+
+---
+
 ## Mise à jour du 5 Février 2026 - DM, PHOTOS OPTIMISÉES ET DESIGN ULTRA-MINIMALISTE ✅
 
 ### MISSION ACCOMPLIE
