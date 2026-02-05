@@ -1793,41 +1793,85 @@ export const ChatWidget = () => {
                   <div ref={messagesEndRef} />
                 </div>
                 
-                {/* === BOUTON RÉSERVER POUR ABONNÉS === */}
-                {(subscriberData || (leadData && leadData.firstName)) && (
+                {/* === PANNEAU DE RÉSERVATION RAPIDE (s'ouvre via icône) === */}
+                {showReservationPanel && (
                   <div style={{
-                    padding: '8px 12px',
+                    padding: '16px',
                     borderTop: '1px solid rgba(147, 51, 234, 0.3)',
-                    background: 'rgba(147, 51, 234, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px'
+                    background: 'rgba(0,0,0,0.5)',
                   }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <h4 style={{ color: '#a855f7', fontSize: '14px', fontWeight: '600', margin: 0 }}>
+                        📅 Réservation {subscriberData?.name && `- ${subscriberData.name}`}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setShowReservationPanel(false)}
+                        style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '18px' }}
+                      >×</button>
+                    </div>
+                    <input
+                      type="date"
+                      id="reservation-date"
+                      min={new Date().toISOString().split('T')[0]}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(147, 51, 234, 0.3)',
+                        color: '#fff',
+                        marginBottom: '12px'
+                      }}
+                      data-testid="reservation-date-input"
+                    />
                     <button
                       type="button"
-                      onClick={() => setShowReservationPanel(!showReservationPanel)}
+                      onClick={async () => {
+                        const dateInput = document.getElementById('reservation-date');
+                        const selectedDate = dateInput?.value;
+                        if (!selectedDate) {
+                          alert('Veuillez sélectionner une date');
+                          return;
+                        }
+                        
+                        const reservationData = {
+                          name: subscriberData?.name || leadData?.firstName || 'Abonné',
+                          email: leadData?.email || subscriberData?.email || '',
+                          date: selectedDate,
+                          promoCode: subscriberData?.code || '',
+                          source: 'chat_widget',
+                          type: 'abonné'
+                        };
+                        
+                        try {
+                          const res = await axios.post(`${API}/reservations`, reservationData);
+                          if (res.data) {
+                            setShowReservationPanel(false);
+                            const confirmMsg = `📅 Réservation confirmée pour le ${new Date(selectedDate).toLocaleDateString('fr-FR')} !`;
+                            setMessages(prev => [...prev, { role: 'assistant', content: confirmMsg, timestamp: new Date().toISOString() }]);
+                          }
+                        } catch (err) {
+                          console.error('Erreur réservation:', err);
+                          alert('Erreur lors de la réservation. Réessayez.');
+                        }
+                      }}
                       style={{
-                        flex: 1,
-                        padding: '10px 16px',
+                        width: '100%',
+                        padding: '12px',
                         borderRadius: '8px',
-                        background: showReservationPanel 
-                          ? 'linear-gradient(135deg, #7c3aed, #6366f1)' 
-                          : 'linear-gradient(135deg, #9333ea, #7c3aed)',
+                        background: 'linear-gradient(135deg, #22c55e, #16a34a)',
                         border: 'none',
                         color: '#fff',
                         fontWeight: '600',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        transition: 'all 0.2s'
+                        cursor: 'pointer'
                       }}
-                      data-testid="reserve-course-btn"
+                      data-testid="confirm-reservation-btn"
                     >
-                      📅 RÉSERVER MON COURS
+                      ✅ Confirmer
+                    </button>
+                  </div>
+                )}
                       {subscriberData?.code && <span style={{ opacity: 0.7, fontSize: '12px' }}>({subscriberData.code})</span>}
                     </button>
                   </div>
