@@ -1570,106 +1570,278 @@ export const ChatWidget = () => {
                   flexDirection: 'column'
                 }}
               >
-                <form 
-                  onSubmit={handleSubmitLead}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                    minHeight: 'min-content'
-                  }}
-                >
-                  <p className="text-white text-sm text-center mb-2">
-                    👋 Avant de commencer, présentez-vous !
-                  </p>
-                  
-                  {error && (
-                    <div style={{ 
-                      background: 'rgba(239, 68, 68, 0.2)', 
-                      color: '#ef4444', 
-                      padding: '8px 12px', 
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}>
-                      {error}
-                    </div>
-                  )}
-                  
-                  <div>
-                    <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Prénom *</label>
-                    <input
-                      type="text"
-                      value={leadData.firstName}
-                      onChange={(e) => setLeadData({ ...leadData, firstName: e.target.value })}
-                      placeholder="Votre prénom"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        color: '#fff',
-                        outline: 'none'
-                      }}
-                      data-testid="lead-firstname"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Numéro WhatsApp *</label>
-                    <input
-                      type="tel"
-                      value={leadData.whatsapp}
-                      onChange={(e) => setLeadData({ ...leadData, whatsapp: e.target.value })}
-                      placeholder="+41 79 123 45 67"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        color: '#fff',
-                        outline: 'none'
-                      }}
-                      data-testid="lead-whatsapp"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Email *</label>
-                    <input
-                      type="email"
-                      value={leadData.email}
-                      onChange={(e) => setLeadData({ ...leadData, email: e.target.value })}
-                      placeholder="votre@email.com"
-                      className="w-full px-3 py-2 rounded-lg text-sm"
-                      style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        color: '#fff',
-                        outline: 'none'
-                      }}
-                      data-testid="lead-email"
-                    />
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="py-3 rounded-lg font-semibold text-sm transition-all"
+                {/* === FORMULAIRE ABONNÉ (4 champs avec code promo) === */}
+                {showSubscriberForm ? (
+                  <form 
+                    onSubmit={handleSubscriberFormSubmit}
                     style={{
-                      background: '#25D366',
-                      color: '#fff',
-                      border: 'none',
-                      cursor: isLoading ? 'wait' : 'pointer',
-                      opacity: isLoading ? 0.7 : 1,
-                      marginTop: '8px'
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      minHeight: 'min-content'
                     }}
-                    data-testid="lead-submit"
                   >
-                    {isLoading ? 'Chargement...' : 'Commencer le chat 💬'}
-                  </button>
-                  
-                  <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.4)', marginTop: '8px' }}>
-                    Vos données sont protégées et utilisées uniquement pour vous contacter.
-                  </p>
-                </form>
+                    <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>💎</span>
+                      <p className="text-white text-sm mt-2">
+                        Identifiez-vous comme abonné
+                      </p>
+                      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', marginTop: '4px' }}>
+                        Accès à vos avantages et réservations rapides
+                      </p>
+                    </div>
+                    
+                    {error && (
+                      <div style={{ 
+                        background: 'rgba(239, 68, 68, 0.2)', 
+                        color: '#ef4444', 
+                        padding: '8px 12px', 
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}>
+                        {error}
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Nom complet *</label>
+                      <input
+                        type="text"
+                        value={subscriberFormData.name}
+                        onChange={(e) => setSubscriberFormData({ ...subscriberFormData, name: e.target.value })}
+                        placeholder="Votre nom complet"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          outline: 'none'
+                        }}
+                        data-testid="subscriber-name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Numéro WhatsApp *</label>
+                      <input
+                        type="tel"
+                        value={subscriberFormData.whatsapp}
+                        onChange={(e) => setSubscriberFormData({ ...subscriberFormData, whatsapp: e.target.value })}
+                        placeholder="+41 79 123 45 67"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          outline: 'none'
+                        }}
+                        data-testid="subscriber-whatsapp"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Email *</label>
+                      <input
+                        type="email"
+                        value={subscriberFormData.email}
+                        onChange={(e) => setSubscriberFormData({ ...subscriberFormData, email: e.target.value })}
+                        placeholder="votre@email.com"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          outline: 'none'
+                        }}
+                        data-testid="subscriber-email"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Code Promo *</label>
+                      <input
+                        type="text"
+                        value={subscriberFormData.code}
+                        onChange={(e) => setSubscriberFormData({ ...subscriberFormData, code: e.target.value.toUpperCase() })}
+                        placeholder="Votre code abonné"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{
+                          background: 'rgba(147, 51, 234, 0.2)',
+                          border: '1px solid rgba(147, 51, 234, 0.4)',
+                          color: '#fff',
+                          outline: 'none',
+                          textTransform: 'uppercase',
+                          fontWeight: '600',
+                          letterSpacing: '1px'
+                        }}
+                        data-testid="subscriber-code"
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={validatingCode}
+                      className="py-3 rounded-lg font-semibold text-sm transition-all"
+                      style={{
+                        background: 'linear-gradient(135deg, #9333ea, #6366f1)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: validatingCode ? 'wait' : 'pointer',
+                        opacity: validatingCode ? 0.7 : 1,
+                        marginTop: '8px'
+                      }}
+                      data-testid="subscriber-submit"
+                    >
+                      {validatingCode ? '⏳ Validation...' : '💎 Valider mon abonnement'}
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => { setShowSubscriberForm(false); setError(''); }}
+                      className="py-2 text-sm"
+                      style={{
+                        background: 'none',
+                        color: 'rgba(255,255,255,0.6)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                      }}
+                      data-testid="back-to-visitor"
+                    >
+                      ← Retour au chat visiteur
+                    </button>
+                  </form>
+                ) : (
+                  /* === FORMULAIRE VISITEUR CLASSIQUE (3 champs) === */
+                  <form 
+                    onSubmit={handleSubmitLead}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      minHeight: 'min-content'
+                    }}
+                  >
+                    <p className="text-white text-sm text-center mb-2">
+                      👋 Avant de commencer, présentez-vous !
+                    </p>
+                    
+                    {error && (
+                      <div style={{ 
+                        background: 'rgba(239, 68, 68, 0.2)', 
+                        color: '#ef4444', 
+                        padding: '8px 12px', 
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}>
+                        {error}
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Prénom *</label>
+                      <input
+                        type="text"
+                        value={leadData.firstName}
+                        onChange={(e) => setLeadData({ ...leadData, firstName: e.target.value })}
+                        placeholder="Votre prénom"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          outline: 'none'
+                        }}
+                        data-testid="lead-firstname"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Numéro WhatsApp *</label>
+                      <input
+                        type="tel"
+                        value={leadData.whatsapp}
+                        onChange={(e) => setLeadData({ ...leadData, whatsapp: e.target.value })}
+                        placeholder="+41 79 123 45 67"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          outline: 'none'
+                        }}
+                        data-testid="lead-whatsapp"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white text-xs mb-1" style={{ opacity: 0.7 }}>Email *</label>
+                      <input
+                        type="email"
+                        value={leadData.email}
+                        onChange={(e) => setLeadData({ ...leadData, email: e.target.value })}
+                        placeholder="votre@email.com"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          outline: 'none'
+                        }}
+                        data-testid="lead-email"
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="py-3 rounded-lg font-semibold text-sm transition-all"
+                      style={{
+                        background: '#25D366',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: isLoading ? 'wait' : 'pointer',
+                        opacity: isLoading ? 0.7 : 1,
+                        marginTop: '8px'
+                      }}
+                      data-testid="lead-submit"
+                    >
+                      {isLoading ? 'Chargement...' : 'Commencer le chat 💬'}
+                    </button>
+                    
+                    {/* === SÉPARATEUR === */}
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '12px',
+                      margin: '8px 0'
+                    }}>
+                      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+                      <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>ou</span>
+                      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+                    </div>
+                    
+                    {/* === BOUTON ABONNÉ === */}
+                    <button
+                      type="button"
+                      onClick={() => { setShowSubscriberForm(true); setError(''); }}
+                      className="py-3 rounded-lg font-semibold text-sm transition-all"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(99, 102, 241, 0.3))',
+                        color: '#a855f7',
+                        border: '1px solid rgba(147, 51, 234, 0.4)',
+                        cursor: 'pointer'
+                      }}
+                      data-testid="subscriber-btn"
+                    >
+                      💎 S'identifier comme abonné
+                    </button>
+                    
+                    <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.4)', marginTop: '8px' }}>
+                      Vos données sont protégées et utilisées uniquement pour vous contacter.
+                    </p>
+                  </form>
+                )}
               </div>
             )}
 
