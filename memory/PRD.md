@@ -1,5 +1,36 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - CHATBOT FULL-SCREEN ET RÉSERVATIONS INTELLIGENTES ✅
+
+### MISSION ACCOMPLIE
+
+#### 1. ChatWidget amélioré ✅
+- **Plein écran CSS** : `isFullscreen` bascule vers un mode CSS (pas API fullscreen)
+- **Subscriber Data** : `localStorage.setItem('subscriber_data', {...})` mémorise code promo
+- **Bouton "📅 RÉSERVER"** : Visible pour les abonnés/clients identifiés
+- **Panneau réservation** : Sélecteur de date intégré + confirmation
+
+#### 2. Table réservations améliorée ✅
+- **Colonne "Origine"** :
+  - 💎 ABONNÉ (avec code promo)
+  - 💰 ACHAT DIRECT
+- **Colonne "Spécifications"** : Taille, Couleur, Modèle extraits dynamiquement
+- **Colspan** mis à jour (15 colonnes)
+
+#### 3. Backend mis à jour ✅
+- Modèles `Reservation` et `ReservationCreate` avec nouveaux champs:
+  - `promoCode`: Code promo de l'abonné
+  - `source`: chat_widget, web, manual
+  - `type`: abonné, achat_direct
+
+### Non-régression vérifiée ✅
+- Frontend compile (24 warnings)
+- Backend démarre sans erreur
+- Code Twilio/WhatsApp intact
+- Badge "⏳ Auto" campagnes préservé
+
+---
+
 ## Mise à jour du 5 Février 2026 - VALIDATION PROGRAMMATION AUTOMATIQUE ✅
 
 ### MISSION ACCOMPLIE : Scheduler 100% fonctionnel
