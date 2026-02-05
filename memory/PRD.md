@@ -1,5 +1,42 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - MISSION P0 RÉPARATION SÉLECTEUR ✅
+
+### PROBLÈME RÉSOLU
+Le groupe "Les Lionnes" et certains utilisateurs n'apparaissaient pas dans le sélecteur de destinataires des campagnes.
+
+### CORRECTIONS APPORTÉES
+
+#### 1. Backend - Endpoint `/api/conversations/active` 
+- **Avant**: Ne récupérait que les utilisateurs avec une session de chat active
+- **Après**: Récupère TOUS les utilisateurs de la collection `users` + tous les groupes de `chat_sessions`
+- **Résultat**: 17 conversations (6 groupes, 11 utilisateurs) dont "Les Lionnes"
+
+#### 2. Frontend - State `newCampaign`
+- **Ajouté**: `targetConversationId: ''` et `targetConversationName: ''` dans l'état initial
+- **Ajouté**: Canal `internal: true` par défaut dans `channels`
+
+#### 3. Frontend - Import manquant corrigé
+- **Ajouté**: `import { sendBulkEmails } from "../services/emailService";`
+
+### TESTS VALIDÉS (15/15)
+```
+✅ API retourne 17 conversations (6 groupes, 11 utilisateurs)
+✅ Groupe "Les Lionnes" trouvé avec ID: df076334-f0eb-46f6-a405-e9eec2167f50
+✅ Recherche insensible à la casse: "LION" trouve "Les lionnes"
+✅ Tous les conversation_id sont valides
+✅ Groupes standards (community, vip, promo) inclus
+✅ Aucun ID dupliqué
+```
+
+### FONCTIONNALITÉS CONFIRMÉES
+- ✅ Bouton "🔄 Actualiser" recharge la liste sans recharger la page
+- ✅ Recherche case-insensitive via `.toLowerCase()` côté frontend
+- ✅ Toast de confirmation "✅ Destinataire sélectionné: [Nom]"
+- ✅ Destinataire affiché avec bouton ✕ pour annuler
+
+---
+
 ## Mise à jour du 5 Février 2026 - VALIDATION FINALE ✅
 
 ### Test de Flux Complet - RÉUSSI ✅
