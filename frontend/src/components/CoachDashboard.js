@@ -5365,7 +5365,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
             </div>
             
             {/* ========== FORMULAIRE NOUVELLE CAMPAGNE (EN PREMIER) ========== */}
-            <div className="mb-6 p-4 rounded-xl glass border border-green-500/30 bg-green-900/10">
+            <form onSubmit={handleCampaignSubmit} className="mb-6 p-4 rounded-xl glass border border-green-500/30 bg-green-900/10">
               <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">✨</span>
                 {editingCampaignId ? '✏️ Modifier la campagne' : '📝 Nouvelle Campagne Interne'}
