@@ -3415,7 +3415,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     { id: "reservations", label: t('reservations') }, { id: "concept", label: t('conceptVisual') },
     { id: "courses", label: t('courses') }, { id: "offers", label: t('offers') },
     { id: "payments", label: t('payments') }, { id: "codes", label: t('promoCodes') },
-    { id: "campaigns", label: "📢 Campagnes" }, { id: "media", label: "🎬 Médias" },
+    { id: "campaigns", label: "📢 Campagnes" }, { id: "articles", label: "📰 Articles" },
+    { id: "media", label: "🎬 Médias" },
     { id: "conversations", label: unreadCount > 0 ? `💬 Conversations (${unreadCount})` : "💬 Conversations" }
   ];
 
