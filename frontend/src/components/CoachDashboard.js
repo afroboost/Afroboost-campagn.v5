@@ -5649,9 +5649,6 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 </div>
               )}
             </div>
-                </div>
-              </div>
-            </div>
 
             {/* === MODE ENVOI DIRECT === */}
             {directSendMode && (
