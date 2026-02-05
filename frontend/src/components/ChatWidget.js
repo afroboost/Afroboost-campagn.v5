@@ -3391,8 +3391,20 @@ export const ChatWidget = () => {
             <input
               type="text"
               value={privateInput}
-              onChange={(e) => setPrivateInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendPrivateMessage()}
+              onChange={(e) => {
+                setPrivateInput(e.target.value);
+                // Émettre l'événement typing si l'utilisateur tape
+                if (e.target.value.length > 0) {
+                  emitDmTyping(true);
+                }
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  emitDmTyping(false); // Arrêter le typing avant d'envoyer
+                  sendPrivateMessage();
+                }
+              }}
+              onBlur={() => emitDmTyping(false)}
               placeholder="Message privé..."
               style={{
                 flex: 1,
@@ -3406,7 +3418,10 @@ export const ChatWidget = () => {
               data-testid="private-message-input"
             />
             <button
-              onClick={sendPrivateMessage}
+              onClick={() => {
+                emitDmTyping(false); // Arrêter le typing avant d'envoyer
+                sendPrivateMessage();
+              }}
               disabled={!privateInput.trim()}
               style={{
                 width: '36px',
