@@ -26,6 +26,7 @@ const SOCKET_URL = process.env.REACT_APP_BACKEND_URL; // URL Socket.IO (même qu
 const CHAT_CLIENT_KEY = 'af_chat_client';
 const CHAT_SESSION_KEY = 'af_chat_session';
 const AFROBOOST_IDENTITY_KEY = 'afroboost_identity'; // Clé unifiée pour l'identité
+const AFROBOOST_PROFILE_KEY = 'afroboost_profile'; // Profil abonné avec code promo validé
 
 // Icône Plein Écran
 const FullscreenIcon = () => (
