@@ -1,5 +1,39 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - INTERFACE MINIMALISTE (ICÔNES) ✅
+
+### MISSION ACCOMPLIE
+
+#### 1. Header Coach Minimaliste ✅
+- **Aucun texte** dans le header (seulement "💪 Mode Coach")
+- **Icône Partage** (3 cercles reliés SVG) → Copie l'URL avec feedback ✓ vert
+- **Icône Menu** (3 points verticaux ⋮) → Ouvre menu déroulant
+
+#### 2. Menu Déroulant Élégant ✅
+- **Rafraîchir** : Icône + texte, recharge les conversations
+- **Déconnexion** : Icône + texte rouge, nettoie localStorage et recharge
+
+#### 3. Badge Notification ✅
+- **Point rouge** sur l'icône ⋮ quand il y a des conversations actives
+- Discret et non-intrusif
+
+#### 4. Persistance Refresh (F5) ✅
+- Session coach restaurée via localStorage
+- Onglet actif mémorisé (`afroboost_coach_tab`)
+- Profil abonné préservé (`afroboost_profile`)
+
+#### 5. Non-régression vérifiée ✅
+- Badge "⏳ Auto" préservé
+- Messagerie intacte
+- Groupes ("Les lionnes") préservés
+
+### Critères de réussite validés ✅
+1. ✅ Header sans texte, icônes propres uniquement
+2. ✅ F5 ne déconnecte pas (localStorage préservé)
+3. ✅ Partage fonctionne avec feedback visuel discret
+
+---
+
 ## Mise à jour du 5 Février 2026 - BANDEAU COACH ENRICHI ✅
 
 ### MISSION ACCOMPLIE
