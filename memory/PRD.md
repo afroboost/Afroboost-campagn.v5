@@ -1,5 +1,29 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - RÉPARATION ET RÉORGANISATION ✅
+
+### 1. État du Projet
+- **Compilation**: ✅ "webpack compiled with 24 warnings" (pas d'erreur)
+- **Frontend**: Fonctionnel et accessible
+- **Backend**: Fonctionnel
+
+### 2. Réorganisation Effectuée
+- **Sections WhatsApp/Email/Instagram**: Enveloppées dans un bloc `display: none` par défaut
+- **Bouton toggle**: "▶ Afficher canaux externes" pour dévoiler ces sections
+- **Variable**: `externalChannelsExpanded` contrôle l'affichage
+
+### 3. Fonctionnalités déjà en place
+- ✅ Recherche dans le sélecteur de destinataires (`conversationSearch`)
+- ✅ Filtres historique [Tout] [Groupes] [Individuels] (`campaignHistoryFilter`)
+- ✅ Dropdown avec icônes 👤/👥 pour distinguer utilisateurs/groupes
+- ✅ Canal "💌 Chat Interne" fonctionnel
+
+### Code Twilio/WhatsApp
+- ✅ **NON SUPPRIMÉ** - Simplement masqué par défaut via `display: none`
+- ✅ Accessible en cliquant sur "Afficher canaux externes"
+
+---
+
 ## Mise à jour du 5 Février 2026 - OPTIMISATION ERGONOMIQUE CAMPAGNES ✅
 
 ### 1. Recherche Rapide dans le Sélecteur ✅
