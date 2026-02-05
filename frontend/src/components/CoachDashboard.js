@@ -6330,158 +6330,64 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 </div>
               )}
               
-              {/* Channels */}
+              {/* === PARAMÈTRES AVANCÉS (ACCORDÉON) === */}
               <div className="mb-4">
-                <label className="block mb-2 text-white text-sm">Canaux d'envoi</label>
-                <div className="flex flex-wrap gap-4">
-                  <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
-                    <input type="checkbox" checked={newCampaign.channels.whatsapp}
-                      onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, whatsapp: e.target.checked}})} />
-                    📱 WhatsApp
-                  </label>
-                  <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
-                    <input type="checkbox" checked={newCampaign.channels.email}
-                      onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, email: e.target.checked}})} />
-                    📧 Email
-                  </label>
-                  <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
-                    <input type="checkbox" checked={newCampaign.channels.instagram}
-                      onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, instagram: e.target.checked}})} />
-                    📸 Instagram
-                  </label>
-                  <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
-                    <input type="checkbox" checked={newCampaign.channels.group || false}
-                      onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, group: e.target.checked}})} />
-                    💬 Groupe Afroboost
-                  </label>
-                  <label className="flex items-center gap-2 text-white text-sm cursor-pointer bg-green-900/30 px-2 py-1 rounded border border-green-500/30" data-testid="internal-channel-checkbox">
-                    <input type="checkbox" checked={newCampaign.channels.internal || false}
-                      onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, internal: e.target.checked}})} />
-                    💌 Chat Interne
-                  </label>
-                </div>
+                <button 
+                  type="button"
+                  onClick={() => setExternalChannelsExpanded(!externalChannelsExpanded)}
+                  className="w-full text-left px-3 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white text-sm transition-all flex items-center justify-between"
+                >
+                  <span>⚙️ Paramètres avancés (WhatsApp, Email, Groupe...)</span>
+                  <span>{externalChannelsExpanded ? '▼' : '▶'}</span>
+                </button>
                 
-                {/* Sélecteur de groupe si canal groupe activé */}
-                {newCampaign.channels.group && (
-                  <div className="mt-3 p-3 rounded-lg border border-purple-500/30 bg-purple-900/20">
-                    <label className="block mb-2 text-purple-400 text-xs">Groupe cible</label>
-                    <select 
-                      value={newCampaign.targetGroupId || 'community'}
-                      onChange={e => setNewCampaign({...newCampaign, targetGroupId: e.target.value})}
-                      className="w-full px-3 py-2 rounded-lg neon-input text-sm"
-                    >
-                      <option value="community">🌍 Communauté Générale</option>
-                      <option value="vip">⭐ Groupe VIP</option>
-                      <option value="promo">🎁 Offres Spéciales</option>
-                    </select>
-                    <p className="text-xs text-gray-400 mt-2">
-                      💡 Le message sera envoyé par "💪 Coach Bassi" dans le chat de groupe.
-                      La variable {'{prénom}'} sera remplacée par "Communauté" pour les envois groupés.
-                    </p>
-                  </div>
-                )}
-                
-                {/* === SÉLECTEUR DE CONVERSATION AVEC RECHERCHE (Chat Interne) === */}
-                {newCampaign.channels.internal && (
-                  <div className="mt-3 p-3 rounded-lg border border-green-500/30 bg-green-900/20" data-testid="internal-conversation-selector">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-green-400 text-xs">📍 Destinataire (Groupe ou Utilisateur)</label>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            const res = await axios.get(`${API}/conversations/active`);
-                            if (res.data.success) {
-                              setActiveConversations(res.data.conversations || []);
-                              showCampaignToast(`Liste actualisée : ${res.data.total} conversation(s)`, 'info');
-                            }
-                          } catch (err) {
-                            showCampaignToast('Erreur de synchronisation', 'error');
-                          }
-                        }}
-                        className="px-2 py-1 rounded text-xs bg-green-600/30 hover:bg-green-600/50 text-green-400 transition-all"
-                        data-testid="refresh-conversations-btn"
-                      >
-                        🔄 Actualiser
-                      </button>
+                {externalChannelsExpanded && (
+                  <div className="mt-3 p-4 rounded-lg border border-gray-600/30 bg-gray-800/20">
+                    <label className="block mb-2 text-white text-sm">Canaux d'envoi supplémentaires</label>
+                    <div className="flex flex-wrap gap-4 mb-3">
+                      <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+                        <input type="checkbox" checked={newCampaign.channels.whatsapp}
+                          onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, whatsapp: e.target.checked}})} />
+                        📱 WhatsApp
+                      </label>
+                      <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+                        <input type="checkbox" checked={newCampaign.channels.email}
+                          onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, email: e.target.checked}})} />
+                        📧 Email
+                      </label>
+                      <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+                        <input type="checkbox" checked={newCampaign.channels.instagram}
+                          onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, instagram: e.target.checked}})} />
+                        📸 Instagram
+                      </label>
+                      <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+                        <input type="checkbox" checked={newCampaign.channels.group || false}
+                          onChange={e => setNewCampaign({...newCampaign, channels: {...newCampaign.channels, group: e.target.checked}})} />
+                        💬 Groupe Afroboost
+                      </label>
                     </div>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="🔍 Rechercher un groupe ou utilisateur..."
-                        value={conversationSearch}
-                        onChange={(e) => {
-                          setConversationSearch(e.target.value);
-                          setShowConversationDropdown(true);
-                        }}
-                        onFocus={() => setShowConversationDropdown(true)}
-                        autoFocus={true}
-                        className="w-full px-3 py-2 rounded-lg neon-input text-sm"
-                        data-testid="recipient-search-input"
-                      />
-                      
-                      {/* Destinataire sélectionné */}
-                      {newCampaign.targetConversationId && !showConversationDropdown && (
-                        <div className="mt-2 px-3 py-2 rounded-lg bg-green-600/20 border border-green-500/30 text-green-400 text-sm flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span>{activeConversations.find(c => c.conversation_id === newCampaign.targetConversationId)?.type === 'group' ? '👥' : '👤'}</span>
-                            <span>{newCampaign.targetConversationName}</span>
-                          </div>
-                          <button type="button" onClick={() => {
-                            setNewCampaign({...newCampaign, targetConversationId: '', targetConversationName: ''});
-                            setConversationSearch('');
-                          }} className="text-red-400 hover:text-red-300">✕</button>
-                        </div>
-                      )}
-                      
-                      {/* Dropdown avec recherche filtrée */}
-                      {showConversationDropdown && (
-                        <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto rounded-lg bg-black/95 border border-purple-500/30 shadow-xl"
-                          onMouseLeave={() => setTimeout(() => setShowConversationDropdown(false), 200)}>
-                          {/* Groupes */}
-                          {activeConversations.filter(c => c.type === 'group' && (conversationSearch === '' || c.name.toLowerCase().includes(conversationSearch.toLowerCase()))).length > 0 && (
-                            <div className="p-2 border-b border-purple-500/20">
-                              <p className="text-xs text-purple-400 font-semibold mb-1 px-2">👥 GROUPES ({activeConversations.filter(c => c.type === 'group').length})</p>
-                              {activeConversations.filter(c => c.type === 'group' && (conversationSearch === '' || c.name.toLowerCase().includes(conversationSearch.toLowerCase()))).map(conv => (
-                                <button key={conv.conversation_id} type="button"
-                                  onClick={() => {
-                                    setNewCampaign({...newCampaign, targetConversationId: conv.conversation_id, targetConversationName: conv.name});
-                                    setConversationSearch(conv.name);
-                                    setShowConversationDropdown(false);
-                                    showCampaignToast(`Destinataire "${conv.name}" validé`, 'success');
-                                  }}
-                                  className="w-full text-left px-3 py-2 rounded hover:bg-purple-600/30 text-white text-sm flex items-center gap-2">
-                                  <span>👥</span><span>{conv.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          {/* Utilisateurs */}
-                          {activeConversations.filter(c => c.type === 'user' && (conversationSearch === '' || c.name.toLowerCase().includes(conversationSearch.toLowerCase()))).length > 0 && (
-                            <div className="p-2">
-                              <p className="text-xs text-blue-400 font-semibold mb-1 px-2">👤 UTILISATEURS ({activeConversations.filter(c => c.type === 'user').length})</p>
-                              {activeConversations.filter(c => c.type === 'user' && (conversationSearch === '' || c.name.toLowerCase().includes(conversationSearch.toLowerCase()))).slice(0, 15).map(conv => (
-                                <button key={conv.conversation_id} type="button"
-                                  onClick={() => {
-                                    setNewCampaign({...newCampaign, targetConversationId: conv.conversation_id, targetConversationName: conv.name});
-                                    setConversationSearch(conv.name);
-                                    setShowConversationDropdown(false);
-                                    showCampaignToast(`Destinataire "${conv.name}" validé`, 'success');
-                                  }}
-                                  className="w-full text-left px-3 py-2 rounded hover:bg-blue-600/30 text-white text-sm flex items-center gap-2">
-                                  <span>👤</span><span className="truncate">{conv.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          {activeConversations.filter(c => conversationSearch === '' || c.name.toLowerCase().includes(conversationSearch.toLowerCase())).length === 0 && (
-                            <p className="text-center py-4 text-gray-500 text-sm">Aucun résultat</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-2">
-                      💡 Tapez les premières lettres pour filtrer. Le message apparaîtra dans le chat sélectionné.
+                    
+                    {/* Sélecteur de groupe si canal groupe activé */}
+                    {newCampaign.channels.group && (
+                      <div className="p-3 rounded-lg border border-purple-500/30 bg-purple-900/20">
+                        <label className="block mb-2 text-purple-400 text-xs">Groupe cible</label>
+                        <select 
+                          value={newCampaign.targetGroupId || 'community'}
+                          onChange={e => setNewCampaign({...newCampaign, targetGroupId: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg neon-input text-sm"
+                        >
+                          <option value="community">🌍 Communauté Générale</option>
+                          <option value="vip">⭐ Groupe VIP</option>
+                          <option value="promo">🎁 Offres Spéciales</option>
+                        </select>
+                        <p className="text-xs text-gray-400 mt-2">
+                          💡 Le message sera envoyé par "💪 Coach Bassi" dans le chat de groupe.
+                        </p>
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-gray-500 mt-3">
+                      ℹ️ Ces canaux nécessitent une configuration Twilio (WhatsApp) ou Resend (Email).
                     </p>
                   </div>
                 )}
