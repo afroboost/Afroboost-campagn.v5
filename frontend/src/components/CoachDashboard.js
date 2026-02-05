@@ -267,8 +267,26 @@ const MediaDisplay = ({ url, className }) => {
   );
 };
 
+// Clé localStorage pour persistance coach
+const COACH_TAB_KEY = 'afroboost_coach_tab';
+const COACH_SESSION_KEY = 'afroboost_coach_session';
+
 const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
-  const [tab, setTab] = useState("reservations");
+  // === PERSISTANCE ONGLET : Restaurer l'onglet depuis localStorage ===
+  const [tab, setTab] = useState(() => {
+    try {
+      const savedTab = localStorage.getItem(COACH_TAB_KEY);
+      if (savedTab && ['reservations', 'concept', 'courses', 'offers', 'payments', 'codes', 'campaigns', 'articles', 'media', 'conversations'].includes(savedTab)) {
+        console.log('[COACH] ✅ Onglet restauré:', savedTab);
+        return savedTab;
+      }
+    } catch (e) {}
+    return "reservations";
+  });
+  
+  // === PARTAGE COACH ===
+  const [linkCopied, setLinkCopied] = useState(false);
+  
   const [reservations, setReservations] = useState([]);
   const [reservationsSearch, setReservationsSearch] = useState(''); // Recherche locale réservations
   const [reservationPagination, setReservationPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
