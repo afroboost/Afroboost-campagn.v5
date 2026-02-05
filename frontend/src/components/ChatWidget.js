@@ -2008,7 +2008,13 @@ export const ChatWidget = () => {
                   {(subscriberData || (leadData && leadData.firstName)) && (
                     <button
                       type="button"
-                      onClick={() => setShowReservationPanel(!showReservationPanel)}
+                      onClick={() => {
+                        if (!showReservationPanel) {
+                          loadAvailableCourses();
+                        }
+                        setShowReservationPanel(!showReservationPanel);
+                        setSelectedCourse(null);
+                      }}
                       style={{
                         width: '40px',
                         height: '40px',
