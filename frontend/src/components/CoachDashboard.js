@@ -1783,6 +1783,33 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     setToastNotifications(prev => prev.filter(t => t.id !== toastId));
   }, []);
   
+  // === TOAST GÉNÉRIQUE POUR CAMPAGNES ===
+  const showCampaignToast = useCallback((message, type = 'info') => {
+    const id = Date.now();
+    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const colors = { 
+      success: 'bg-green-600/90 border-green-500', 
+      error: 'bg-red-600/90 border-red-500', 
+      info: 'bg-blue-600/90 border-blue-500',
+      warning: 'bg-yellow-600/90 border-yellow-500'
+    };
+    
+    const toast = {
+      id,
+      message: `${icons[type] || 'ℹ️'} ${message}`,
+      type,
+      color: colors[type] || colors.info,
+      createdAt: new Date().toISOString()
+    };
+    
+    setToastNotifications(prev => [...prev.slice(-4), toast]);
+    
+    // Auto-dismiss après 5 secondes (plus rapide pour les notifications de campagne)
+    setTimeout(() => {
+      setToastNotifications(prev => prev.filter(t => t.id !== id));
+    }, 5000);
+  }, []);
+  
   // Cliquer sur un toast pour aller à la conversation
   const handleToastClick = useCallback((toast) => {
     const session = chatSessions.find(s => s.id === toast.sessionId);
