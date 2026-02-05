@@ -89,7 +89,7 @@ const GroupIcon = () => (
  * Affiche le nom de l'expéditeur au-dessus de chaque bulle
  * Couleurs: Violet (#8B5CF6) pour le Coach, Gris foncé pour les membres/IA
  */
-const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUserId }) => {
+const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUserId, profilePhotoUrl }) => {
   // Convertir le texte en HTML avec liens cliquables ET emojis parsés
   const htmlContent = parseMessageContent(msg.text);
   const isOtherUser = isCommunity && msg.type === 'user' && msg.senderId && msg.senderId !== currentUserId;
@@ -129,67 +129,123 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
     return '#2D2D2D';
   };
   
+  // Récupérer l'avatar (photo ou initiale)
+  const getAvatar = () => {
+    // Si c'est un message de l'utilisateur actuel avec une photo
+    if (isUser && profilePhotoUrl) {
+      return (
+        <img 
+          src={profilePhotoUrl} 
+          alt="avatar"
+          style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}
+        />
+      );
+    }
+    // Avatar par défaut (initiale)
+    if (msg.senderPhotoUrl) {
+      return (
+        <img 
+          src={msg.senderPhotoUrl} 
+          alt="avatar"
+          style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}
+        />
+      );
+    }
+    return null;
+  };
+  
   return (
     <div
       style={{
         alignSelf: isUser ? 'flex-end' : 'flex-start',
-        maxWidth: '85%'
+        maxWidth: '85%',
+        display: 'flex',
+        flexDirection: isUser ? 'row-reverse' : 'row',
+        gap: '8px',
+        alignItems: 'flex-end'
       }}
     >
-      {/* NOM AU-DESSUS DE LA BULLE - Toujours visible pour les messages reçus */}
-      {!isUser && (
+      {/* Avatar rond si disponible */}
+      {getAvatar()}
+      
+      <div style={{ flex: 1 }}>
+        {/* NOM AU-DESSUS DE LA BULLE - Toujours visible pour les messages reçus */}
+        {!isUser && (
+          <div
+            style={{
+              fontSize: '10px',
+              fontWeight: '600',
+              marginBottom: '3px',
+              marginLeft: '4px',
+              color: getNameColor(),
+              letterSpacing: '0.3px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            {isOtherUser && onParticipantClick ? (
+              <button
+                onClick={() => onParticipantClick(msg.senderId, msg.sender)}
+                style={{
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  background: 'none',
+                  border: 'none',
+                  color: '#22D3EE',
+                  cursor: 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="Cliquer pour envoyer un message privé"
+              >
+                {/* Icône DM */}
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                {displayName}
+              </button>
+            ) : (
+              displayName
+            )}
+          </div>
+        )}
+        
         <div
           style={{
-            fontSize: '10px',
-            fontWeight: '600',
-            marginBottom: '3px',
-            marginLeft: '4px',
-            color: getNameColor(),
-            letterSpacing: '0.3px'
+            background: getBubbleBackground(),
+            color: '#fff',
+            padding: '10px 14px',
+            borderRadius: isUser 
+              ? '16px 16px 4px 16px' 
+              : '16px 16px 16px 4px',
+            fontSize: '13px',
+            lineHeight: '1.4',
+            // Bordure subtile dorée pour les bulles Coach
+            border: isCoachMessage && !isUser ? '1px solid rgba(251, 191, 36, 0.4)' : 'none'
           }}
         >
-          {isOtherUser && onParticipantClick ? (
-            <button
-              onClick={() => onParticipantClick(msg.senderId, msg.sender)}
-              style={{
-                fontSize: '10px',
-                fontWeight: '600',
-                background: 'none',
-                border: 'none',
-                color: '#22D3EE',
-                cursor: 'pointer',
-                padding: 0,
-                textDecoration: 'underline'
-              }}
-              title="Cliquer pour envoyer un message privé"
-            >
-              👤 {displayName}
-            </button>
-          ) : (
-            displayName
-          )}
+          {/* Rendu du texte avec liens cliquables */}
+          <span 
+            dangerouslySetInnerHTML={{ __html: htmlContent }}
+            style={{ wordBreak: 'break-word' }}
+          />
         </div>
-      )}
-      
-      <div
-        style={{
-          background: getBubbleBackground(),
-          color: '#fff',
-          padding: '10px 14px',
-          borderRadius: isUser 
-            ? '16px 16px 4px 16px' 
-            : '16px 16px 16px 4px',
-          fontSize: '13px',
-          lineHeight: '1.4',
-          // Bordure subtile dorée pour les bulles Coach
-          border: isCoachMessage && !isUser ? '1px solid rgba(251, 191, 36, 0.4)' : 'none'
-        }}
-      >
-        {/* Rendu du texte avec liens cliquables */}
-        <span 
-          dangerouslySetInnerHTML={{ __html: htmlContent }}
-          style={{ wordBreak: 'break-word' }}
-        />
       </div>
     </div>
   );
