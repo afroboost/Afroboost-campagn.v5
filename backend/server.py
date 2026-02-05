@@ -1248,16 +1248,17 @@ async def get_campaigns():
 async def get_campaigns_error_logs():
     """
     Renvoie les 50 dernières erreurs d'envoi de campagnes.
+    Combine les erreurs des résultats de campagnes ET la collection campaign_errors (Twilio).
     Objectif: Permettre à l'utilisateur de savoir pourquoi un message n'est pas parti.
     """
     try:
-        # Récupérer les campagnes avec des erreurs dans leurs résultats
+        error_logs = []
+        
+        # === SOURCE 1: Erreurs dans les résultats des campagnes ===
         campaigns_with_results = await db.campaigns.find(
             {"results": {"$exists": True, "$ne": []}},
             {"_id": 0, "id": 1, "name": 1, "results": 1, "updatedAt": 1}
         ).sort("updatedAt", -1).to_list(100)
-        
-        error_logs = []
         
         for campaign in campaigns_with_results:
             campaign_id = campaign.get("id", "")
@@ -1268,16 +1269,45 @@ async def get_campaigns_error_logs():
             for result in results:
                 if result.get("status") == "failed" or result.get("error"):
                     error_entry = {
+                        "source": "campaign_result",
                         "campaign_id": campaign_id,
                         "campaign_name": campaign_name,
                         "contact_id": result.get("contactId", ""),
                         "contact_name": result.get("contactName", ""),
                         "channel": result.get("channel", "unknown"),
                         "error": result.get("error", "Erreur inconnue"),
+                        "error_code": result.get("error_code", ""),
                         "sent_at": result.get("sentAt", campaign.get("updatedAt", "")),
                         "status": result.get("status", "failed")
                     }
                     error_logs.append(error_entry)
+        
+        # === SOURCE 2: Collection campaign_errors (détails Twilio) ===
+        try:
+            twilio_errors = await db.campaign_errors.find(
+                {},
+                {"_id": 0}
+            ).sort("created_at", -1).to_list(50)
+            
+            for terr in twilio_errors:
+                error_entry = {
+                    "source": "twilio_diagnostic",
+                    "campaign_id": terr.get("campaign_id", ""),
+                    "campaign_name": terr.get("campaign_name", ""),
+                    "contact_id": "",
+                    "contact_name": "",
+                    "channel": terr.get("channel", "whatsapp"),
+                    "error": terr.get("error_message", ""),
+                    "error_code": terr.get("error_code", ""),
+                    "error_type": terr.get("error_type", ""),
+                    "more_info": terr.get("more_info", ""),
+                    "to_phone": terr.get("to_phone", ""),
+                    "sent_at": terr.get("created_at", ""),
+                    "status": "failed"
+                }
+                error_logs.append(error_entry)
+        except Exception as e:
+            logger.warning(f"[CAMPAIGNS-LOGS] Collection campaign_errors non accessible: {e}")
         
         # Trier par date et limiter à 50
         error_logs.sort(key=lambda x: x.get("sent_at", ""), reverse=True)
