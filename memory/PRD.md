@@ -1,5 +1,29 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - OPTIMISATION ERGONOMIQUE CAMPAGNES ✅
+
+### 1. Recherche Rapide dans le Sélecteur ✅
+- **Implémenté**: Champ de recherche filtrant en temps réel
+- **Icônes distinctives**: 👤 pour utilisateurs, 👥 pour groupes
+- **Comportement**: Tape "Jean" → filtre instantané → sélection en 2 clics
+- **Réutilise**: Variable `conversationSearch` existante (ligne 1086)
+
+### 2. Filtres Historique Campagnes ✅
+- **3 boutons ajoutés**: [Tout] [👥 Groupes] [👤 Individuels]
+- **Filtrage dynamique**: `.filter()` sur la liste des campagnes
+- **État**: `campaignHistoryFilter` ('all', 'groups', 'individuals')
+
+### 3. Canaux externes repliables (prévu)
+- **État ajouté**: `externalChannelsExpanded` 
+- **Note**: Non implémenté visuellement dans cette itération pour éviter les risques
+
+### Code non modifié (sécurité)
+- ✅ Code Twilio intact
+- ✅ Logique d'envoi interne préservée
+- ✅ Composants CSS légers utilisés
+
+---
+
 ## Mise à jour du 5 Février 2026 - PROGRAMMATION MESSAGERIE INTERNE ✅
 
 ### FONCTIONNALITÉ IMPLÉMENTÉE : Programmation Messages Internes
