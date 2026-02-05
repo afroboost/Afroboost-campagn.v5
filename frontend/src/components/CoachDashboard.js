@@ -3781,11 +3781,16 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                         <td>{r.offerName || '-'}</td>
                         {/* Colonne Spécifications */}
                         <td>
-                          {r.selectedVariants ? (
+                          {(r.selectedVariants || r.metadata) ? (
                             <div className="text-xs">
-                              {r.selectedVariants.size && <span className="block text-blue-400">Taille: {r.selectedVariants.size}</span>}
-                              {r.selectedVariants.color && <span className="block text-pink-400">Couleur: {r.selectedVariants.color}</span>}
-                              {r.selectedVariants.model && <span className="block text-green-400">Modèle: {r.selectedVariants.model}</span>}
+                              {/* Variantes produit */}
+                              {r.selectedVariants?.size && <span className="block text-blue-400">📏 {r.selectedVariants.size}</span>}
+                              {r.selectedVariants?.color && <span className="block text-pink-400">🎨 {r.selectedVariants.color}</span>}
+                              {r.selectedVariants?.model && <span className="block text-green-400">📦 {r.selectedVariants.model}</span>}
+                              {/* Métadonnées Stripe */}
+                              {r.metadata?.size && !r.selectedVariants?.size && <span className="block text-blue-400">📏 {r.metadata.size}</span>}
+                              {r.metadata?.color && !r.selectedVariants?.color && <span className="block text-pink-400">🎨 {r.metadata.color}</span>}
+                              {r.metadata?.variant && <span className="block text-purple-400">🏷️ {r.metadata.variant}</span>}
                             </div>
                           ) : (
                             <span className="text-xs opacity-30">-</span>
@@ -3807,13 +3812,31 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                         <td>
                           {isProduct ? (
                             <div className="flex flex-col gap-1">
-                              <input 
-                                type="text" 
-                                placeholder="N° suivi" 
-                                defaultValue={r.trackingNumber || ''}
-                                onBlur={(e) => updateTracking(r.id, e.target.value, r.shippingStatus || 'pending')}
-                                className="px-2 py-1 rounded text-xs neon-input w-24"
-                              />
+                              <div className="flex gap-1">
+                                <input 
+                                  type="text" 
+                                  placeholder="N° suivi" 
+                                  defaultValue={r.trackingNumber || ''}
+                                  onBlur={(e) => updateTracking(r.id, e.target.value, r.shippingStatus || 'pending')}
+                                  className="px-2 py-1 rounded text-xs neon-input w-20"
+                                />
+                                {r.trackingNumber && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      // URL de tracking La Poste Suisse ou autre
+                                      const trackingUrl = r.trackingNumber.startsWith('99') 
+                                        ? `https://www.post.ch/swisspost-tracking?formattedParcelCodes=${r.trackingNumber}`
+                                        : `https://parcelsapp.com/fr/tracking/${r.trackingNumber}`;
+                                      window.open(trackingUrl, '_blank');
+                                    }}
+                                    className="px-2 py-1 rounded text-xs bg-blue-600 hover:bg-blue-700"
+                                    title="Ouvrir le suivi"
+                                  >
+                                    🔗
+                                  </button>
+                                )}
+                              </div>
                               <select 
                                 defaultValue={r.shippingStatus || 'pending'}
                                 onChange={(e) => updateTracking(r.id, r.trackingNumber, e.target.value)}
