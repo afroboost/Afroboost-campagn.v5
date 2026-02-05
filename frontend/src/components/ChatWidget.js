@@ -601,31 +601,84 @@ export const ChatWidget = () => {
     });
   };
   
-  // === UPLOAD PHOTO DE PROFIL (avec compression) ===
-  const handlePhotoUpload = async (e) => {
+  // === OUVRIR MODALE DE RECADRAGE ===
+  const handlePhotoSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Vérifier le type
     if (!file.type.startsWith('image/')) {
       alert('Veuillez sélectionner une image');
       return;
     }
     
+    // Lire l'image et ouvrir la modale de recadrage
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCropImageSrc(event.target.result);
+      setCropPosition({ x: 0, y: 0, scale: 1 });
+      setShowCropModal(true);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // === RECADRER ET UPLOADER LA PHOTO ===
+  const handleCropAndUpload = async () => {
+    if (!cropImageSrc) return;
+    
     setUploadingPhoto(true);
+    setShowCropModal(false);
     
     try {
-      // Compresser l'image côté client (max 200x200px)
-      console.log('[PHOTO] 🔄 Compression en cours...');
-      const compressedFile = await compressImage(file, 200, 200, 0.85);
-      console.log('[PHOTO] ✅ Compression terminée:', Math.round(compressedFile.size / 1024), 'KB');
+      // Créer le canvas de recadrage circulaire
+      const canvas = document.createElement('canvas');
+      const size = 200;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
       
-      // Créer un FormData
+      // Charger l'image
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = cropImageSrc;
+      });
+      
+      // Calculer les dimensions de recadrage
+      const minDim = Math.min(img.width, img.height);
+      const scale = cropPosition.scale;
+      const cropSize = minDim / scale;
+      const offsetX = ((img.width - cropSize) / 2) + (cropPosition.x * img.width / 200);
+      const offsetY = ((img.height - cropSize) / 2) + (cropPosition.y * img.height / 200);
+      
+      // Dessiner l'image recadrée dans un cercle
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      
+      ctx.drawImage(
+        img, 
+        Math.max(0, offsetX), 
+        Math.max(0, offsetY), 
+        cropSize, 
+        cropSize,
+        0, 0, size, size
+      );
+      
+      // Convertir en blob
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, 'image/jpeg', 0.85);
+      });
+      
+      const compressedFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+      console.log('[PHOTO] ✅ Recadrage terminé:', Math.round(compressedFile.size / 1024), 'KB');
+      
+      // Upload
       const formData = new FormData();
       formData.append('file', compressedFile);
       formData.append('participant_id', participantId || 'guest');
       
-      // Upload vers le serveur
       const res = await axios.post(`${API}/upload/profile-photo`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -634,7 +687,6 @@ export const ChatWidget = () => {
         const photoUrl = res.data.url;
         setProfilePhoto(photoUrl);
         
-        // Mettre à jour le profil dans localStorage
         const profile = getStoredProfile() || {};
         profile.photoUrl = photoUrl;
         localStorage.setItem(AFROBOOST_PROFILE_KEY, JSON.stringify(profile));
@@ -643,11 +695,18 @@ export const ChatWidget = () => {
         console.log('[PHOTO] ✅ Photo uploadée:', photoUrl);
       }
     } catch (err) {
-      console.error('[PHOTO] ❌ Erreur upload:', err);
-      alert('Erreur lors de l\'upload de la photo');
+      console.error('[PHOTO] ❌ Erreur:', err);
+      alert('Erreur lors de l\'upload');
     } finally {
       setUploadingPhoto(false);
+      setCropImageSrc(null);
     }
+  };
+  
+  // === UPLOAD PHOTO DE PROFIL (legacy - rediriger vers crop) ===
+  const handlePhotoUpload = async (e) => {
+    handlePhotoSelect(e);
+  };
   };
   
   // === RESTAURER DM ACTIVE APRÈS F5 ===
