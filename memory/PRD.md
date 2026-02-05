@@ -1,5 +1,40 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - FIABILISATION INDUSTRIELLE (POST-V5) ✅
+
+### TÂCHE 1 : Gestion des Zombie Jobs ✅
+- **Implémenté**: Nettoyage automatique au démarrage du serveur (`on_startup`)
+- **Logique**: Campagnes à l'état "sending" depuis > 30 min → remises en "failed"
+- **Log**: "Timeout : Serveur redémarré après 30 min d'inactivité"
+- **Stockage**: Erreur enregistrée dans `campaign_errors`
+- **Test**: `[ZOMBIE-CLEANUP] ✅ Aucune campagne zombie détectée`
+
+### TÂCHE 2 : Interface CRUD Articles (Admin-Only) ✅
+- **Routes créées**:
+  - `GET /api/articles` - Liste tous les articles
+  - `GET /api/articles/{id}` - Récupère un article
+  - `POST /api/articles` - Crée un article (ADMIN ONLY)
+  - `PUT /api/articles/{id}` - Modifie un article (ADMIN ONLY)
+  - `DELETE /api/articles/{id}` - Supprime un article (ADMIN ONLY)
+- **Sécurité**: Vérification `caller_email != COACH_EMAIL` → 403
+- **Composant séparé**: `/app/frontend/src/components/ArticleManager.js`
+- **Règle anti-casse respectée**: Pas de modification de CoachDashboard.js
+
+### TÂCHE 3 : Diagnostic WhatsApp/Twilio ✅
+- **ErrorCode capturé**: `result.get("code")` de la réponse Twilio
+- **Collection créée**: `campaign_errors` avec champs:
+  - `error_code`, `error_message`, `more_info`, `error_type`
+  - `channel`, `to_phone`, `from_phone`, `http_status`
+- **Endpoint enrichi**: `/api/campaigns/logs` combine:
+  - Source 1: Erreurs dans `campaigns.results`
+  - Source 2: Erreurs détaillées dans `campaign_errors` (Twilio)
+
+### Fichiers créés/modifiés
+- `/app/backend/server.py` : Zombie cleanup, routes articles, diagnostic Twilio
+- `/app/frontend/src/components/ArticleManager.js` : Nouveau composant CRUD
+
+---
+
 ## Mise à jour du 5 Février 2026 - MISSION V5 : FINALISATION SÉCURISÉE ✅
 
 ### ÉTAPE 1 : VÉRIFICATION PERSISTANCE ✅
