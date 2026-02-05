@@ -6393,8 +6393,6 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                     👤 Individuels ({campaigns.filter(c => c.channels?.internal && activeConversations.find(ac => ac.conversation_id === c.targetConversationId)?.type === 'user').length})
                   </button>
                 </div>
-              </div>
-              
             </form>
             
             {/* Campaign History */}
