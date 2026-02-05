@@ -1353,6 +1353,7 @@ async def create_campaign(campaign: CampaignCreate):
         selectedContacts=campaign.selectedContacts,
         channels=campaign.channels,
         targetGroupId=campaign.targetGroupId,
+        targetIds=campaign.targetIds or [],  # Tableau des IDs du panier
         targetConversationId=campaign.targetConversationId,
         targetConversationName=campaign.targetConversationName,
         scheduledAt=campaign.scheduledAt,
