@@ -16,6 +16,7 @@ import {
 import {
   setLastMediaUrl as setLastMediaUrlService
 } from "../services/aiResponseService";
+import { sendBulkEmails } from "../services/emailService";
 import { LandingSectionSelector } from "./SearchBar";
 import { playNotificationSound, linkifyText } from "../services/notificationService";
 import { QRScannerModal } from "./QRScanner";
