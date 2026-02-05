@@ -1925,8 +1925,30 @@ function App() {
   const [lang, setLang] = useState(localStorage.getItem("af_lang") || "fr");
   const [showSplash, setShowSplash] = useState(true);
   const [showCoachLogin, setShowCoachLogin] = useState(false);
-  const [coachMode, setCoachMode] = useState(false);
-  const [coachUser, setCoachUser] = useState(null); // Utilisateur connecté via Google OAuth
+  
+  // === PERSISTANCE SESSION COACH ===
+  const [coachMode, setCoachMode] = useState(() => {
+    try {
+      const savedCoachMode = localStorage.getItem('afroboost_coach_mode');
+      const savedCoachUser = localStorage.getItem('afroboost_coach_user');
+      if (savedCoachMode === 'true' && savedCoachUser) {
+        console.log('[APP] ✅ Session coach restaurée');
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  });
+  const [coachUser, setCoachUser] = useState(() => {
+    try {
+      const savedCoachUser = localStorage.getItem('afroboost_coach_user');
+      if (savedCoachUser) {
+        const user = JSON.parse(savedCoachUser);
+        console.log('[APP] ✅ Utilisateur coach restauré:', user?.email);
+        return user;
+      }
+    } catch (e) {}
+    return null;
+  });
   const [validationCode, setValidationCode] = useState(null); // For /validate/:code URL
 
   const [courses, setCourses] = useState([]);
