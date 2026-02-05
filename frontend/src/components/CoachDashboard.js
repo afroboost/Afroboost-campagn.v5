@@ -6462,10 +6462,19 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {campaigns.map(campaign => {
+                    {campaigns
+                      .filter(campaign => {
+                        if (campaignHistoryFilter === 'all') return true;
+                        const convType = activeConversations.find(ac => ac.conversation_id === campaign.targetConversationId)?.type;
+                        if (campaignHistoryFilter === 'groups') return campaign.channels?.group || convType === 'group';
+                        if (campaignHistoryFilter === 'individuals') return convType === 'user';
+                        return true;
+                      })
+                      .map(campaign => {
                       // Count failed results for this campaign
                       const failedCount = campaign.results?.filter(r => r.status === 'failed').length || 0;
                       const hasErrors = failedCount > 0 || campaignLogs.some(l => l.campaignId === campaign.id && l.type === 'error');
+                      const convType = activeConversations.find(ac => ac.conversation_id === campaign.targetConversationId)?.type;
                       
                       return (
                         <tr key={campaign.id} className="border-b border-purple-500/20 text-white text-sm">
@@ -6478,12 +6487,25 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                             </div>
                           </td>
                           <td className="py-3 pr-4">
-                            {campaign.targetType === "all" ? `Tous (${campaign.results?.length || 0})` : campaign.selectedContacts?.length || 0}
+                            <div className="flex items-center gap-1">
+                              {campaign.channels?.internal ? (
+                                <>
+                                  <span>{convType === 'group' ? '👥' : '👤'}</span>
+                                  <span className="truncate max-w-[150px]">{campaign.targetConversationName || 'Chat Interne'}</span>
+                                </>
+                              ) : campaign.targetType === "all" ? (
+                                `Tous (${campaign.results?.length || 0})`
+                              ) : (
+                                campaign.selectedContacts?.length || 0
+                              )}
+                            </div>
                           </td>
                           <td className="py-3 pr-4">
                             {campaign.channels?.whatsapp && <span className="mr-1">📱</span>}
                             {campaign.channels?.email && <span className="mr-1">📧</span>}
-                            {campaign.channels?.instagram && <span>📸</span>}
+                            {campaign.channels?.instagram && <span className="mr-1">📸</span>}
+                            {campaign.channels?.group && <span className="mr-1">💬</span>}
+                            {campaign.channels?.internal && <span className="text-green-400">💌</span>}
                           </td>
                           <td className="py-3 pr-4">
                             <div className="flex items-center gap-1">
