@@ -6365,254 +6365,254 @@ def scheduler_job():
         logger.info(f"[SCHEDULER] 📋 {len(campaigns)} campagne(s) à vérifier ({now_str} UTC)")
         
         for campaign in campaigns:
-                try:
-                    campaign_id = campaign.get("id")
-                    campaign_name = campaign.get("name", "Sans nom")
-                    
-                    # Récupérer les dates
-                    scheduled_at = campaign.get("scheduledAt")
-                    scheduled_dates = campaign.get("scheduledDates", [])
-                    sent_dates = campaign.get("sentDates", [])
-                    
-                    # Normaliser
-                    if scheduled_at and not scheduled_dates:
-                        scheduled_dates = [scheduled_at]
-                    
-                    if not scheduled_dates:
-                        # LOG DE DIAGNOSTIC
-                        print(f"[TIME-CHECK] Campagne: {campaign_name} | Pas de date programmée | SKIP")
-                        continue
-                    
-                    # Trouver les dates à traiter avec LOG DE DIAGNOSTIC
-                    dates_to_process = []
-                    for date_str in scheduled_dates:
-                        parsed_date = parse_campaign_date(date_str)
-                        if parsed_date:
-                            is_past = parsed_date <= now
-                            already_sent = date_str in sent_dates
-                            should_process = is_past and not already_sent
-                            
-                            # LOG DE DIAGNOSTIC TEMPOREL
-                            print(f"[TIME-CHECK] Campagne: {campaign_name} | Date prévue: {date_str[:19]} | Heure actuelle UTC: {now.isoformat()[:19]} | Match: {should_process}")
-                            
-                            if should_process:
-                                dates_to_process.append(date_str)
-                        else:
-                            print(f"[TIME-CHECK] Campagne: {campaign_name} | Date invalide: {date_str} | SKIP")
-                    
-                    if not dates_to_process:
-                        continue
-                    
-                    logger.info(f"[SCHEDULER] 🎯 Traitement: {campaign_name} - {len(dates_to_process)} date(s)")
-                    print(f"[SCHEDULER] 🎯 EXÉCUTION: {campaign_name}")
-                    
-                    # Récupérer les contacts
-                    target_type = campaign.get("targetType", "all")
-                    selected_contacts = campaign.get("selectedContacts", [])
-                    
-                    if target_type == "all":
-                        contacts = list(scheduler_db.users.find({}, {"_id": 0}))
+            try:
+                campaign_id = campaign.get("id")
+                campaign_name = campaign.get("name", "Sans nom")
+                
+                # Récupérer les dates
+                scheduled_at = campaign.get("scheduledAt")
+                scheduled_dates = campaign.get("scheduledDates", [])
+                sent_dates = campaign.get("sentDates", [])
+                
+                # Normaliser
+                if scheduled_at and not scheduled_dates:
+                    scheduled_dates = [scheduled_at]
+                
+                if not scheduled_dates:
+                    # LOG DE DIAGNOSTIC
+                    print(f"[TIME-CHECK] Campagne: {campaign_name} | Pas de date programmée | SKIP")
+                    continue
+                
+                # Trouver les dates à traiter avec LOG DE DIAGNOSTIC
+                dates_to_process = []
+                for date_str in scheduled_dates:
+                    parsed_date = parse_campaign_date(date_str)
+                    if parsed_date:
+                        is_past = parsed_date <= now
+                        already_sent = date_str in sent_dates
+                        should_process = is_past and not already_sent
+                        
+                        # LOG DE DIAGNOSTIC TEMPOREL
+                        print(f"[TIME-CHECK] Campagne: {campaign_name} | Date prévue: {date_str[:19]} | Heure actuelle UTC: {now.isoformat()[:19]} | Match: {should_process}")
+                        
+                        if should_process:
+                            dates_to_process.append(date_str)
                     else:
-                        contacts = list(scheduler_db.users.find({"id": {"$in": selected_contacts}}, {"_id": 0}))
+                        print(f"[TIME-CHECK] Campagne: {campaign_name} | Date invalide: {date_str} | SKIP")
+                
+                if not dates_to_process:
+                    continue
+                
+                logger.info(f"[SCHEDULER] 🎯 Traitement: {campaign_name} - {len(dates_to_process)} date(s)")
+                print(f"[SCHEDULER] 🎯 EXÉCUTION: {campaign_name}")
+                
+                # Récupérer les contacts
+                target_type = campaign.get("targetType", "all")
+                selected_contacts = campaign.get("selectedContacts", [])
+                
+                if target_type == "all":
+                    contacts = list(scheduler_db.users.find({}, {"_id": 0}))
+                else:
+                    contacts = list(scheduler_db.users.find({"id": {"$in": selected_contacts}}, {"_id": 0}))
+                
+                if not contacts:
+                    # Marquer comme terminée si aucun contact
+                    scheduler_db.campaigns.update_one(
+                        {"id": campaign_id},
+                        {"$set": {"status": "completed", "updatedAt": now.isoformat()},
+                         "$addToSet": {"sentDates": {"$each": dates_to_process}}}
+                    )
+                    continue
+                
+                channels = campaign.get("channels", {})
+                message = campaign.get("message", "")
+                media_url = campaign.get("mediaUrl", "")
+                
+                success_count = 0
+                fail_count = 0
+                results = campaign.get("results", [])
+                
+                for contact in contacts:
+                    contact_id = contact.get("id", "")
+                    contact_email = contact.get("email", "")
+                    contact_name = contact.get("name", "")
+                    contact_phone = contact.get("whatsapp", "")
                     
-                    if not contacts:
-                        # Marquer comme terminée si aucun contact
-                        scheduler_db.campaigns.update_one(
-                            {"id": campaign_id},
-                            {"$set": {"status": "completed", "updatedAt": now.isoformat()},
-                             "$addToSet": {"sentDates": {"$each": dates_to_process}}}
-                        )
-                        continue
-                    
-                    channels = campaign.get("channels", {})
-                    message = campaign.get("message", "")
-                    media_url = campaign.get("mediaUrl", "")
-                    
-                    success_count = 0
-                    fail_count = 0
-                    results = campaign.get("results", [])
-                    
-                    for contact in contacts:
-                        contact_id = contact.get("id", "")
-                        contact_email = contact.get("email", "")
-                        contact_name = contact.get("name", "")
-                        contact_phone = contact.get("whatsapp", "")
-                        
-                        # ========== EMAIL (try/except isolé) ==========
-                        if channels.get("email") and contact_email:
-                            try:
-                                success, error = scheduler_send_email_sync(
-                                    to_email=contact_email,
-                                    to_name=contact_name,
-                                    subject=f"📢 {campaign_name}",
-                                    message=message,
-                                    media_url=media_url if media_url else None
-                                )
-                                
-                                result_entry = {
-                                    "contactId": contact_id,
-                                    "contactName": contact_name,
-                                    "contactEmail": contact_email,
-                                    "channel": "email",
-                                    "status": "sent" if success else "failed",
-                                    "error": error if not success else None,
-                                    "sentAt": now.isoformat()
-                                }
-                                results.append(result_entry)
-                                
-                                if success:
-                                    success_count += 1
-                                    logger.info(f"[SCHEDULER] ✅ Email envoyé à {contact_email}")
-                                    print(f"[SCHEDULER] ✅ Email OK: {contact_email}")
-                                else:
-                                    fail_count += 1
-                                    # Détecter le quota épuisé
-                                    is_quota_error = error and ("quota" in error.lower() or "limit" in error.lower() or "429" in str(error))
-                                    if is_quota_error:
-                                        logger.error(f"[SCHEDULER] 🔴 QUOTA EMAIL ÉPUISÉ ({contact_email})")
-                                        print(f"[SCHEDULER] 🔴 QUOTA EMAIL ÉPUISÉ - Marquage failed_quota")
-                                    else:
-                                        logger.error(f"[SCHEDULER] ❌ Email échoué ({contact_email}): {error}")
-                                        print(f"[SCHEDULER] ❌ Email ÉCHEC: {contact_email}")
-                                    
-                            except Exception as e:
-                                logger.error(f"[SCHEDULER] ❌ Exception Email ({contact_email}): {e}")
-                                print(f"[SCHEDULER] ❌ Exception Email: {e}")
-                                fail_count += 1
-                                continue  # PASSER AU CONTACT SUIVANT
-                        
-                        # ========== WHATSAPP (try/except isolé) ==========
-                        if channels.get("whatsapp") and contact_phone:
-                            try:
-                                success, error, sid = scheduler_send_whatsapp_sync(
-                                    to_phone=contact_phone,
-                                    message=message,
-                                    media_url=media_url if media_url else None
-                                )
-                                
-                                result_entry = {
-                                    "contactId": contact_id,
-                                    "contactName": contact_name,
-                                    "contactPhone": contact_phone,
-                                    "channel": "whatsapp",
-                                    "status": "sent" if success else "failed",
-                                    "error": error if not success else None,
-                                    "sid": sid,
-                                    "sentAt": now.isoformat()
-                                }
-                                results.append(result_entry)
-                                
-                                if success:
-                                    success_count += 1
-                                    logger.info(f"[SCHEDULER] ✅ WhatsApp envoyé à {contact_phone}")
-                                    print(f"[SCHEDULER] ✅ WhatsApp OK: {contact_phone}")
-                                else:
-                                    fail_count += 1
-                                    logger.error(f"[SCHEDULER] ❌ WhatsApp échoué ({contact_phone}): {error}")
-                                    print(f"[SCHEDULER] ❌ WhatsApp ÉCHEC: {contact_phone}")
-                                    
-                            except Exception as e:
-                                logger.error(f"[SCHEDULER] ❌ Exception WhatsApp ({contact_phone}): {e}")
-                                print(f"[SCHEDULER] ❌ Exception WhatsApp: {e}")
-                                fail_count += 1
-                                continue  # PASSER AU CONTACT SUIVANT
-                    
-                    # ========== GROUPE AFROBOOST (envoi unique dans le chat communautaire) ==========
-                    if channels.get("group"):
+                    # ========== EMAIL (try/except isolé) ==========
+                    if channels.get("email") and contact_email:
                         try:
-                            target_group_id = campaign.get("targetGroupId", "community")
-                            print(f"[SCHEDULER-GROUP] 🎯 Envoi au groupe: {target_group_id}")
-                            
-                            success, error, session_id = scheduler_send_group_message_sync(
-                                scheduler_db=scheduler_db,
-                                target_group_id=target_group_id,
-                                message_text=message
+                            success, error = scheduler_send_email_sync(
+                                to_email=contact_email,
+                                to_name=contact_name,
+                                subject=f"📢 {campaign_name}",
+                                message=message,
+                                media_url=media_url if media_url else None
                             )
                             
                             result_entry = {
-                                "contactId": "group",
-                                "contactName": f"Groupe {target_group_id}",
-                                "channel": "group",
+                                "contactId": contact_id,
+                                "contactName": contact_name,
+                                "contactEmail": contact_email,
+                                "channel": "email",
                                 "status": "sent" if success else "failed",
                                 "error": error if not success else None,
-                                "sessionId": session_id,
                                 "sentAt": now.isoformat()
                             }
                             results.append(result_entry)
                             
                             if success:
                                 success_count += 1
-                                logger.info(f"[SCHEDULER] ✅ Message groupe envoyé ({target_group_id})")
-                                # LOG CLAIR DEMANDÉ: "Scheduled Group Message Sent"
-                                print(f"[SCHEDULER] ✅ Scheduled Group Message Sent: [Campaign: {campaign_name}] -> {target_group_id}")
+                                logger.info(f"[SCHEDULER] ✅ Email envoyé à {contact_email}")
+                                print(f"[SCHEDULER] ✅ Email OK: {contact_email}")
                             else:
                                 fail_count += 1
-                                logger.error(f"[SCHEDULER] ❌ Message groupe échoué: {error}")
-                                print(f"[SCHEDULER] ❌ Groupe ÉCHEC: {error}")
+                                # Détecter le quota épuisé
+                                is_quota_error = error and ("quota" in error.lower() or "limit" in error.lower() or "429" in str(error))
+                                if is_quota_error:
+                                    logger.error(f"[SCHEDULER] 🔴 QUOTA EMAIL ÉPUISÉ ({contact_email})")
+                                    print(f"[SCHEDULER] 🔴 QUOTA EMAIL ÉPUISÉ - Marquage failed_quota")
+                                else:
+                                    logger.error(f"[SCHEDULER] ❌ Email échoué ({contact_email}): {error}")
+                                    print(f"[SCHEDULER] ❌ Email ÉCHEC: {contact_email}")
                                 
                         except Exception as e:
-                            logger.error(f"[SCHEDULER] ❌ Exception Groupe: {e}")
-                            print(f"[SCHEDULER] ❌ Exception Groupe: {e}")
+                            logger.error(f"[SCHEDULER] ❌ Exception Email ({contact_email}): {e}")
+                            print(f"[SCHEDULER] ❌ Exception Email: {e}")
                             fail_count += 1
+                            continue  # PASSER AU CONTACT SUIVANT
                     
-                    # Vérifier si c'est un échec de quota email (pour le retry automatique)
-                    has_quota_error = any(
-                        r.get("error") and ("quota" in r.get("error", "").lower() or "limit" in r.get("error", "").lower())
-                        for r in results
+                    # ========== WHATSAPP (try/except isolé) ==========
+                    if channels.get("whatsapp") and contact_phone:
+                        try:
+                            success, error, sid = scheduler_send_whatsapp_sync(
+                                to_phone=contact_phone,
+                                message=message,
+                                media_url=media_url if media_url else None
+                            )
+                            
+                            result_entry = {
+                                "contactId": contact_id,
+                                "contactName": contact_name,
+                                "contactPhone": contact_phone,
+                                "channel": "whatsapp",
+                                "status": "sent" if success else "failed",
+                                "error": error if not success else None,
+                                "sid": sid,
+                                "sentAt": now.isoformat()
+                            }
+                            results.append(result_entry)
+                            
+                            if success:
+                                success_count += 1
+                                logger.info(f"[SCHEDULER] ✅ WhatsApp envoyé à {contact_phone}")
+                                print(f"[SCHEDULER] ✅ WhatsApp OK: {contact_phone}")
+                            else:
+                                fail_count += 1
+                                logger.error(f"[SCHEDULER] ❌ WhatsApp échoué ({contact_phone}): {error}")
+                                print(f"[SCHEDULER] ❌ WhatsApp ÉCHEC: {contact_phone}")
+                                
+                        except Exception as e:
+                            logger.error(f"[SCHEDULER] ❌ Exception WhatsApp ({contact_phone}): {e}")
+                            print(f"[SCHEDULER] ❌ Exception WhatsApp: {e}")
+                            fail_count += 1
+                            continue  # PASSER AU CONTACT SUIVANT
+                
+                # ========== GROUPE AFROBOOST (envoi unique dans le chat communautaire) ==========
+                if channels.get("group"):
+                    try:
+                        target_group_id = campaign.get("targetGroupId", "community")
+                        print(f"[SCHEDULER-GROUP] 🎯 Envoi au groupe: {target_group_id}")
+                        
+                        success, error, session_id = scheduler_send_group_message_sync(
+                            scheduler_db=scheduler_db,
+                            target_group_id=target_group_id,
+                            message_text=message
+                        )
+                        
+                        result_entry = {
+                            "contactId": "group",
+                            "contactName": f"Groupe {target_group_id}",
+                            "channel": "group",
+                            "status": "sent" if success else "failed",
+                            "error": error if not success else None,
+                            "sessionId": session_id,
+                            "sentAt": now.isoformat()
+                        }
+                        results.append(result_entry)
+                        
+                        if success:
+                            success_count += 1
+                            logger.info(f"[SCHEDULER] ✅ Message groupe envoyé ({target_group_id})")
+                            # LOG CLAIR DEMANDÉ: "Scheduled Group Message Sent"
+                            print(f"[SCHEDULER] ✅ Scheduled Group Message Sent: [Campaign: {campaign_name}] -> {target_group_id}")
+                        else:
+                            fail_count += 1
+                            logger.error(f"[SCHEDULER] ❌ Message groupe échoué: {error}")
+                            print(f"[SCHEDULER] ❌ Groupe ÉCHEC: {error}")
+                            
+                    except Exception as e:
+                        logger.error(f"[SCHEDULER] ❌ Exception Groupe: {e}")
+                        print(f"[SCHEDULER] ❌ Exception Groupe: {e}")
+                        fail_count += 1
+                
+                # Vérifier si c'est un échec de quota email (pour le retry automatique)
+                has_quota_error = any(
+                    r.get("error") and ("quota" in r.get("error", "").lower() or "limit" in r.get("error", "").lower())
+                    for r in results
+                )
+                
+                # LOGIQUE DE REPRISE SUR QUOTA:
+                # - Si quota épuisé: NE PAS marquer la date comme traitée → retry automatique demain
+                # - Si autre erreur ou succès: marquer normalement
+                if has_quota_error and success_count == 0:
+                    # QUOTA ÉPUISÉ: Laisser en attente pour retry automatique
+                    new_status = "pending_quota"
+                    # NE PAS ajouter la date à sentDates → sera retraitée au prochain cycle
+                    new_sent_dates = sent_dates  # Garder les dates existantes sans ajouter
+                    
+                    scheduler_db.campaigns.update_one(
+                        {"id": campaign_id},
+                        {"$set": {
+                            "status": new_status,
+                            "results": results,
+                            "sentDates": new_sent_dates,
+                            "updatedAt": now.isoformat(),
+                            "lastQuotaError": now.isoformat()  # Timestamp du dernier échec quota
+                        }}
                     )
                     
-                    # LOGIQUE DE REPRISE SUR QUOTA:
-                    # - Si quota épuisé: NE PAS marquer la date comme traitée → retry automatique demain
-                    # - Si autre erreur ou succès: marquer normalement
-                    if has_quota_error and success_count == 0:
-                        # QUOTA ÉPUISÉ: Laisser en attente pour retry automatique
-                        new_status = "pending_quota"
-                        # NE PAS ajouter la date à sentDates → sera retraitée au prochain cycle
-                        new_sent_dates = sent_dates  # Garder les dates existantes sans ajouter
-                        
-                        scheduler_db.campaigns.update_one(
-                            {"id": campaign_id},
-                            {"$set": {
-                                "status": new_status,
-                                "results": results,
-                                "sentDates": new_sent_dates,
-                                "updatedAt": now.isoformat(),
-                                "lastQuotaError": now.isoformat()  # Timestamp du dernier échec quota
-                            }}
-                        )
-                        
-                        logger.info(f"[SCHEDULER] 🟠 {campaign_name}: QUOTA ÉPUISÉ → En attente de retry automatique")
-                        print(f"[SCHEDULER] 🟠 Campagne '{campaign_name}' → pending_quota (retry automatique demain)")
-                    else:
-                        # Traitement normal (succès ou échec non-quota)
-                        new_sent_dates = list(set(sent_dates + dates_to_process))
-                        all_dates_done = set(new_sent_dates) >= set(scheduled_dates)
-                        
-                        if fail_count > 0 and success_count == 0:
-                            new_status = "failed"
-                        elif all_dates_done:
-                            new_status = "completed"
-                        else:
-                            new_status = "scheduled"
-                        
-                        scheduler_db.campaigns.update_one(
-                            {"id": campaign_id},
-                            {"$set": {
-                                "status": new_status,
-                                "results": results,
-                                "sentDates": new_sent_dates,
-                                "updatedAt": now.isoformat(),
-                                "lastProcessedAt": now.isoformat()
-                            }}
-                        )
-                        
-                        status_emoji = "🟢" if new_status == "completed" else "🔴"
-                        logger.info(f"[SCHEDULER] {status_emoji} {campaign_name}: {new_status} (✓{success_count}/✗{fail_count})")
-                        print(f"[SCHEDULER] {status_emoji} Campagne '{campaign_name}' → {new_status} (✓{success_count}/✗{fail_count})")
+                    logger.info(f"[SCHEDULER] 🟠 {campaign_name}: QUOTA ÉPUISÉ → En attente de retry automatique")
+                    print(f"[SCHEDULER] 🟠 Campagne '{campaign_name}' → pending_quota (retry automatique demain)")
+                else:
+                    # Traitement normal (succès ou échec non-quota)
+                    new_sent_dates = list(set(sent_dates + dates_to_process))
+                    all_dates_done = set(new_sent_dates) >= set(scheduled_dates)
                     
-                except Exception as campaign_error:
-                    logger.error(f"[SCHEDULER] ❌ Erreur campagne {campaign.get('id')}: {campaign_error}")
-                    continue  # PASSER À LA CAMPAGNE SUIVANTE
+                    if fail_count > 0 and success_count == 0:
+                        new_status = "failed"
+                    elif all_dates_done:
+                        new_status = "completed"
+                    else:
+                        new_status = "scheduled"
+                    
+                    scheduler_db.campaigns.update_one(
+                        {"id": campaign_id},
+                        {"$set": {
+                            "status": new_status,
+                            "results": results,
+                            "sentDates": new_sent_dates,
+                            "updatedAt": now.isoformat(),
+                            "lastProcessedAt": now.isoformat()
+                        }}
+                    )
+                    
+                    status_emoji = "🟢" if new_status == "completed" else "🔴"
+                    logger.info(f"[SCHEDULER] {status_emoji} {campaign_name}: {new_status} (✓{success_count}/✗{fail_count})")
+                    print(f"[SCHEDULER] {status_emoji} Campagne '{campaign_name}' → {new_status} (✓{success_count}/✗{fail_count})")
+                
+            except Exception as campaign_error:
+                logger.error(f"[SCHEDULER] ❌ Erreur campagne {campaign.get('id')}: {campaign_error}")
+                continue  # PASSER À LA CAMPAGNE SUIVANTE
             
     except Exception as e:
         logger.error(f"[SCHEDULER] ❌ Erreur dans le job: {e}")
