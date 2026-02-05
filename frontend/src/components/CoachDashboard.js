@@ -5212,7 +5212,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                           >
                             <option value="">Tous</option>
                             {uniqueCustomers.map((c, i) => (
-                              <option key={i} value={c.email}>{c.name}</option>
+                              <option key={i} value={c.email}>{c.name || 'Contact sans nom'}</option>
                             ))}
                           </select>
                         </div>
