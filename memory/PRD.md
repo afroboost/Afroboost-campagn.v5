@@ -1,5 +1,51 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - DM, PHOTOS OPTIMISÉES ET DESIGN ULTRA-MINIMALISTE ✅
+
+### MISSION ACCOMPLIE
+
+#### 1. Interface Ultra-Minimaliste (Zéro Texte) ✅
+- **Header épuré** : Uniquement des icônes SVG filaires fines (strokeWidth: 1.5)
+- **Icône Partage** (3 cercles reliés) : Copie l'URL avec feedback ✓ vert
+- **Icône Menu** (3 points ⋮) : Ouvre menu déroulant minimaliste
+- **Badge rouge** : Point discret sur ⋮ si conversations actives
+
+#### 2. Module Social DM (Messages Privés) ✅
+- **Clic sur membre** : Ouvre instantanément un chat privé via `startPrivateChat()`
+- **Backend API** : 
+  - `POST /api/private/conversations` - Créer/récupérer conversation
+  - `POST /api/private/messages` - Envoyer message
+  - `GET /api/private/messages/{id}` - Lire messages
+- **Socket.IO** : Mise à jour temps réel des messages privés
+- **Sécurité** : Seuls les 2 participants + Coach peuvent accéder
+
+#### 3. Module Photo de Profil (Optimisé) ✅
+- **Compression côté client** : `compressImage()` avant upload
+  - Max 200x200px
+  - Qualité JPEG 85%
+  - Réduction automatique de la taille
+- **Upload endpoint** : `POST /api/upload/profile-photo`
+- **Stockage** : `/app/backend/uploads/profiles/`
+- **Affichage** : Avatar rond dans les bulles de message
+
+#### 4. Menu Utilisateur Ultra-Minimaliste ✅
+- 📸 Photo de profil (avec compression)
+- 🔀 Mode Visiteur (abonnés uniquement)
+- 🔄 Rafraîchir
+
+#### 5. Persistance Totale (F5) ✅
+- Session coach restaurée : `afroboost_coach_tab`
+- Profil abonné préservé : `afroboost_profile` (avec photoUrl)
+- DM actif restauré : `afroboost_active_dm`
+
+### Critères de réussite validés ✅
+1. ✅ Header sans texte - icônes filaires fines uniquement
+2. ✅ Clic sur membre → DM instantané
+3. ✅ Photos compressées (max 200px) avant upload
+4. ✅ Persistance totale après F5
+
+---
+
 ## Mise à jour du 5 Février 2026 - DM, PHOTOS ET DESIGN ULTRA-MINIMALISTE ✅
 
 ### MISSION ACCOMPLIE
