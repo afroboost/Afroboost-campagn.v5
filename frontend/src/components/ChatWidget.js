@@ -1175,10 +1175,12 @@ export const ChatWidget = () => {
         email: leadData.email || ''
       });
       
-      // Réinitialiser localement
+      // Réinitialiser localement (y compris le profil abonné)
       localStorage.removeItem(CHAT_CLIENT_KEY);
       localStorage.removeItem(CHAT_SESSION_KEY);
       localStorage.removeItem(AFROBOOST_IDENTITY_KEY);
+      localStorage.removeItem(AFROBOOST_PROFILE_KEY);
+      localStorage.removeItem('subscriber_data');
       setLeadData({ firstName: '', whatsapp: '', email: '' });
       setIsReturningClient(false);
       setStep('form');
@@ -1188,7 +1190,12 @@ export const ChatWidget = () => {
       setShowMenu(false);
       setLastMessageCount(0);
       setIsCoachMode(false);
-      console.log('[ADMIN] ✅ Identité réinitialisée');
+      setAfroboostProfile(null);
+      setSubscriberData(null);
+      setIsFullscreen(false);
+      setShowSubscriberForm(false);
+      setSubscriberFormData({ name: '', whatsapp: '', email: '', code: '' });
+      console.log('[ADMIN] ✅ Identité et profil abonné réinitialisés');
       
     } catch (err) {
       console.error('[SECURITY] ❌ Change identity error:', err.response?.data?.detail || err.message);
@@ -1199,6 +1206,8 @@ export const ChatWidget = () => {
         localStorage.removeItem(CHAT_CLIENT_KEY);
         localStorage.removeItem(CHAT_SESSION_KEY);
         localStorage.removeItem(AFROBOOST_IDENTITY_KEY);
+        localStorage.removeItem(AFROBOOST_PROFILE_KEY);
+        localStorage.removeItem('subscriber_data');
         setLeadData({ firstName: '', whatsapp: '', email: '' });
         setStep('form');
         setMessages([]);
@@ -1206,6 +1215,9 @@ export const ChatWidget = () => {
         setParticipantId(null);
         setShowMenu(false);
         setIsCoachMode(false);
+        setAfroboostProfile(null);
+        setSubscriberData(null);
+        setIsFullscreen(false);
       }
     }
   };
