@@ -3427,6 +3427,92 @@ async def delete_chat_participant(participant_id: str):
     logger.info(f"[DELETE] Participant {participant.get('name', 'inconnu')} supprimé avec succès ✅")
     return {"success": True, "message": f"Participant {participant.get('name', 'inconnu')} supprimé"}
 
+# --- Active Conversations for Internal Messaging ---
+@api_router.get("/conversations/active")
+async def get_active_conversations_for_messaging():
+    """
+    Récupère toutes les conversations actives pour la programmation de messages internes.
+    Retourne une liste unifiée de groupes et utilisateurs avec leur conversation_id.
+    """
+    try:
+        conversations = []
+        
+        # 1. Récupérer les sessions de chat (utilisateurs individuels et groupes)
+        sessions = await db.chat_sessions.find(
+            {"is_deleted": {"$ne": True}},
+            {"_id": 0, "id": 1, "mode": 1, "participant_ids": 1, "created_at": 1, "last_message_at": 1}
+        ).sort("last_message_at", -1).to_list(200)
+        
+        for session in sessions:
+            session_id = session.get("id", "")
+            mode = session.get("mode", "user")
+            participant_ids = session.get("participant_ids", [])
+            
+            # Déterminer le nom de la conversation
+            if mode == "community":
+                conv_name = "🌍 Groupe Communauté"
+                conv_type = "group"
+            elif mode == "vip":
+                conv_name = "⭐ Groupe VIP"
+                conv_type = "group"
+            else:
+                # Session utilisateur - récupérer le nom du participant
+                if participant_ids:
+                    # Trouver le nom du premier participant (l'utilisateur)
+                    participant = await db.users.find_one(
+                        {"id": participant_ids[0]},
+                        {"_id": 0, "name": 1, "email": 1}
+                    )
+                    if participant:
+                        conv_name = f"👤 {participant.get('name', 'Utilisateur')} ({participant.get('email', '')})"
+                    else:
+                        # Chercher dans les participants de la session via les messages
+                        last_msg = await db.chat_messages.find_one(
+                            {"session_id": session_id, "sender_type": "user"},
+                            {"_id": 0, "sender_name": 1}
+                        )
+                        conv_name = f"👤 {last_msg.get('sender_name', 'Utilisateur')}" if last_msg else f"👤 Session {session_id[:8]}"
+                else:
+                    conv_name = f"👤 Session {session_id[:8]}"
+                conv_type = "user"
+            
+            conversations.append({
+                "conversation_id": session_id,
+                "name": conv_name,
+                "type": conv_type,
+                "mode": mode,
+                "last_activity": session.get("last_message_at") or session.get("created_at", "")
+            })
+        
+        # 2. Ajouter les groupes standards si pas de session
+        standard_groups = [
+            {"conversation_id": "community", "name": "🌍 Communauté Générale", "type": "group", "mode": "community"},
+            {"conversation_id": "vip", "name": "⭐ Groupe VIP", "type": "group", "mode": "vip"},
+            {"conversation_id": "promo", "name": "🎁 Offres Spéciales", "type": "group", "mode": "promo"}
+        ]
+        
+        existing_ids = [c["conversation_id"] for c in conversations]
+        for group in standard_groups:
+            if group["conversation_id"] not in existing_ids:
+                conversations.append(group)
+        
+        # Trier: groupes d'abord, puis utilisateurs par activité récente
+        conversations.sort(key=lambda x: (0 if x["type"] == "group" else 1, x.get("last_activity", "") or ""), reverse=False)
+        
+        return {
+            "success": True,
+            "conversations": conversations,
+            "total": len(conversations)
+        }
+        
+    except Exception as e:
+        logger.error(f"[CONVERSATIONS-ACTIVE] Erreur: {e}")
+        return {
+            "success": False,
+            "conversations": [],
+            "error": str(e)
+        }
+
 # --- Chat Sessions ---
 @api_router.get("/chat/sessions")
 async def get_chat_sessions(include_deleted: bool = False):
