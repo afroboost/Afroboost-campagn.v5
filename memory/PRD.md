@@ -1,5 +1,41 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 5 Février 2026 - VALIDATION PROGRAMMATION AUTOMATIQUE ✅
+
+### MISSION ACCOMPLIE : Scheduler 100% fonctionnel
+
+#### Tests de validation réussis
+```
+1. Création campagne: status=scheduled, scheduledAt=18:32:04 ✅
+2. Détection scheduler: [TIME-CHECK] Match: False (en attente) ✅
+3. Exécution automatique: 18:32:30 → status=completed ✅
+4. Message envoyé: "Les Lionnes" → sent ✅
+5. SentDates mis à jour: ['2026-02-05T18:32:04'] ✅
+```
+
+#### État du système
+- **Scheduler**: running (APScheduler avec MongoDB persistence)
+- **CRM**: 53 conversations (47 utilisateurs + 6 groupes)
+- **Frontend**: compile (24 warnings, 0 erreur)
+- **Twilio/WhatsApp**: code intact (non testé - config requise)
+
+#### Flux de programmation validé
+```
+1. Création: scheduledAt + targetIds → status: scheduled
+2. Scheduler (toutes les minutes): vérifie les dates
+3. Heure atteinte: exécute launch_campaign()
+4. Envoi: boucle sur targetIds avec try/except
+5. Fin: status: completed, sentDates mis à jour
+```
+
+### Non-régression vérifiée
+- ✅ Badge "⏳ Auto" pour campagnes programmées
+- ✅ Bouton "Lancer" masqué pour status=scheduled
+- ✅ Code Article Manager intact
+- ✅ Null guards conservés
+
+---
+
 ## Mise à jour du 5 Février 2026 - FIABILITÉ ENVOI ET PROGRAMMATION ✅
 
 ### MISSION ACCOMPLIE
