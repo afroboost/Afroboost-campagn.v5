@@ -6491,7 +6491,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
               </div>
               
               {/* === RÉCAPITULATIF AVANT CRÉATION === */}
-              {(newCampaign.name || newCampaign.targetConversationId) && (
+              {(newCampaign.name || newCampaign.targetConversationId || (newCampaign.channels.whatsapp || newCampaign.channels.email)) && (
                 <div className="mb-4 p-3 rounded-lg bg-gray-800/50 border border-gray-600/30">
                   <p className="text-xs text-gray-400 mb-2">📋 Récapitulatif</p>
                   <div className="flex flex-wrap gap-4 text-sm">
@@ -6501,19 +6501,37 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                         <span className="text-white font-medium">{newCampaign.name}</span>
                       </div>
                     )}
-                    {newCampaign.targetConversationId ? (
+                    
+                    {/* Chat interne */}
+                    {newCampaign.targetConversationId && (
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500">Destinataire:</span>
+                        <span className="text-gray-500">💌 Chat:</span>
                         <span className="text-green-400 font-medium flex items-center gap-1">
                           {activeConversations.find(c => c.conversation_id === newCampaign.targetConversationId)?.type === 'group' ? '👥' : '👤'}
-                          {newCampaign.targetConversationName}
+                          {newCampaign.targetConversationName || 'Sélectionné'}
                         </span>
                       </div>
-                    ) : (
+                    )}
+                    
+                    {/* Contacts CRM pour WhatsApp/Email */}
+                    {(newCampaign.channels.whatsapp || newCampaign.channels.email) && (
                       <div className="flex items-center gap-2">
-                        <span className="text-yellow-500">⚠️ Aucun destinataire sélectionné</span>
+                        <span className="text-gray-500">📇 CRM:</span>
+                        <span className="text-blue-400 font-medium">
+                          {newCampaign.targetType === "all" 
+                            ? `✅ Tous (${allContacts.length})` 
+                            : `🎯 ${selectedContactsForCampaign.length}/${allContacts.length} contact(s)`}
+                        </span>
                       </div>
                     )}
+                    
+                    {/* Alerte si aucun destinataire */}
+                    {!newCampaign.targetConversationId && !(newCampaign.channels.whatsapp || newCampaign.channels.email) && !newCampaign.channels.group && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-500">⚠️ Sélectionnez un destinataire ou activez un canal</span>
+                      </div>
+                    )}
+                    
                     {newCampaign.scheduleSlots.length > 0 && (
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500">Programmation:</span>
