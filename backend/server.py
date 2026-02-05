@@ -1351,6 +1351,8 @@ async def create_campaign(campaign: CampaignCreate):
         selectedContacts=campaign.selectedContacts,
         channels=campaign.channels,
         targetGroupId=campaign.targetGroupId,
+        targetConversationId=campaign.targetConversationId,
+        targetConversationName=campaign.targetConversationName,
         scheduledAt=campaign.scheduledAt,
         status="scheduled" if campaign.scheduledAt else "draft"
     ).model_dump()
