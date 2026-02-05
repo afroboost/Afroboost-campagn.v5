@@ -393,6 +393,74 @@ export const ChatWidget = () => {
     console.log('[SUBSCRIBER] ✅ Données abonné sauvegardées:', data);
   }, []);
   
+  // === VALIDATION DU CODE PROMO ET ENREGISTREMENT PROFIL ABONNÉ ===
+  const handleSubscriberFormSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    const { name, whatsapp, email, code } = subscriberFormData;
+    
+    // Validation des champs
+    if (!name?.trim() || !whatsapp?.trim() || !email?.trim() || !code?.trim()) {
+      setError('Tous les champs sont obligatoires');
+      return;
+    }
+    
+    setValidatingCode(true);
+    
+    try {
+      // Valider le code promo via l'API
+      const res = await axios.post(`${API}/discount-codes/validate`, {
+        code: code.trim(),
+        email: email.trim()
+      });
+      
+      if (!res.data?.valid) {
+        setError(res.data?.message || 'Code promo invalide');
+        setValidatingCode(false);
+        return;
+      }
+      
+      // ✅ Code valide ! Sauvegarder le profil abonné
+      const profile = {
+        name: name.trim(),
+        whatsapp: whatsapp.trim(),
+        email: email.trim(),
+        code: code.trim().toUpperCase(),
+        codeDetails: res.data.code, // Détails du code (type, valeur, etc.)
+        savedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(AFROBOOST_PROFILE_KEY, JSON.stringify(profile));
+      setAfroboostProfile(profile);
+      
+      // Sauvegarder aussi dans subscriber_data pour compatibilité
+      saveSubscriberData(profile.code, profile.name, 'abonné');
+      
+      // Mettre à jour leadData pour le chat
+      setLeadData({ firstName: profile.name, whatsapp: profile.whatsapp, email: profile.email });
+      
+      console.log('[SUBSCRIBER] ✅ Profil abonné validé et sauvegardé:', profile.name);
+      
+      // Activer le mode plein écran et passer au chat
+      setIsFullscreen(true);
+      setShowSubscriberForm(false);
+      
+      // Démarrer le chat avec smart-entry
+      await handleSmartEntry({ 
+        firstName: profile.name, 
+        whatsapp: profile.whatsapp, 
+        email: profile.email 
+      });
+      
+    } catch (err) {
+      console.error('[SUBSCRIBER] ❌ Erreur validation:', err);
+      setError(err.response?.data?.message || 'Erreur lors de la validation du code');
+    } finally {
+      setValidatingCode(false);
+    }
+  };
+  
   // Charger les cours disponibles
   const loadAvailableCourses = useCallback(async () => {
     setLoadingCourses(true);
