@@ -1,5 +1,39 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - DÉMANTÈLEMENT MONOLITHE (Partiel) ✅
+
+### MISSION EN COURS - Refactoring sécurisé effectué
+
+#### Composants Extraits ✅
+| Composant | Lignes | Source | Statut |
+|-----------|--------|--------|--------|
+| `SubscriberForm.js` | 182 | ChatWidget.js | ✅ Intégré |
+| `ReservationTab.js` | 295 | CoachDashboard.js | 🔧 Préparé |
+| `SoundManager.js` | 156 | ChatWidget.js | ✅ Intégré |
+
+#### Réduction ChatWidget.js ✅
+- **Avant** : 3819 lignes
+- **Après** : 3689 lignes
+- **Gain** : 130 lignes (-3.4%)
+- **Composant extrait** : `SubscriberForm` (formulaire 4 champs abonné)
+
+#### Structure de fichiers créée
+```
+/app/frontend/src/components/
+├── chat/
+│   └── SubscriberForm.js    # NOUVEAU - Formulaire abonné
+├── coach/
+│   └── ReservationTab.js    # NOUVEAU - Prêt pour intégration
+└── ChatWidget.js            # Utilise SubscriberForm
+```
+
+#### Pourquoi pas plus de réduction ?
+- **Risque badge ⏳ Auto** : La logique Campagnes est très imbriquée
+- **Approche conservative** : Extraire uniquement le JSX sans casser la logique
+- **Prochaine étape** : Intégrer ReservationTab.js progressivement
+
+---
+
 ## Mise à jour du 6 Février 2026 - REFACTORISATION SOUNDMANAGER ✅
 
 ### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 30/30, Frontend: 3/3)
