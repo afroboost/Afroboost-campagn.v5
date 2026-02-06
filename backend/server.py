@@ -3650,7 +3650,6 @@ async def chat_with_ai(data: ChatMessage):
             context += f"\n\n💳 LIEN DE PAIEMENT TWINT:\n"
             context += f"  URL: {twint_payment_url}\n"
             context += "  → Quand un client confirme vouloir acheter, propose-lui ce lien de paiement sécurisé Twint.\n"
-            print(f"[DEBUG IA CONTEXT] ✅ Lien Twint injecté: {twint_payment_url[:50]}...")
     # === FIN DES SECTIONS VENTE (uniquement en mode STANDARD) ===
     
     # === RÈGLES STRICTES POUR L'IA ===
