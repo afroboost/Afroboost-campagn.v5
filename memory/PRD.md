@@ -1,5 +1,29 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - MODE SILENCE & OPTIMISATION RENDUS ✅
+
+### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 27/27, Frontend: 9/9)
+
+#### Mode "Ne Pas Déranger" (DND) ✅
+- **Option** : "Silence Auto (22h-08h)" dans le menu utilisateur (⋮)
+- **Icône** : Lune croissant filaire
+- **Logique** : `isInSilenceHours()` vérifie si `hour >= 22 || hour < 8`
+- **Effet** : Sons coupés automatiquement dans la plage horaire si activé
+- **Persistance** : `localStorage.afroboost_silence_auto` (false par défaut)
+
+#### Optimisation Rendus (React.memo) ✅
+- **MemoizedMessageBubble** : Composant mémoïsé avec `memo()`
+- **Comparaison** : Re-rend uniquement si msg.id, msg.text, senderPhotoUrl ou profilePhotoUrl change
+- **Résultat** : Pas de saccades lors de 20+ messages rapides
+
+#### Préparation Twilio/WhatsApp ✅
+- **Variable .env** : `REACT_APP_TWILIO_ENABLED=false`
+- **Squelette** : `/app/frontend/src/services/twilioService.js`
+- **Fonctions** : `isTwilioEnabled()`, `sendWhatsAppMessage()`, `formatWhatsAppNumber()`
+- **Statut** : Non connecté au backend (préparation uniquement)
+
+---
+
 ## Mise à jour du 6 Février 2026 - NOTIFICATIONS SONORES & PERFORMANCE ✅
 
 ### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 33/33, Frontend: 10/10)
