@@ -447,56 +447,41 @@ export const ChatWidget = () => {
   const [linkCopied, setLinkCopied] = useState(false);
   const [isVisitorMode, setIsVisitorMode] = useState(false); // Mode visiteur (chat réduit mais profil conservé)
   
-  // === PRÉFÉRENCES SONORES (persistées dans localStorage) ===
-  const [soundEnabled, setSoundEnabled] = useState(() => {
+  // === PRÉFÉRENCES SONORES (persistées dans localStorage via SoundManager) ===
+  const [soundEnabled, setSoundEnabledState] = useState(() => {
     try {
       const saved = localStorage.getItem('afroboost_sound_enabled');
-      return saved !== null ? saved === 'true' : true; // Activé par défaut
+      return saved !== null ? saved === 'true' : true;
     } catch { return true; }
   });
   
-  // === MODE SILENCE AUTO (Ne pas déranger 22h-08h) ===
-  const [silenceAutoEnabled, setSilenceAutoEnabled] = useState(() => {
+  const [silenceAutoEnabled, setSilenceAutoEnabledState] = useState(() => {
     try {
       const saved = localStorage.getItem('afroboost_silence_auto');
       return saved === 'true';
     } catch { return false; }
   });
   
-  // Vérifie si on est dans la plage de silence (22h-08h)
-  const isInSilenceHours = () => {
-    const hour = new Date().getHours();
-    return hour >= 22 || hour < 8;
-  };
-  
-  // Toggle le mode Silence Auto
+  // Toggle le mode Silence Auto (utilise SoundManager)
   const toggleSilenceAuto = () => {
     const newValue = !silenceAutoEnabled;
-    setSilenceAutoEnabled(newValue);
+    setSilenceAutoEnabledState(newValue);
     localStorage.setItem('afroboost_silence_auto', String(newValue));
-    console.log('[SILENCE AUTO] 🌙', newValue ? 'Activé (22h-08h)' : 'Désactivé');
+    console.log('[SILENCE AUTO] 🌙', newValue ? `Activé (${getSilenceHoursLabel()})` : 'Désactivé');
   };
   
-  // Sauvegarder les préférences sonores
+  // Toggle les sons (utilise SoundManager)
   const toggleSound = () => {
     const newValue = !soundEnabled;
-    setSoundEnabled(newValue);
+    setSoundEnabledState(newValue);
     localStorage.setItem('afroboost_sound_enabled', String(newValue));
     console.log('[SOUND] 🔊', newValue ? 'Activé' : 'Désactivé');
   };
   
-  // === WRAPPER POUR JOUER LES SONS (vérifie si activé ET mode silence) ===
-  const playSoundIfEnabled = (type = 'message') => {
-    // Vérifier le mode silence auto (22h-08h)
-    if (silenceAutoEnabled && isInSilenceHours()) {
-      console.log('[SOUND] 🌙 Mode silence actif (22h-08h)');
-      return;
-    }
-    // Vérifier la préférence manuelle
-    if (soundEnabled) {
-      playNotificationSound(type);
-    }
-  };
+  // === WRAPPER SIMPLIFIÉ (délègue à SoundManager) ===
+  const playSoundIfEnabled = useCallback((type = SOUND_TYPES.MESSAGE) => {
+    playSoundIfAllowed(type, soundEnabled, silenceAutoEnabled);
+  }, [soundEnabled, silenceAutoEnabled]);
   
   // Fonction pour copier le lien du site
   const handleShareLink = async () => {
