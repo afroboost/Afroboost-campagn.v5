@@ -7390,11 +7390,17 @@ def scheduler_send_internal_message_sync(scheduler_db, conversation_id, message_
     except Exception as e:
         return False, str(e), None
 
-def scheduler_send_group_message_sync(scheduler_db, target_group_id, message_text):
+def scheduler_send_group_message_sync(scheduler_db, target_group_id, message_text, media_url=None, cta_type=None, cta_text=None, cta_link=None):
     """
     Envoie un message dans le groupe de chat via API interne.
     Le message est envoyé en tant que "💪 Coach Bassi".
     Remplace {prénom} par "Communauté" pour les messages de groupe.
+    
+    Args:
+        media_url: URL du média (YouTube, Drive, image)
+        cta_type: Type de CTA ('reserver', 'offre', 'personnalise')
+        cta_text: Texte du bouton CTA
+        cta_link: URL du bouton CTA
     """
     import requests
     
@@ -7430,7 +7436,7 @@ def scheduler_send_group_message_sync(scheduler_db, target_group_id, message_tex
         else:
             session_id = community_session.get("id")
         
-        # Créer le message du Coach
+        # Créer le message du Coach avec média et CTA
         import uuid as uuid_module
         from datetime import datetime, timezone
         coach_message = {
@@ -7445,6 +7451,16 @@ def scheduler_send_group_message_sync(scheduler_db, target_group_id, message_tex
             "notified": False,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
+        
+        # Ajouter les champs média et CTA si présents
+        if media_url:
+            coach_message["media_url"] = media_url
+        if cta_type:
+            coach_message["cta_type"] = cta_type
+        if cta_text:
+            coach_message["cta_text"] = cta_text
+        if cta_link:
+            coach_message["cta_link"] = cta_link
         
         # Insérer le message dans la base de données
         scheduler_db.chat_messages.insert_one(coach_message)
