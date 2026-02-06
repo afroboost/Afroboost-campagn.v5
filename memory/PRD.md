@@ -1,5 +1,41 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - SYNCHRONISATION TEMPS RÉEL ✅
+
+### Améliorations apportées
+
+| Fonctionnalité | Description | Statut |
+|----------------|-------------|--------|
+| **Socket.IO course_deleted** | Émission lors de suppression de cours | ✅ |
+| **Frontend listener** | ChatWidget écoute course_deleted | ✅ |
+| **Cascade delete** | Suppression cours → supprime réservations | ✅ |
+| **Photos de profil** | Route statique /api/uploads/profiles OK | ✅ |
+
+#### Événement Socket.IO ajouté (server.py ligne 904)
+```python
+@api_router.delete("/courses/{course_id}")
+async def delete_course(course_id: str):
+    await db.courses.delete_one({"id": course_id})
+    await db.reservations.delete_many({"courseId": course_id})
+    # NOUVEAU: Émission temps réel
+    await sio.emit('course_deleted', {'courseId': course_id})
+```
+
+#### Listener Frontend ajouté (ChatWidget.js)
+```javascript
+socket.on('course_deleted', (data) => {
+  setAvailableCourses(prev => prev.filter(c => c.id !== data.courseId));
+});
+```
+
+#### Test validé
+```
+[COURSES] Cours e4709746... supprimé + 0 réservation(s)
+[SOCKET.IO] Événement course_deleted émis pour e4709746...
+```
+
+---
+
 ## Mise à jour du 6 Février 2026 - FIX RÉGRESSIONS ✅
 
 ### Corrections apportées
