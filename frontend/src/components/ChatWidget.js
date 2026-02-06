@@ -1119,8 +1119,8 @@ export const ChatWidget = () => {
           }];
         });
         
-        // Son de notification (fenêtre déjà ouverte)
-        playNotificationSound('message');
+        // Son de notification DM (fenêtre déjà ouverte) - son "private" distinct
+        playSoundIfEnabled('private');
         
         // Marquer comme lu
         axios.put(`${API}/private/messages/read/${activePrivateChat.id}?reader_id=${participantId}`).catch(() => {});
