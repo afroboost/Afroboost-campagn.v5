@@ -2144,14 +2144,15 @@ export const ChatWidget = () => {
         }
       `}</style>
 
-      {/* Bouton flottant WhatsApp */}
+      {/* Bouton flottant WhatsApp - Positionné à DROITE, au-dessus de la barre */}
       {!isOpen && (
         <button
           onClick={handleOpenWidget}
           className="chat-widget-button fixed z-50 shadow-lg transition-all duration-300 hover:scale-110"
           style={{
-            bottom: '80px',
+            bottom: '100px', /* Décalé vers le haut pour ne pas gêner le bouton Envoyer */
             right: '20px',
+            left: 'auto', /* Force le positionnement à droite */
             width: '56px',
             height: '56px',
             borderRadius: '50%',
@@ -2162,7 +2163,8 @@ export const ChatWidget = () => {
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 4px 15px rgba(37, 211, 102, 0.4)',
-            position: 'relative'
+            position: 'fixed', /* Assurer position fixe */
+            zIndex: 50 /* Inférieur à la barre de saisie */
           }}
           data-testid="chat-widget-button"
         >
