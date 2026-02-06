@@ -3359,12 +3359,15 @@ export const ChatWidget = () => {
                     }}
                     onBlur={handleInputBlur}
                     placeholder="Écrivez votre message..."
-                    className="flex-1 px-3 py-2 rounded-full text-sm"
+                    className="flex-1 rounded-full"
                     style={{
                       background: 'rgba(255,255,255,0.1)',
                       border: '1px solid rgba(255,255,255,0.2)',
                       color: '#fff',
-                      outline: 'none'
+                      outline: 'none',
+                      fontSize: '16px', /* FIX ZOOM SAFARI iOS - min 16px */
+                      padding: '10px 16px', /* Ajuster padding pour compenser */
+                      lineHeight: '1.2'
                     }}
                     data-testid="chat-input"
                   />
@@ -3377,8 +3380,8 @@ export const ChatWidget = () => {
                     }}
                     disabled={isLoading || !inputMessage.trim()}
                     style={{
-                      width: '40px',
-                      height: '40px',
+                      width: '44px', /* Min 44px pour accessibilité mobile */
+                      height: '44px',
                       borderRadius: '50%',
                       background: '#25D366',
                       border: 'none',
