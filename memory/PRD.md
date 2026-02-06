@@ -1,5 +1,42 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - CODE = RÉSERVATION ✅
+
+### Système "Code = Pass Unique"
+
+| Fonctionnalité | Implémentation |
+|----------------|----------------|
+| Vérification code à la réservation | ✅ POST /reservations vérifie validité |
+| Endpoint d'éligibilité | ✅ POST /check-reservation-eligibility |
+| Compteur d'utilisation | ✅ Incrémenté automatiquement |
+| Assignation email | ✅ Vérifié si code assigné |
+
+### Endpoints ajoutés/modifiés
+```
+POST /api/check-reservation-eligibility
+  Input: {code, email}
+  Output: {canReserve: bool, reason?, code?, remaining?}
+
+POST /api/reservations (modifié)
+  - Vérifie code valide + actif
+  - Vérifie assignation email
+  - Vérifie limite utilisations
+  - Incrémente compteur si OK
+  - Retourne 400 si code invalide
+```
+
+### Tests validés
+```
+✅ Code BASXX + email correct → canReserve: true
+✅ Code BASXX + mauvais email → "Code non associé à cet email"
+✅ Code PROMO20SECRET (public) → canReserve: true pour tous
+✅ Réservation → Compteur incrémenté (1/100)
+```
+
+### server.py : 7449 lignes (objectif < 7450 ✅)
+
+---
+
 ## Mise à jour du 6 Février 2026 - RÉPARATION ACCÈS ABONNÉ ✅
 
 ### Corrections effectuées
