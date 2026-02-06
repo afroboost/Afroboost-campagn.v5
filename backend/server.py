@@ -7218,7 +7218,7 @@ def scheduler_send_whatsapp_sync(to_phone, message, media_url=None):
         clean_to = "+41" + clean_to.lstrip("0") if clean_to.startswith("0") else "+" + clean_to
     clean_from = from_number if from_number.startswith("+") else "+" + from_number
 
-def scheduler_send_internal_message_sync(scheduler_db, conversation_id, message_text, conversation_name=""):
+def scheduler_send_internal_message_sync(scheduler_db, conversation_id, message_text, conversation_name="", media_url=None, cta_type=None, cta_text=None, cta_link=None):
     """
     Envoi synchrone de message INTERNE dans une conversation (utilisateur ou groupe).
     Fonctionne de la même manière quelle que soit la cible car les deux possèdent un conversation_id.
@@ -7228,6 +7228,10 @@ def scheduler_send_internal_message_sync(scheduler_db, conversation_id, message_
         conversation_id: ID de la session/conversation cible
         message_text: Contenu du message
         conversation_name: Nom de la conversation (pour logs)
+        media_url: URL du média (YouTube, Drive, image)
+        cta_type: Type de CTA ('reserver', 'offre', 'personnalise')
+        cta_text: Texte du bouton CTA
+        cta_link: URL du bouton CTA
     
     Returns:
         (success: bool, error: str|None, session_id: str|None)
