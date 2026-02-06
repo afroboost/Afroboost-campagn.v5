@@ -3,9 +3,51 @@
  * 
  * Extrait de ChatWidget.js pour alléger le fichier principal.
  * Affiche la liste des cours disponibles et permet de réserver un créneau.
+ * 
+ * === SYNCHRONISATION HORAIRE ===
+ * - Dates formatées en français avec Intl.DateTimeFormat
+ * - Fuseau horaire Europe/Paris (Genève)
+ * - Fallback de localisation: course.location || "Lieu à confirmer"
  */
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
+
+// === FORMATTER DE DATE FRANÇAIS (Europe/Paris) ===
+const formatCourseDate = (time, weekday) => {
+  // Créer une date pour le prochain jour de la semaine correspondant
+  const today = new Date();
+  const currentDay = today.getDay();
+  let daysUntilCourse = weekday - currentDay;
+  if (daysUntilCourse <= 0) daysUntilCourse += 7;
+  
+  const courseDate = new Date(today);
+  courseDate.setDate(today.getDate() + daysUntilCourse);
+  
+  // Parser l'heure (format "18:30")
+  if (time) {
+    const [hours, minutes] = time.split(':');
+    courseDate.setHours(parseInt(hours) || 18, parseInt(minutes) || 30, 0, 0);
+  }
+  
+  // Formater en français avec fuseau Europe/Paris
+  const formatter = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Paris'
+  });
+  
+  const formatted = formatter.format(courseDate);
+  // Capitaliser la première lettre
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+};
+
+// === FALLBACK LOCALISATION ===
+const getLocationDisplay = (course) => {
+  return course?.location || course?.locationName || 'Lieu à confirmer';
+};
 
 /**
  * Panneau de réservation de cours
@@ -30,6 +72,15 @@ const BookingPanel = ({
   onConfirmReservation,
   onClose
 }) => {
+  // Mémoriser le formatage des dates
+  const formattedCourses = useMemo(() => {
+    return availableCourses.map(course => ({
+      ...course,
+      formattedDate: formatCourseDate(course.time, course.weekday),
+      displayLocation: getLocationDisplay(course)
+    }));
+  }, [availableCourses]);
+
   return (
     <div style={{
       display: 'flex',
