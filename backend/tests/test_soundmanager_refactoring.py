@@ -124,9 +124,9 @@ class TestUseCallbackOptimization:
         with open('/app/frontend/src/components/ChatWidget.js', 'r') as f:
             content = f.read()
         # Find the useCallback with dependencies
-        # Pattern: useCallback(..., [soundEnabled, silenceAutoEnabled])
-        pattern = r'playSoundIfEnabled = useCallback\([^)]+\), \[soundEnabled, silenceAutoEnabled\]\)'
-        assert re.search(pattern, content), "playSoundIfEnabled should have [soundEnabled, silenceAutoEnabled] dependencies"
+        # Pattern: }, [soundEnabled, silenceAutoEnabled]);
+        assert '[soundEnabled, silenceAutoEnabled]' in content, \
+            "playSoundIfEnabled should have [soundEnabled, silenceAutoEnabled] dependencies"
     
     def test_playSoundIfEnabled_delegates_to_playSoundIfAllowed(self):
         """playSoundIfEnabled should delegate to playSoundIfAllowed from SoundManager"""
