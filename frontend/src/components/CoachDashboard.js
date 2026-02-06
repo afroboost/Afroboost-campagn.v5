@@ -5436,6 +5436,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
             showCampaignToast={showCampaignToast}
             API={API}
           />
+        )}
+        {/* [CAMPAGNE_END] - Section extraite vers CampaignManager.js (~1490 lignes économisées) */}
 
         {/* ========== ONGLET ARTICLES - Gestion des articles ========== */}
         {tab === "articles" && (
