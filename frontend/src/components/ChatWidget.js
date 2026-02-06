@@ -1465,6 +1465,67 @@ export const ChatWidget = () => {
     };
   }, [sessionData?.id, step, participantId]);
 
+  // === RÉCUPÉRATION MESSAGES AU RETOUR (focus/visibilité) ===
+  // Garantit ZÉRO PERTE de message même si l'app était en veille
+  useEffect(() => {
+    if (!sessionData?.id || step !== 'chat') return;
+    
+    // Fonction de récupération des messages
+    const fetchLatestMessages = async () => {
+      try {
+        const response = await fetch(`${API}/chat/sessions/${sessionData.id}/messages`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.messages && data.messages.length > 0) {
+            console.log(`[FOCUS] 📥 Récupération de ${data.messages.length} messages`);
+            setMessages(prev => {
+              // Fusionner sans doublons (basé sur ID)
+              const existingIds = new Set(prev.map(m => m.id));
+              const newMsgs = data.messages.filter(m => !existingIds.has(m.id));
+              if (newMsgs.length > 0) {
+                console.log(`[FOCUS] ✅ ${newMsgs.length} nouveaux messages ajoutés`);
+                // Trier par date
+                return [...prev, ...newMsgs].sort((a, b) => 
+                  new Date(a.created_at || 0) - new Date(b.created_at || 0)
+                );
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[FOCUS] ⚠️ Erreur récupération:', err);
+      }
+    };
+    
+    // Listener visibilité (changement d'onglet ou retour de veille)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[VISIBILITY] 👀 App visible - Récupération messages...');
+        fetchLatestMessages();
+      }
+    };
+    
+    // Listener focus (clic sur la fenêtre)
+    const handleFocus = () => {
+      console.log('[FOCUS] 🎯 App focus - Récupération messages...');
+      fetchLatestMessages();
+    };
+    
+    // Ajouter les listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    // Récupération initiale au montage
+    fetchLatestMessages();
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [sessionData?.id, step]);
+
   // === MESSAGERIE PRIVÉE (MP) - FENÊTRE FLOTTANTE ===
   const openPrivateChat = async (targetId, targetName) => {
     if (!participantId || !targetId || targetId === participantId) return;
