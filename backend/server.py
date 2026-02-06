@@ -1597,11 +1597,6 @@ async def validate_discount_code(data: dict):
 
 @api_router.post("/discount-codes/{code_id}/use")
 async def use_discount_code(code_id: str):
-    await db.discount_codes.update_one({"id": code_id}, {"$inc": {"used": 1}})
-    return {"success": True}
-
-@api_router.post("/discount-codes/{code_id}/increment")
-async def increment_code_use(code_id: str):
     """Incrémente le compteur d'utilisation d'un code"""
     await db.discount_codes.update_one({"id": code_id}, {"$inc": {"used": 1}})
     return {"success": True}
