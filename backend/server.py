@@ -7166,31 +7166,6 @@ from scheduler_engine import (
     scheduler_send_group_message_sync
 )
 
-def scheduler_send_email_sync(to_email, to_name, subject, message, media_url=None):
-    """Envoi synchrone d'email pour le scheduler (utilise requests)."""
-    import requests
-    try:
-        # Appeler l'API interne
-        response = requests.post(
-            "http://localhost:8001/api/campaigns/send-email",
-            json={
-                "to_email": to_email,
-                "to_name": to_name,
-                "subject": subject,
-                "message": message,
-                "media_url": media_url
-            },
-            timeout=30
-        )
-        if response.status_code == 200:
-            result = response.json()
-            if result.get("success"):
-                return True, None
-            return False, result.get("error", "Unknown error")
-        return False, f"HTTP {response.status_code}"
-    except Exception as e:
-        return False, str(e)
-
 def scheduler_send_whatsapp_sync(to_phone, message, media_url=None):
     """Envoi synchrone de WhatsApp pour le scheduler."""
     import requests
