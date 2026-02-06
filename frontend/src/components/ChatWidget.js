@@ -2236,6 +2236,31 @@ export const ChatWidget = () => {
                         {soundEnabled ? 'Son activé' : 'Son désactivé'}
                       </button>
                       
+                      {/* Silence Auto (22h-08h) - Mode Ne Pas Déranger */}
+                      <button
+                        onClick={() => { toggleSilenceAuto(); setShowUserMenu(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          textAlign: 'left',
+                          fontSize: '12px',
+                          color: silenceAutoEnabled ? '#FBBF24' : '#fff',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                        className="hover:bg-white/10"
+                        data-testid="toggle-silence-auto-btn"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        {silenceAutoEnabled ? 'Silence Auto ✓' : 'Silence Auto (22h-08h)'}
+                      </button>
+                      
                       <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }} />
                       
                       {/* Rafraîchir */}
