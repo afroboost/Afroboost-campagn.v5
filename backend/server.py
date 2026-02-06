@@ -843,20 +843,24 @@ async def root():
 # --- Courses ---
 @api_router.get("/courses", response_model=List[Course])
 async def get_courses():
-    courses = await db.courses.find({}, {"_id": 0}).to_list(100)
-    if not courses:
+    courses_raw = await db.courses.find({}, {"_id": 0}).to_list(100)
+    if not courses_raw:
         # Insert default courses
         default_courses = [
             {"id": str(uuid.uuid4()), "name": "Afroboost Silent – Session Cardio", "weekday": 3, "time": "18:30", "locationName": "Rue des Vallangines 97, Neuchâtel", "mapsUrl": ""},
             {"id": str(uuid.uuid4()), "name": "Afroboost Silent – Sunday Vibes", "weekday": 0, "time": "18:30", "locationName": "Rue des Vallangines 97, Neuchâtel", "mapsUrl": ""}
         ]
         await db.courses.insert_many(default_courses)
-        courses = default_courses
+        courses_raw = default_courses
     
     # === FIX: Ajouter "location" comme alias de "locationName" pour le frontend ===
-    for course in courses:
-        if "locationName" in course and "location" not in course:
-            course["location"] = course["locationName"]
+    # Créer une copie des cours pour ajouter le champ location
+    courses = []
+    for course in courses_raw:
+        course_copy = dict(course)
+        if "locationName" in course_copy:
+            course_copy["location"] = course_copy["locationName"]
+        courses.append(course_copy)
     
     return courses
 
