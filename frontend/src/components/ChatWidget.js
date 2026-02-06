@@ -251,8 +251,8 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
   );
 };
 
-// === OPTIMISATION: React.memo pour éviter les re-rendus inutiles ===
-const MemoizedMessageBubble = React.memo(MessageBubble, (prevProps, nextProps) => {
+// === OPTIMISATION: memo pour éviter les re-rendus inutiles ===
+const MemoizedMessageBubble = memo(MessageBubble, (prevProps, nextProps) => {
   // Re-rendre seulement si ces props changent
   return (
     prevProps.msg.id === nextProps.msg.id &&
