@@ -2591,16 +2591,30 @@ export const ChatWidget = () => {
                   {isCommunityMode ? 'Communauté Afroboost' : 'Afroboost'}
                 </div>
                 <div className="text-white text-xs" style={{ opacity: 0.8 }}>
-                  {/* Afficher le statut abonné si profil validé */}
-                  {afroboostProfile?.code && step === 'chat'
-                    ? `💎 Abonné • ${afroboostProfile.name}`
-                    : isReturningClient && step === 'chat' 
-                      ? `👋 ${leadData.firstName}` 
-                      : isCommunityMode 
-                        ? '👥 Chat Groupe'
-                        : sessionData?.is_ai_active === false 
-                          ? '👤 Mode Coach'
-                          : '💪 Coach Bassi'}
+                  {/* Indicateur de synchronisation */}
+                  {isSyncing ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ 
+                        width: '8px', 
+                        height: '8px', 
+                        borderRadius: '50%', 
+                        background: '#fbbf24',
+                        animation: 'pulse 1s infinite'
+                      }}></span>
+                      Synchronisation...
+                    </span>
+                  ) : (
+                    /* Afficher le statut abonné si profil validé */
+                    afroboostProfile?.code && step === 'chat'
+                      ? `💎 Abonné • ${afroboostProfile.name}`
+                      : isReturningClient && step === 'chat' 
+                        ? `👋 ${leadData.firstName}` 
+                        : isCommunityMode 
+                          ? '👥 Chat Groupe'
+                          : sessionData?.is_ai_active === false 
+                            ? '👤 Mode Coach'
+                            : '💪 Coach Bassi'
+                  )}
                 </div>
               </div>
             </div>
