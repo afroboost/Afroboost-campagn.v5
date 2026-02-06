@@ -3107,6 +3107,7 @@ export const ChatWidget = () => {
                           key={msg.id || idx} 
                           msg={msg} 
                           isUser={msg.type === 'coach'}
+                          onReservationClick={() => {}}
                         />
                       ))}
                       <div ref={messagesEndRef} />
