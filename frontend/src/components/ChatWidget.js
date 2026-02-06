@@ -27,6 +27,7 @@ import SubscriberForm from './chat/SubscriberForm';
 import PrivateChatView from './chat/PrivateChatView';
 import BookingPanel from './chat/BookingPanel';
 import MessageSkeleton from './chat/MessageSkeleton';
+import MediaMessage from './chat/MediaMessage';
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 const SOCKET_URL = process.env.REACT_APP_BACKEND_URL; // URL Socket.IO (même que backend)
