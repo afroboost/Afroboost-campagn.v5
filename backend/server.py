@@ -1322,6 +1322,40 @@ async def get_reservations(
 
 @api_router.post("/reservations", response_model=Reservation)
 async def create_reservation(reservation: ReservationCreate):
+    """Créer une réservation - Vérifie la validité du code si fourni"""
+    
+    # === VÉRIFICATION CODE PROMO/ABONNÉ ===
+    promo_code = reservation.promoCode or reservation.discountCode
+    user_email = reservation.userEmail
+    
+    if promo_code:
+        # Chercher le code dans la DB (case insensitive)
+        discount = await db.discount_codes.find_one({
+            "code": {"$regex": f"^{promo_code}$", "$options": "i"},
+            "active": True
+        }, {"_id": 0})
+        
+        if not discount:
+            raise HTTPException(status_code=400, detail="Code invalide ou désactivé - Réservation impossible")
+        
+        # Vérifier si le code est assigné à un email spécifique
+        assigned_email = discount.get("assignedEmail")
+        if assigned_email and assigned_email.lower() != user_email.lower():
+            raise HTTPException(status_code=400, detail="Ce code n'est pas associé à votre email")
+        
+        # Vérifier le nombre max d'utilisations
+        max_uses = discount.get("maxUses", 0)
+        used = discount.get("used", 0)
+        if max_uses > 0 and used >= max_uses:
+            raise HTTPException(status_code=400, detail="Code épuisé - Limite d'utilisation atteinte")
+        
+        # Incrémenter le compteur d'utilisation
+        await db.discount_codes.update_one(
+            {"code": discount.get("code")},
+            {"$inc": {"used": 1}}
+        )
+        logger.info(f"[RESERVATION] ✅ Code {promo_code} validé pour {user_email} (utilisations: {used + 1}/{max_uses})")
+    
     res_code = f"AFR-{str(uuid.uuid4())[:6].upper()}"
     res_obj = Reservation(**reservation.model_dump(), reservationCode=res_code)
     doc = res_obj.model_dump()
