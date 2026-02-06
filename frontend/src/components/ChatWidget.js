@@ -296,6 +296,35 @@ export const ChatWidget = () => {
     return null;
   };
 
+  // === CACHE HYBRIDE: Chargement instantané via sessionStorage ===
+  // Stocke les 20 derniers messages pour affichage immédiat (0ms)
+  const getCachedMessages = () => {
+    try {
+      const cached = sessionStorage.getItem(MESSAGE_CACHE_KEY);
+      if (cached) {
+        const messages = JSON.parse(cached);
+        if (Array.isArray(messages) && messages.length > 0) {
+          console.log('[CACHE] ✅ Messages cachés trouvés:', messages.length);
+          return messages;
+        }
+      }
+    } catch (e) {
+      console.warn('[CACHE] ⚠️ Erreur lecture cache:', e.message);
+    }
+    return [];
+  };
+
+  const saveCachedMessages = (messages) => {
+    try {
+      // Stocker les 20 derniers messages uniquement
+      const toCache = messages.slice(-20);
+      sessionStorage.setItem(MESSAGE_CACHE_KEY, JSON.stringify(toCache));
+      console.log('[CACHE] 💾 Messages mis en cache:', toCache.length);
+    } catch (e) {
+      console.warn('[CACHE] ⚠️ Erreur écriture cache:', e.message);
+    }
+  };
+
   // === VÉRIFICATION PERSISTANCE AU MONTAGE (AVANT tout render) ===
   // Déterminer le step initial IMMÉDIATEMENT basé sur localStorage
   // AVEC FALLBACK ROBUSTE pour données corrompues
