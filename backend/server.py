@@ -7141,21 +7141,36 @@ apscheduler = BackgroundScheduler(
 
 print("✅ APScheduler configuré avec persistance MongoDB : OK")
 
+# Import pytz pour la gestion des fuseaux horaires Europe/Paris
+import pytz
+PARIS_TZ = pytz.timezone('Europe/Paris')
+
 def parse_campaign_date(date_str):
-    """Parse une date ISO et la convertit en datetime UTC."""
+    """
+    Parse une date ISO et la convertit en datetime UTC.
+    IMPORTANT: Les dates sans fuseau sont interprétées comme Europe/Paris (fuseau utilisateur)
+    """
     if not date_str:
         return None
     try:
         if 'Z' in date_str:
+            # Déjà en UTC
             date_str = date_str.replace('Z', '+00:00')
-        if '+' in date_str or '-' in date_str[-6:]:
+            dt = datetime.fromisoformat(date_str)
+        elif '+' in date_str or (len(date_str) > 10 and '-' in date_str[-6:] and ':' in date_str[-3:]):
+            # A un fuseau horaire explicite
             dt = datetime.fromisoformat(date_str)
         else:
+            # PAS de fuseau = heure Europe/Paris (saisie utilisateur)
             dt = datetime.fromisoformat(date_str)
-            dt = dt.replace(tzinfo=timezone.utc)
+            dt = PARIS_TZ.localize(dt)  # Interpréter comme heure Paris
+        
+        # Convertir en UTC pour comparaison uniforme
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
+            dt = PARIS_TZ.localize(dt)
+        
+        dt_utc = dt.astimezone(pytz.UTC)
+        return dt_utc
     except Exception as e:
         logger.warning(f"[SCHEDULER] Date parsing error '{date_str}': {e}")
         return None
