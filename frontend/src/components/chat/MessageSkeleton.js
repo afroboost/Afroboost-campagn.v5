@@ -10,7 +10,7 @@
 import React, { memo } from 'react';
 
 // Composant de bulle skeleton individuelle
-const SkeletonBubble = ({ width, isRight, delay = 0 }) => (
+const SkeletonBubble = ({ width, isRight, delay = 0, hasMedia = false, hasCta = false }) => (
   <div
     style={{
       display: 'flex',
@@ -23,15 +23,54 @@ const SkeletonBubble = ({ width, isRight, delay = 0 }) => (
     <div
       style={{
         width: width,
-        height: '40px',
-        borderRadius: isRight ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-        background: isRight 
-          ? 'linear-gradient(135deg, rgba(217, 28, 210, 0.15), rgba(139, 92, 246, 0.15))'
-          : 'rgba(255, 255, 255, 0.08)',
-        animation: 'skeletonPulse 1.5s ease-in-out infinite',
-        animationDelay: `${delay}ms`
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px'
       }}
-    />
+    >
+      {/* Zone média (si hasMedia) */}
+      {hasMedia && (
+        <div
+          style={{
+            width: '100%',
+            height: '120px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(99, 102, 241, 0.1))',
+            animation: 'skeletonPulse 1.5s ease-in-out infinite',
+            animationDelay: `${delay}ms`
+          }}
+        />
+      )}
+      
+      {/* Bulle de texte */}
+      <div
+        style={{
+          width: hasMedia ? '80%' : '100%',
+          height: '40px',
+          borderRadius: isRight ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+          background: isRight 
+            ? 'linear-gradient(135deg, rgba(217, 28, 210, 0.15), rgba(139, 92, 246, 0.15))'
+            : 'rgba(255, 255, 255, 0.08)',
+          animation: 'skeletonPulse 1.5s ease-in-out infinite',
+          animationDelay: `${delay}ms`
+        }}
+      />
+      
+      {/* Bouton CTA (si hasCta) */}
+      {hasCta && (
+        <div
+          style={{
+            width: '140px',
+            height: '36px',
+            borderRadius: '20px',
+            background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(217, 28, 210, 0.2))',
+            animation: 'skeletonPulse 1.5s ease-in-out infinite',
+            animationDelay: `${delay + 50}ms`,
+            alignSelf: 'center'
+          }}
+        />
+      )}
+    </div>
   </div>
 );
 
