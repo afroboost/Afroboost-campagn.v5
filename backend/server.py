@@ -7440,7 +7440,11 @@ def scheduler_send_group_message_sync(scheduler_db, target_group_id, message_tex
         if cta_text:
             coach_message["cta_text"] = cta_text
         if cta_link:
-            coach_message["cta_link"] = cta_link
+            # VALIDATION CTA_LINK: Forcer le préfixe https://
+            validated_link = cta_link.strip()
+            if validated_link and not validated_link.startswith(('http://', 'https://', '#')):
+                validated_link = 'https://' + validated_link
+            coach_message["cta_link"] = validated_link
         
         # Insérer le message dans la base de données
         scheduler_db.chat_messages.insert_one(coach_message)
