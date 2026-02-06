@@ -427,12 +427,11 @@ export const isWindowFocused = () => {
 };
 
 /**
- * Notification complète pour MP: son + titre clignotant + badge
+ * Notification complète pour MP: titre clignotant + badge (son géré par ChatWidget)
  * À appeler quand un message privé arrive
  */
 export const notifyPrivateMessage = (senderName = 'Quelqu\'un') => {
-  // Son de notification
-  playNotificationSound('private');
+  // Note: Le son est géré par ChatWidget via playSoundIfEnabled() pour respecter les préférences
   
   // Clignoter le titre si la fenêtre n'a pas le focus
   if (!isWindowFocused()) {
