@@ -903,25 +903,86 @@ async def archive_course(course_id: str):
 
 @api_router.delete("/courses/{course_id}")
 async def delete_course(course_id: str):
-    """Supprime un cours ET toutes les réservations liées, puis notifie en temps réel."""
-    # 1. Supprimer le cours
-    await db.courses.delete_one({"id": course_id})
+    """
+    HARD DELETE - Supprime PHYSIQUEMENT un cours de toutes les tables.
+    Aucune trace ne doit rester dans la base de données.
+    """
+    deleted_counts = {
+        "course": 0,
+        "reservations": 0,
+        "sessions": 0
+    }
     
-    # 2. Supprimer toutes les réservations liées à ce cours
-    deleted_reservations = await db.reservations.delete_many({"courseId": course_id})
-    logger.info(f"[COURSES] Cours {course_id} supprimé + {deleted_reservations.deleted_count} réservation(s)")
+    # 1. Supprimer le cours (y compris les archivés)
+    result = await db.courses.delete_one({"id": course_id})
+    deleted_counts["course"] = result.deleted_count
     
-    # 3. ÉMETTRE UN ÉVÉNEMENT SOCKET.IO pour synchronisation temps réel
+    # 2. Supprimer TOUTES les réservations liées à ce cours
+    result = await db.reservations.delete_many({"courseId": course_id})
+    deleted_counts["reservations"] = result.deleted_count
+    
+    # 3. Supprimer les sessions/références potentielles liées au cours
+    # (au cas où des sessions de chat sont liées à un cours spécifique)
+    result = await db.chat_sessions.delete_many({"courseId": course_id})
+    deleted_counts["sessions"] = result.deleted_count
+    
+    total_deleted = sum(deleted_counts.values())
+    logger.info(f"[HARD DELETE] Cours {course_id} - Supprimé: cours={deleted_counts['course']}, réservations={deleted_counts['reservations']}, sessions={deleted_counts['sessions']}")
+    
+    # 4. ÉMETTRE UN ÉVÉNEMENT SOCKET.IO pour synchronisation temps réel
     try:
         await sio.emit('course_deleted', {
             'courseId': course_id,
-            'deletedReservations': deleted_reservations.deleted_count
+            'deletedReservations': deleted_counts['reservations'],
+            'hardDelete': True  # Indique une suppression totale
         })
         logger.info(f"[SOCKET.IO] Événement course_deleted émis pour {course_id}")
     except Exception as e:
         logger.warning(f"[SOCKET.IO] Échec émission course_deleted: {e}")
     
-    return {"success": True, "deletedReservations": deleted_reservations.deleted_count}
+    return {
+        "success": True, 
+        "hardDelete": True,
+        "deleted": deleted_counts,
+        "total": total_deleted
+    }
+
+@api_router.delete("/courses/purge/archived")
+async def purge_archived_courses():
+    """
+    PURGE TOTAL - Supprime tous les cours archivés et leurs données liées.
+    Utilisé pour nettoyer la base de données des cours obsolètes.
+    """
+    # Trouver tous les cours archivés
+    archived_courses = await db.courses.find({"archived": True}, {"id": 1}).to_list(1000)
+    archived_ids = [c["id"] for c in archived_courses]
+    
+    if not archived_ids:
+        return {"success": True, "message": "Aucun cours archivé à purger", "purged": 0}
+    
+    # Supprimer les cours archivés
+    deleted_courses = await db.courses.delete_many({"archived": True})
+    
+    # Supprimer les réservations liées
+    deleted_reservations = await db.reservations.delete_many({"courseId": {"$in": archived_ids}})
+    
+    logger.info(f"[PURGE] Supprimé {deleted_courses.deleted_count} cours archivés et {deleted_reservations.deleted_count} réservations")
+    
+    # Émettre un événement pour rafraîchir tous les clients
+    try:
+        await sio.emit('courses_purged', {
+            'purgedIds': archived_ids,
+            'count': deleted_courses.deleted_count
+        })
+    except Exception as e:
+        logger.warning(f"[SOCKET.IO] Échec émission courses_purged: {e}")
+    
+    return {
+        "success": True,
+        "purgedCourses": deleted_courses.deleted_count,
+        "purgedReservations": deleted_reservations.deleted_count,
+        "purgedIds": archived_ids
+    }
 
 # --- Offers ---
 @api_router.get("/offers", response_model=List[Offer])
