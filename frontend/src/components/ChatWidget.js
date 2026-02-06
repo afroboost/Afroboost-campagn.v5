@@ -1383,6 +1383,7 @@ export const ChatWidget = () => {
         socket.off('disconnect');
         socket.off('message_received');
         socket.off('user_typing');
+        socket.off('course_deleted');
         
         socket.disconnect();
         socketRef.current = null;
