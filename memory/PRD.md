@@ -1,5 +1,31 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - NOTIFICATIONS SONORES & PERFORMANCE ✅
+
+### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 33/33, Frontend: 10/10)
+
+#### Notifications Sonores Distinctes ✅
+- **Son DM (Ding)** : Triple beep ascendant (440-554-659 Hz) pour les messages privés
+- **Son Groupe (Pop)** : Beep standard (587 Hz) pour les messages publics
+- **Son Coach** : Double beep harmonieux (523-659 Hz) pour les réponses du coach
+
+#### Contrôle du Son ✅
+- **Toggle** : Bouton "Son activé/désactivé" dans le menu utilisateur (⋮)
+- **Icône** : Haut-parleur filaire avec ondes (on) / barré (off)
+- **Persistance** : `localStorage.afroboost_sound_enabled` (true par défaut)
+- **Wrapper** : `playSoundIfEnabled(type)` vérifie la préférence avant de jouer
+
+#### Nettoyage Socket.IO (Performance) ✅
+- **Cleanup complet** : `socket.off()` pour tous les listeners avant `socket.disconnect()`
+- **Listeners nettoyés** : connect, joined_session, connect_error, disconnect, message_received, user_typing, private_message_received, dm_typing, user_avatar_changed
+- **Résultat** : Pas de fuites de mémoire après longue utilisation
+
+#### Mise à jour Historique Avatars ✅
+- **handleAvatarChanged** : Met à jour `messages[]` ET `privateMessages[]`
+- **Effet** : Tous les messages existants affichent le nouvel avatar
+
+---
+
 ## Mise à jour du 5 Février 2026 - INDICATEUR FRAPPE & SYNC AVATAR ✅
 
 ### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 22/22, Frontend: 13/13)
