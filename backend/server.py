@@ -7323,40 +7323,23 @@ async def startup_scheduler():
     global SCHEDULER_RUNNING
     
     logger.info("[SYSTEM] 🚀 Démarrage du serveur Afroboost...")
-    print("[SYSTEM] ============================================")
-    print("[SYSTEM] 🚀 AFROBOOST SERVER STARTING...")
-    print(f"[SYSTEM] 📱 Twilio FROM: {TWILIO_FROM_NUMBER}")
-    print("[SYSTEM] ============================================")
+    print("[SYSTEM] 🚀 AFROBOOST STARTING...")
     
-    # === NETTOYAGE DES ZOMBIE JOBS (campagnes bloquées > 30 min) ===
+    # Nettoyage zombie campaigns (bloquées > 30 min)
     try:
         thirty_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=30)
-        
-        # Trouver les campagnes bloquées à l'état "sending" depuis plus de 30 minutes
-        zombie_filter = {
-            "status": "sending",
-            "updatedAt": {"$lt": thirty_minutes_ago.isoformat()}
-        }
-        
+        zombie_filter = {"status": "sending", "updatedAt": {"$lt": thirty_minutes_ago.isoformat()}}
         zombie_campaigns = await db.campaigns.find(zombie_filter, {"_id": 0, "id": 1, "name": 1}).to_list(100)
         
         if zombie_campaigns:
-            logger.warning(f"[ZOMBIE-CLEANUP] 🧟 {len(zombie_campaigns)} campagne(s) zombie détectée(s)")
-            
+            logger.warning(f"[ZOMBIE-CLEANUP] 🧟 {len(zombie_campaigns)} campagne(s) zombie")
             for zombie in zombie_campaigns:
                 zombie_id = zombie.get("id")
-                zombie_name = zombie.get("name", "Sans nom")
-                
-                # Mettre à jour le statut en "failed"
                 await db.campaigns.update_one(
                     {"id": zombie_id},
                     {
-                        "$set": {
-                            "status": "failed",
-                            "updatedAt": datetime.now(timezone.utc).isoformat()
-                        },
-                        "$push": {
-                            "results": {
+                        "$set": {"status": "failed", "updatedAt": datetime.now(timezone.utc).isoformat()},
+                        "$push": {"results": {
                                 "contactId": "system",
                                 "contactName": "Système",
                                 "channel": "system",
