@@ -19,7 +19,16 @@ const YOUTUBE_PATTERNS = [
 const GOOGLE_DRIVE_PATTERNS = [
   /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/,
   /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,
-  /docs\.google\.com\/(?:uc|file)\/d\/([a-zA-Z0-9_-]+)/
+  /docs\.google\.com\/(?:uc|file)\/d\/([a-zA-Z0-9_-]+)/,
+  // Support des dossiers partagés
+  /drive\.google\.com\/drive\/folders\/([a-zA-Z0-9_-]+)/,
+  /drive\.google\.com\/folderview\?id=([a-zA-Z0-9_-]+)/
+];
+
+// Pattern pour détecter si c'est un dossier (pas un fichier)
+const GOOGLE_DRIVE_FOLDER_PATTERNS = [
+  /drive\.google\.com\/drive\/folders\/([a-zA-Z0-9_-]+)/,
+  /drive\.google\.com\/folderview\?id=([a-zA-Z0-9_-]+)/
 ];
 
 const DIRECT_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
