@@ -1,36 +1,41 @@
 # Afroboost - Document de Référence Produit (PRD)
 
-## Mise à jour du 6 Février 2026 - DÉMANTÈLEMENT MONOLITHE (Partiel) ✅
+## Mise à jour du 6 Février 2026 - INTÉGRATION RÉSERVATIONS & PRIVATECHAT ✅
 
-### MISSION EN COURS - Refactoring sécurisé effectué
+### MISSION ACCOMPLIE - Réduction significative des monolithes
 
-#### Composants Extraits ✅
+#### Composants Extraits et Intégrés ✅
 | Composant | Lignes | Source | Statut |
 |-----------|--------|--------|--------|
 | `SubscriberForm.js` | 182 | ChatWidget.js | ✅ Intégré |
-| `ReservationTab.js` | 295 | CoachDashboard.js | 🔧 Préparé |
+| `PrivateChatView.js` | 240 | ChatWidget.js | ✅ Intégré |
+| `ReservationTab.js` | 295 | CoachDashboard.js | ✅ Intégré |
 | `SoundManager.js` | 156 | ChatWidget.js | ✅ Intégré |
 
-#### Réduction ChatWidget.js ✅
-- **Avant** : 3819 lignes
-- **Après** : 3689 lignes
-- **Gain** : 130 lignes (-3.4%)
-- **Composant extrait** : `SubscriberForm` (formulaire 4 champs abonné)
+#### Réduction des fichiers principaux
+
+| Fichier | Avant | Après | Gain |
+|---------|-------|-------|------|
+| **CoachDashboard.js** | 8399 | 8140 | **-259 lignes** |
+| **ChatWidget.js** | 3689 | 3503 | **-186 lignes** |
+| **Total** | 12088 | 11643 | **-445 lignes** |
 
 #### Structure de fichiers créée
 ```
 /app/frontend/src/components/
 ├── chat/
-│   └── SubscriberForm.js    # NOUVEAU - Formulaire abonné
+│   ├── SubscriberForm.js    # Formulaire abonné 4 champs
+│   └── PrivateChatView.js   # Fenêtre DM flottante
 ├── coach/
-│   └── ReservationTab.js    # NOUVEAU - Prêt pour intégration
-└── ChatWidget.js            # Utilise SubscriberForm
+│   └── ReservationTab.js    # Onglet Réservations complet
+└── services/
+    └── SoundManager.js      # Logique sons et silence auto
 ```
 
-#### Pourquoi pas plus de réduction ?
-- **Risque badge ⏳ Auto** : La logique Campagnes est très imbriquée
-- **Approche conservative** : Extraire uniquement le JSX sans casser la logique
-- **Prochaine étape** : Intégrer ReservationTab.js progressivement
+#### Section Campagnes marquée pour extraction future
+- Marqueurs `[CAMPAGNE_START]` et `[CAMPAGNE_END]` ajoutés
+- ~1490 lignes identifiées (lignes 5314-6803)
+- Badge ⏳ Auto préservé et fonctionnel
 
 ---
 
