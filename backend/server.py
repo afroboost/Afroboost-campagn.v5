@@ -7288,7 +7288,11 @@ def scheduler_send_internal_message_sync(scheduler_db, conversation_id, message_
         if cta_text:
             coach_message["cta_text"] = cta_text
         if cta_link:
-            coach_message["cta_link"] = cta_link
+            # VALIDATION CTA_LINK: Forcer le préfixe https://
+            validated_link = cta_link.strip()
+            if validated_link and not validated_link.startswith(('http://', 'https://', '#')):
+                validated_link = 'https://' + validated_link
+            coach_message["cta_link"] = validated_link
         
         # INSERTION DIRECTE dans la collection messages
         scheduler_db.chat_messages.insert_one(coach_message)
