@@ -69,7 +69,10 @@ class TestBackendAPIs:
         })
         assert response.status_code in [200, 201]
         data = response.json()
-        assert 'session_id' in data or 'participant_id' in data or 'id' in data
+        # API returns participant object with id
+        assert 'participant' in data or 'session_id' in data or 'id' in data
+        if 'participant' in data:
+            assert 'id' in data['participant'], "Participant should have id"
         print("✅ TEST 5 - Smart-entry endpoint works")
     
     def test_promo_code_validation(self):
