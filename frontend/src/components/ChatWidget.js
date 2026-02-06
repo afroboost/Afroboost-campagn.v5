@@ -3165,15 +3165,18 @@ export const ChatWidget = () => {
                   </div>
                 )}
                 
-                {/* Input message */}
+                {/* Input message - Mobile optimized with safe-area */}
                 <div 
                   style={{
                     padding: '12px',
+                    paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
                     borderTop: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex',
                     gap: '8px',
                     flexShrink: 0,
-                    position: 'relative'
+                    position: 'relative',
+                    zIndex: 100,
+                    background: 'rgba(0,0,0,0.95)'
                   }}
                 >
                   {/* === SÉLECTEUR D'EMOJIS (Composant externe) === */}
