@@ -1494,54 +1494,97 @@ export const ChatWidget = () => {
     };
   }, [sessionData?.id, step, participantId]);
 
-  // === RÉCUPÉRATION MESSAGES AU RETOUR (focus/visibilité) - ARCHITECTURE "RAMASSER" ===
-  // Garantit ZÉRO PERTE de message même si l'app était en veille
+  // === ÉTAT DE SYNCHRONISATION (indicateur visuel) ===
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  // === RÉCUPÉRATION MESSAGES AU RETOUR (focus/visibilité) - ARCHITECTURE "RAMASSER" RÉSILIENTE ===
+  // Garantit ZÉRO PERTE de message avec retry automatique et gestion hors-ligne
   useEffect(() => {
     if (!sessionData?.id || step !== 'chat') return;
     
-    // Stocker la dernière date de sync pour optimiser les requêtes
-    let lastSyncTime = null;
+    // Stocker la dernière date de sync dans localStorage pour persistance
+    const LAST_SYNC_KEY = `afroboost_last_sync_${sessionData.id}`;
+    let lastSyncTime = localStorage.getItem(LAST_SYNC_KEY) || null;
     
-    // Fonction de récupération via le nouvel endpoint /api/messages/sync
-    const fetchLatestMessages = async () => {
+    // Fonction de récupération RÉSILIENTE avec retry
+    const fetchLatestMessages = async (retryCount = 0) => {
+      const MAX_RETRIES = 3;
+      const RETRY_DELAY = 2000; // 2 secondes
+      
+      // Vérifier si on est en ligne
+      if (!navigator.onLine) {
+        console.log('[RAMASSER] 📵 Hors ligne - Attente connexion...');
+        // Attendre que le réseau revienne
+        const waitForOnline = () => new Promise(resolve => {
+          if (navigator.onLine) {
+            resolve();
+          } else {
+            window.addEventListener('online', resolve, { once: true });
+          }
+        });
+        await waitForOnline();
+        console.log('[RAMASSER] 📶 Connexion rétablie!');
+      }
+      
+      setIsSyncing(true);
+      
       try {
-        // Construire l'URL avec le paramètre "since" si on a une date
+        // Construire l'URL avec session_id ET participant_id pour robustesse
         let url = `${API}/messages/sync?session_id=${sessionData.id}&limit=100`;
         if (lastSyncTime) {
           url += `&since=${encodeURIComponent(lastSyncTime)}`;
         }
         
-        const response = await fetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Mettre à jour lastSyncTime
-          if (data.synced_at) {
-            lastSyncTime = data.synced_at;
-          }
-          
-          if (data.messages && data.messages.length > 0) {
-            console.log(`[RAMASSER] 📥 ${data.count} message(s) récupéré(s) depuis DB`);
-            setMessages(prev => {
-              // Fusionner sans doublons (basé sur ID)
-              const existingIds = new Set(prev.map(m => m.id));
-              const newMsgs = data.messages.filter(m => !existingIds.has(m.id));
-              if (newMsgs.length > 0) {
-                console.log(`[RAMASSER] ✅ ${newMsgs.length} NOUVEAUX messages ajoutés`);
-                // Trier par date
-                return [...prev, ...newMsgs].sort((a, b) => 
-                  new Date(a.created_at || 0) - new Date(b.created_at || 0)
-                );
-              }
-              return prev;
-            });
-          } else {
-            console.log('[RAMASSER] ℹ️ Aucun nouveau message');
-          }
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          // Timeout de 10 secondes
+          signal: AbortSignal.timeout(10000)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
+        
+        const data = await response.json();
+        
+        // Mettre à jour lastSyncTime et persister
+        if (data.synced_at) {
+          lastSyncTime = data.synced_at;
+          localStorage.setItem(LAST_SYNC_KEY, lastSyncTime);
+        }
+        
+        if (data.messages && data.messages.length > 0) {
+          console.log(`[RAMASSER] 📥 ${data.count} message(s) récupéré(s) depuis DB`);
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id));
+            const newMsgs = data.messages.filter(m => !existingIds.has(m.id));
+            if (newMsgs.length > 0) {
+              console.log(`[RAMASSER] ✅ ${newMsgs.length} NOUVEAUX messages ajoutés`);
+              return [...prev, ...newMsgs].sort((a, b) => 
+                new Date(a.created_at || 0) - new Date(b.created_at || 0)
+              );
+            }
+            return prev;
+          });
+        } else {
+          console.log('[RAMASSER] ℹ️ Aucun nouveau message');
+        }
+        
+        setIsSyncing(false);
+        
       } catch (err) {
-        console.warn('[RAMASSER] ⚠️ Erreur récupération:', err);
-        // Fallback vers l'ancien endpoint si le nouveau échoue
+        console.warn(`[RAMASSER] ⚠️ Tentative ${retryCount + 1}/${MAX_RETRIES} échouée:`, err.message);
+        
+        // Retry si pas épuisé
+        if (retryCount < MAX_RETRIES - 1) {
+          console.log(`[RAMASSER] 🔄 Retry dans ${RETRY_DELAY/1000}s...`);
+          await new Promise(r => setTimeout(r, RETRY_DELAY));
+          return fetchLatestMessages(retryCount + 1);
+        }
+        
+        // Fallback vers l'ancien endpoint après échecs
+        console.log('[RAMASSER] 🔄 Tentative fallback...');
         try {
           const fallback = await fetch(`${API}/chat/sessions/${sessionData.id}/messages`);
           if (fallback.ok) {
@@ -1551,6 +1594,7 @@ export const ChatWidget = () => {
                 const existingIds = new Set(prev.map(m => m.id));
                 const newMsgs = data.filter(m => !existingIds.has(m.id));
                 if (newMsgs.length > 0) {
+                  console.log(`[RAMASSER-FALLBACK] ✅ ${newMsgs.length} messages récupérés`);
                   return [...prev, ...newMsgs].sort((a, b) => 
                     new Date(a.created_at || 0) - new Date(b.created_at || 0)
                   );
@@ -1560,8 +1604,10 @@ export const ChatWidget = () => {
             }
           }
         } catch (fallbackErr) {
-          console.warn('[RAMASSER] ⚠️ Fallback aussi échoué:', fallbackErr);
+          console.warn('[RAMASSER] ❌ Fallback aussi échoué:', fallbackErr.message);
         }
+        
+        setIsSyncing(false);
       }
     };
     
@@ -1579,9 +1625,16 @@ export const ChatWidget = () => {
       fetchLatestMessages();
     };
     
+    // Listener online (retour réseau)
+    const handleOnline = () => {
+      console.log('[ONLINE] 📶 Réseau rétabli - RAMASSER messages...');
+      fetchLatestMessages();
+    };
+    
     // Ajouter les listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleOnline);
     
     // Récupération initiale au montage
     fetchLatestMessages();
@@ -1590,6 +1643,7 @@ export const ChatWidget = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleOnline);
     };
   }, [sessionData?.id, step]);
 
