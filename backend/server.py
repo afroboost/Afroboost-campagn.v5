@@ -4475,36 +4475,51 @@ async def sync_messages(session_id: str, since: Optional[str] = None, limit: int
     RAMASSER: Récupère les messages depuis la DB.
     Architecture "POSER-RAMASSER" - Le mobile appelle cet endpoint au réveil.
     
-    Args:
-        session_id: ID de la session à synchroniser
-        since: Date ISO depuis laquelle récupérer (optionnel)
-        limit: Nombre max de messages
-    
-    Returns:
-        Liste des messages triés par date
+    IMPORTANT: Toutes les comparaisons temporelles sont en UTC ISO 8601.
+    Le paramètre 'since' doit être en UTC ISO 8601 format.
     """
     query = {
         "session_id": session_id,
         "is_deleted": {"$ne": True}
     }
     
-    # Si "since" est fourni, ne récupérer que les messages après cette date
+    # Si "since" est fourni, filtrer les messages STRICTEMENT après cette date
+    # On utilise une comparaison de chaînes ISO 8601 qui fonctionne car le format est cohérent
     if since:
-        query["created_at"] = {"$gt": since}
+        # Normaliser le timestamp pour s'assurer qu'il est en UTC
+        try:
+            # Parser et reconvertir pour garantir le format
+            if 'Z' in since:
+                since = since.replace('Z', '+00:00')
+            parsed = datetime.fromisoformat(since)
+            # S'assurer qu'on a un timezone
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            # Reconvertir en UTC si nécessaire
+            utc_since = parsed.astimezone(timezone.utc).isoformat()
+            query["created_at"] = {"$gt": utc_since}
+            logger.debug(f"[SYNC] Filtrage depuis: {utc_since}")
+        except Exception as e:
+            logger.warning(f"[SYNC] Erreur parsing 'since': {e}, utilisation directe")
+            query["created_at"] = {"$gt": since}
     
     messages = await db.chat_messages.find(
         query, 
         {"_id": 0}
     ).sort("created_at", 1).to_list(limit)
     
-    logger.info(f"[SYNC] 📱 Ramassé {len(messages)} message(s) pour session {session_id[:8]}...")
+    # Timestamp UTC pour la prochaine sync
+    sync_timestamp = datetime.now(timezone.utc).isoformat()
+    
+    logger.info(f"[SYNC] 📱 Ramassé {len(messages)} message(s) pour session {session_id[:8]}... (since={since[:20] if since else 'None'})")
     
     return {
         "success": True,
         "session_id": session_id,
         "count": len(messages),
         "messages": messages,
-        "synced_at": datetime.now(timezone.utc).isoformat()
+        "synced_at": sync_timestamp,
+        "server_time_utc": sync_timestamp
     }
 
 
