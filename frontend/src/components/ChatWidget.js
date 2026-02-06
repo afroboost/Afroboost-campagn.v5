@@ -859,19 +859,20 @@ export const ChatWidget = () => {
       const compressedFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
       console.log('[PHOTO] ✅ Recadrage terminé:', Math.round(compressedFile.size / 1024), 'KB');
       
-      // Upload
+      // Upload vers le NOUVEAU endpoint qui sauvegarde en DB
       const formData = new FormData();
       formData.append('file', compressedFile);
       formData.append('participant_id', participantId || 'guest');
       
-      const res = await axios.post(`${API}/upload/profile-photo`, formData, {
+      const res = await axios.post(`${API}/users/upload-photo`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      if (res.data?.url) {
+      if (res.data?.success && res.data?.url) {
         const photoUrl = res.data.url;
         setProfilePhoto(photoUrl);
         
+        // === MISE À JOUR DU PROFIL LOCAL (sync avec DB) ===
         const profile = getStoredProfile() || {};
         profile.photoUrl = photoUrl;
         localStorage.setItem(AFROBOOST_PROFILE_KEY, JSON.stringify(profile));
@@ -880,7 +881,7 @@ export const ChatWidget = () => {
         // === ÉMETTRE LA MISE À JOUR D'AVATAR EN TEMPS RÉEL ===
         emitAvatarUpdate(photoUrl);
         
-        console.log('[PHOTO] ✅ Photo uploadée:', photoUrl);
+        console.log('[PHOTO] ✅ Photo uploadée et sauvegardée en DB:', photoUrl, res.data.db_updated);
       }
     } catch (err) {
       console.error('[PHOTO] ❌ Erreur:', err);
