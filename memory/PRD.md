@@ -1,5 +1,30 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - ADHÉSION AUTO, HISTORIQUE & FIX MOBILE ✅
+
+### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 21/21, Frontend: 5/5)
+
+#### Fonctionnalités Implémentées
+
+| Fonctionnalité | Fichier | Statut |
+|----------------|---------|--------|
+| **Adhésion automatique ?group=ID** | ChatWidget.js (ligne 997) | ✅ |
+| **Persistance historique** | ChatWidget.js (ligne 1065) | ✅ |
+| **Fix "Genève" → lieu dynamique** | server.py (ligne 353), BookingPanel.js | ✅ |
+| **Mobile safe-area-inset-bottom** | ChatWidget.js (ligne 3172) | ✅ |
+| **Modale destinataires: Fermer/Valider** | CampaignManager.js (lignes 1027, 1089) | ✅ |
+| **Modale destinataires: max-height 80vh** | CampaignManager.js (ligne 1015) | ✅ |
+
+#### Nouveaux Endpoints API
+- `POST /api/groups/join` - Rejoindre un groupe automatiquement via lien
+
+#### Changements Techniques
+- **Course model** : Ajout du champ `location` comme alias de `locationName`
+- **ChatWidget** : 2 nouveaux useEffect (checkAutoJoinGroup + loadChatHistory)
+- **CampaignManager** : Dropdown redesigné avec header/footer sticky et icônes filaires
+
+---
+
 ## Mise à jour du 6 Février 2026 - EXTRACTION CAMPAIGNMANAGER & BOOKINGPANEL ✅
 
 ### MISSION ACCOMPLIE - Tests 100% réussis (Backend: 22/22, Frontend: 8/8)
