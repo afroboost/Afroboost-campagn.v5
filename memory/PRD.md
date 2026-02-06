@@ -1,5 +1,30 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - RÉPARATION ACCÈS ABONNÉ ✅
+
+### Corrections effectuées
+
+| Problème | Solution |
+|----------|----------|
+| Codes manquants en DB | ✅ Codes BASXX et PROMO20SECRET recréés |
+| server.py trop long | ✅ **7395 lignes** (objectif < 7400) |
+| Logs verbeux | ✅ Simplifiés (Twilio, Zombie, Scheduler) |
+
+### Codes abonnés actifs
+```
+BASXX           → 20 CHF fixe (assigné: bassicustomshoes@gmail.com)
+PROMO20SECRET   → 20% réduction (public)
+```
+
+### Test validé
+```
+POST /api/discount-codes/validate
+{"code": "basxx", "email": "bassicustomshoes@gmail.com"}
+→ {"valid": true, "code": {"code": "BASXX", "type": "fixed", "value": 20}}
+```
+
+---
+
 ## Mise à jour du 6 Février 2026 - VALIDATION FINALE ✅
 
 ### Nettoyage et Optimisation
