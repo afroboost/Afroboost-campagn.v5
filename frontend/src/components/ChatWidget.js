@@ -1071,6 +1071,12 @@ export const ChatWidget = () => {
         socket.disconnect();
         socketRef.current = null;
       }
+      
+      // Nettoyer les timers typing
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
     };
   }, [sessionData?.id, step, participantId]);
 
