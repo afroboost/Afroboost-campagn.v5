@@ -441,7 +441,10 @@ export const ChatWidget = () => {
     } catch (e) {}
     return { firstName: '', whatsapp: '', email: '' };
   });
-  const [messages, setMessages] = useState([]);
+  
+  // === CACHE HYBRIDE: Initialiser avec les messages cachés pour affichage instantané ===
+  const [messages, setMessages] = useState(() => getCachedMessages());
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true); // État skeleton
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
