@@ -7235,46 +7235,32 @@ async def get_dynamic_manifest():
     return JSONResponse(content=manifest, media_type="application/manifest+json")
 
 # ==================== SCHEDULER INTÉGRÉ (APSCHEDULER AVEC PERSISTANCE) ====================
-# Le scheduler utilise APScheduler avec un JobStore MongoDB pour que les jobs
-# survivent aux redémarrages du serveur
 
 import threading
 import time as time_module
-from datetime import datetime, timezone, timedelta
 
-# APScheduler imports pour persistance MongoDB
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.triggers.interval import IntervalTrigger
 from pymongo import MongoClient
 
-# Variable globale pour contrôler le scheduler
 SCHEDULER_RUNNING = False
 SCHEDULER_LAST_HEARTBEAT = None
-SCHEDULER_INTERVAL = 60  # secondes - Heartbeat toutes les 60s (1 minute)
+SCHEDULER_INTERVAL = 60
 
-# Configuration du JobStore MongoDB pour persistance
 mongo_client_sync = MongoClient(os.environ.get('MONGO_URL'))
 jobstores = {
     'default': MongoDBJobStore(
-        database=os.environ.get('DB_NAME', 'test_database'),
+        database=os.environ.get('DB_NAME', 'afroboost'),
         collection='scheduled_jobs',
         client=mongo_client_sync
     )
 }
 
-executors = {
-    'default': ThreadPoolExecutor(10)
-}
+executors = {'default': ThreadPoolExecutor(10)}
+job_defaults = {'coalesce': True, 'max_instances': 1, 'misfire_grace_time': 60}
 
-job_defaults = {
-    'coalesce': True,  # Combine les jobs manqués en un seul
-    'max_instances': 1,  # Un seul job à la fois
-    'misfire_grace_time': 60  # Tolérance de 60s pour les jobs manqués
-}
-
-# Création du scheduler avec persistance MongoDB
 apscheduler = BackgroundScheduler(
     jobstores=jobstores,
     executors=executors,
@@ -7284,19 +7270,17 @@ apscheduler = BackgroundScheduler(
 
 print("✅ APScheduler configuré avec persistance MongoDB : OK")
 
-# Import pytz pour la gestion des fuseaux horaires Europe/Paris
-# NOTE: Les fonctions utilitaires du scheduler sont dans scheduler_engine.py
-from scheduler_engine import (
-    PARIS_TZ,
-    parse_campaign_date,
-    get_current_times,
-    should_process_campaign_date,
-    format_campaign_result,
-    validate_cta_link,
-    scheduler_send_email_sync,
-    scheduler_send_internal_message_sync,
-    scheduler_send_group_message_sync
-)
+# Import du moteur de scheduler externe
+from scheduler_engine import scheduler_job as scheduler_job_engine, PARIS_TZ, parse_campaign_date
+
+# Référence mutable pour le heartbeat (passée au scheduler)
+SCHEDULER_HEARTBEAT_REF = [None]
+
+def scheduler_job():
+    """Wrapper pour le job du scheduler - appelle scheduler_engine."""
+    global SCHEDULER_LAST_HEARTBEAT
+    scheduler_job_engine(mongo_client_sync, SCHEDULER_HEARTBEAT_REF)
+    SCHEDULER_LAST_HEARTBEAT = SCHEDULER_HEARTBEAT_REF[0]
 
 def scheduler_send_whatsapp_sync(to_phone, message, media_url=None):
     """Envoi synchrone de WhatsApp pour le scheduler."""
