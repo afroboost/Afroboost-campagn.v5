@@ -1146,14 +1146,18 @@ export const ChatWidget = () => {
       
       if (!storedProfile && !savedSession?.id) {
         console.log('[HISTORY] ⚠️ Pas de session active, historique non chargé');
+        setIsLoadingHistory(false); // Masquer skeleton
         return;
       }
       
-      // Ne charger que si on est en step 'chat' et qu'il n'y a pas encore de messages
-      if (step !== 'chat' || messages.length > 0) return;
+      // Charger même si on a des messages en cache (pour mise à jour)
+      if (step !== 'chat') {
+        setIsLoadingHistory(false);
+        return;
+      }
       
       try {
-        console.log('[HISTORY] 📜 Chargement de l\'historique...');
+        console.log('[HISTORY] 📜 Chargement de l\'historique depuis l\'API...');
         
         // Essayer de charger l'historique via smart-entry ou directement
         if (savedSession?.id) {
@@ -1167,16 +1171,28 @@ export const ChatWidget = () => {
             }));
             setMessages(restoredMessages);
             setLastMessageCount(restoredMessages.length);
-            console.log('[HISTORY] ✅', restoredMessages.length, 'messages restaurés');
+            // === CACHE HYBRIDE: Sauvegarder dans sessionStorage ===
+            saveCachedMessages(restoredMessages);
+            console.log('[HISTORY] ✅', restoredMessages.length, 'messages restaurés et mis en cache');
           }
         }
       } catch (err) {
         console.warn('[HISTORY] ⚠️ Historique non disponible:', err.message);
+      } finally {
+        // Masquer le skeleton après le chargement (succès ou échec)
+        setIsLoadingHistory(false);
       }
     };
     
     loadChatHistory();
   }, [step, sessionData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // === CACHE HYBRIDE: Mettre à jour le cache à chaque nouveau message ===
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveCachedMessages(messages);
+    }
+  }, [messages]);
 
   // Extraire le token de lien depuis l'URL si présent
   const getLinkTokenFromUrl = () => {
