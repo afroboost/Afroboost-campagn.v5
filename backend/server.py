@@ -5661,23 +5661,12 @@ async def get_ai_response_with_session(request: Request):
             logger.warning(f"[CHAT-AI-RESPONSE] Erreur récupération historique: {e}")
     # === FIN DES SECTIONS VENTE (uniquement en mode STANDARD) ===
     
-    # =====================================================================
-    # ARCHITECTURE DE PROMPT - LOGIQUE DE REMPLACEMENT TOTAL
-    # MODE STRICT: custom_prompt REMPLACE BASE_PROMPT (pas d'ajout)
-    # MODE STANDARD: BASE + SECURITY + CAMPAIGN (flux habituel)
-    # =====================================================================
-    
-    # Détecter intention essai gratuit (pour mode STANDARD uniquement)
+    # ARCHITECTURE DE PROMPT
     user_message_lower = message_text.lower() if message_text else ""
     is_trial_intent = any(word in user_message_lower for word in ['essai', 'gratuit', 'tester', 'essayer', 'test', 'découvrir'])
     
     if use_strict_mode:
-        # =====================================================================
-        # MODE STRICT : CONTEXTE MINIMALISTE SANS AUCUNE INFO DE VENTE
-        # =====================================================================
-        # Le custom_prompt REMPLACE ENTIÈREMENT le BASE_PROMPT
-        # AUCUNE donnée de prix, tarif, boutique, Twint n'est injectée
-        
+        # MODE STRICT : custom_prompt REMPLACE BASE_PROMPT, aucune donnée de vente
         STRICT_SYSTEM_PROMPT = """
 ╔══════════════════════════════════════════════════════════════════════╗
 ║        🔒🔒🔒 MODE STRICT - PARTENARIAT / COLLABORATION 🔒🔒🔒        ║
