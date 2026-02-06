@@ -430,6 +430,22 @@ export const ChatWidget = () => {
   const [linkCopied, setLinkCopied] = useState(false);
   const [isVisitorMode, setIsVisitorMode] = useState(false); // Mode visiteur (chat réduit mais profil conservé)
   
+  // === PRÉFÉRENCES SONORES (persistées dans localStorage) ===
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try {
+      const saved = localStorage.getItem('afroboost_sound_enabled');
+      return saved !== null ? saved === 'true' : true; // Activé par défaut
+    } catch { return true; }
+  });
+  
+  // Sauvegarder les préférences sonores
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('afroboost_sound_enabled', String(newValue));
+    console.log('[SOUND] 🔊', newValue ? 'Activé' : 'Désactivé');
+  };
+  
   // Fonction pour copier le lien du site
   const handleShareLink = async () => {
     try {
