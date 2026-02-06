@@ -350,6 +350,7 @@ class Course(BaseModel):
     weekday: int
     time: str
     locationName: str
+    location: Optional[str] = None  # Alias de locationName pour le frontend
     mapsUrl: Optional[str] = ""
     visible: bool = True
     archived: bool = False  # Archive au lieu de supprimer
