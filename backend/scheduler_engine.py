@@ -349,7 +349,7 @@ def scheduler_job(mongo_client_sync, scheduler_heartbeat_ref):
     Job APScheduler - s'exécute toutes les 60 secondes.
     Architecture "POSER-RAMASSER": DB = seule source de vérité.
     """
-    scheduler_db = mongo_client_sync[os.environ.get('DB_NAME', 'afroboost')]
+    scheduler_db = mongo_client_sync[os.environ.get('DB_NAME', 'test_database')]
     
     try:
         now_utc = datetime.now(timezone.utc)
