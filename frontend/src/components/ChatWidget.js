@@ -1099,6 +1099,34 @@ export const ChatWidget = () => {
     setLoadingCourses(false);
   }, []);
 
+  // === CHARGER LA PHOTO DEPUIS LA DB (pas localStorage) ===
+  // Se déclenche quand participantId est disponible
+  useEffect(() => {
+    const loadPhotoFromDB = async () => {
+      if (!participantId) return;
+      
+      try {
+        const res = await axios.get(`${API}/users/${participantId}/profile`);
+        if (res.data?.success && res.data?.photo_url) {
+          console.log('[PHOTO] ✅ Photo chargée depuis DB:', res.data.photo_url);
+          setProfilePhoto(res.data.photo_url);
+          
+          // Synchroniser localStorage avec la DB
+          const profile = getStoredProfile() || {};
+          if (profile.photoUrl !== res.data.photo_url) {
+            profile.photoUrl = res.data.photo_url;
+            localStorage.setItem(AFROBOOST_PROFILE_KEY, JSON.stringify(profile));
+            setAfroboostProfile(profile);
+          }
+        }
+      } catch (err) {
+        console.log('[PHOTO] ℹ️ Profil DB non trouvé, utilise localStorage');
+      }
+    };
+    
+    loadPhotoFromDB();
+  }, [participantId]);
+
   // === FONCTIONS MODE PLEIN ÉCRAN (CSS - plus fiable) ===
   const toggleFullscreen = () => {
     setIsFullscreen(prev => !prev);
