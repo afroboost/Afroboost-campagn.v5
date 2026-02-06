@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://refactor-monolith-7.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://videoplus-23.preview.emergentagent.com')
 
 class TestBackendAPIs:
     """Test backend API endpoints for campaigns and scheduler"""

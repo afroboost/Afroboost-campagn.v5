@@ -20,7 +20,7 @@ import requests
 import os
 import re
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://refactor-monolith-7.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://videoplus-23.preview.emergentagent.com')
 
 # Read the CoachDashboard.js file content
 COACH_DASHBOARD_PATH = '/app/frontend/src/components/CoachDashboard.js'
