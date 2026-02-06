@@ -2222,7 +2222,7 @@ export const ChatWidget = () => {
         </button>
       )}
 
-      {/* Fenêtre de chat - Responsive */}
+      {/* Fenêtre de chat - Responsive avec dvh pour compatibilité clavier mobile */}
       {isOpen && (
         <div
           ref={chatContainerRef}
@@ -2234,9 +2234,9 @@ export const ChatWidget = () => {
             top: isFullscreen ? '0' : 'auto',
             width: isFullscreen ? '100vw' : '380px',
             maxWidth: isFullscreen ? '100vw' : 'calc(100vw - 40px)',
-            height: isFullscreen ? '100vh' : '70vh',
-            maxHeight: isFullscreen ? '100vh' : '85vh',
-            minHeight: isFullscreen ? '100vh' : '400px',
+            height: isFullscreen ? '100dvh' : '70vh', /* dvh pour compatibilité clavier mobile */
+            maxHeight: isFullscreen ? '100dvh' : '85vh',
+            minHeight: isFullscreen ? '100dvh' : '400px',
             borderRadius: isFullscreen ? '0' : '16px',
             background: '#0a0a0a',
             border: isFullscreen ? 'none' : '1px solid rgba(217, 28, 210, 0.3)',
