@@ -1,5 +1,46 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## Mise à jour du 6 Février 2026 - SYNC UTC & DÉLAI RÉSEAU ✅
+
+### Améliorations de la synchronisation temporelle
+
+| Critère | Implémentation |
+|---------|----------------|
+| Timestamps | ✅ **UTC ISO 8601** exclusivement |
+| Filtrage serveur | ✅ Parsing + normalisation du `since` |
+| Délai post-online | ✅ **800ms** avant sync |
+| Tri messages | ✅ Comparaison `localeCompare` sur ISO |
+| Anti-doublon | ✅ Filtre sur `msg.id` unique |
+
+#### Backend (`/api/messages/sync`)
+```python
+# Normalisation UTC du paramètre since
+if 'Z' in since:
+    since = since.replace('Z', '+00:00')
+parsed = datetime.fromisoformat(since)
+utc_since = parsed.astimezone(timezone.utc).isoformat()
+query["created_at"] = {"$gt": utc_since}
+```
+
+#### Frontend (handleOnline)
+```javascript
+// Délai 800ms après retour réseau pour stabiliser la connexion IP
+const handleOnline = () => {
+    setTimeout(() => {
+        fetchLatestMessages(0, 'online');
+    }, 800); // ONLINE_DELAY
+};
+```
+
+#### Test validé
+```
+Since: 2026-02-06T12:55:00+00:00
+→ Retourne message créé à 12:59:23 ✅
+Server time: 2026-02-06T13:01:14+00:00 ✅
+```
+
+---
+
 ## Mise à jour du 6 Février 2026 - RAMASSER RÉSILIENT ✅
 
 ### Améliorations du système de synchronisation
