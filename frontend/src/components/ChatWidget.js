@@ -2128,7 +2128,7 @@ export const ChatWidget = () => {
             border-radius: 16px 16px 0 0 !important;
           }
           .chat-widget-button {
-            bottom: 20px !important;
+            bottom: 100px !important; /* Décalé vers le haut pour ne pas gêner la barre d'input */
             right: 16px !important;
             width: 60px !important;
             height: 60px !important;
