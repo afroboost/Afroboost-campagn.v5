@@ -994,6 +994,119 @@ export const ChatWidget = () => {
     }
   }, []);
 
+  // === ADHÉSION AUTOMATIQUE VIA LIEN ?group=ID ===
+  // Si l'URL contient ?group=ID et que l'utilisateur est déjà connecté (afroboost_profile),
+  // rejoindre automatiquement le groupe sans afficher de formulaire
+  useEffect(() => {
+    const checkAutoJoinGroup = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const groupId = urlParams.get('group');
+        
+        // Si pas de paramètre group dans l'URL, ne rien faire
+        if (!groupId) return;
+        
+        // Vérifier si l'utilisateur est déjà connecté
+        const storedProfile = getStoredProfile();
+        if (!storedProfile || !storedProfile.email) {
+          console.log('[AUTO-JOIN] ⚠️ Utilisateur non connecté, formulaire requis');
+          return;
+        }
+        
+        console.log('[AUTO-JOIN] 🚀 Tentative d\'adhésion automatique au groupe:', groupId);
+        
+        // Appeler l'API pour rejoindre le groupe silencieusement
+        const response = await axios.post(`${API}/groups/join`, {
+          group_id: groupId,
+          email: storedProfile.email,
+          name: storedProfile.name,
+          user_id: participantId || storedProfile.id
+        });
+        
+        if (response.data.success) {
+          console.log('[AUTO-JOIN] ✅ Groupe rejoint avec succès:', response.data);
+          
+          // Ouvrir automatiquement l'onglet du groupe
+          if (response.data.conversation_id) {
+            // Charger l'historique du groupe
+            try {
+              const historyRes = await axios.get(`${API}/chat/sessions/${response.data.conversation_id}/messages`);
+              if (historyRes.data && historyRes.data.length > 0) {
+                const restoredMessages = historyRes.data.map(msg => ({
+                  id: msg.id,
+                  type: msg.sender_type === 'user' ? 'user' : msg.sender_type === 'coach' ? 'coach' : 'ai',
+                  text: msg.content,
+                  sender: msg.sender_name
+                }));
+                setMessages(restoredMessages);
+              }
+            } catch (histErr) {
+              console.warn('[AUTO-JOIN] Historique non chargé:', histErr.message);
+            }
+          }
+          
+          // Basculer vers le mode chat
+          setStep('chat');
+          setIsOpen(true);
+          
+          // Nettoyer l'URL (enlever ?group=ID)
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, '', cleanUrl);
+        }
+      } catch (err) {
+        console.error('[AUTO-JOIN] ❌ Erreur adhésion automatique:', err.response?.data || err.message);
+        // En cas d'erreur, ne pas bloquer l'utilisateur - il peut toujours utiliser le formulaire
+      }
+    };
+    
+    checkAutoJoinGroup();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // === PERSISTANCE HISTORIQUE - Charger l'historique au montage si connecté ===
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      // Vérifier si l'utilisateur est connecté
+      const storedProfile = getStoredProfile();
+      const savedSession = sessionData || (() => {
+        try {
+          return JSON.parse(localStorage.getItem(CHAT_SESSION_KEY));
+        } catch { return null; }
+      })();
+      
+      if (!storedProfile && !savedSession?.id) {
+        console.log('[HISTORY] ⚠️ Pas de session active, historique non chargé');
+        return;
+      }
+      
+      // Ne charger que si on est en step 'chat' et qu'il n'y a pas encore de messages
+      if (step !== 'chat' || messages.length > 0) return;
+      
+      try {
+        console.log('[HISTORY] 📜 Chargement de l\'historique...');
+        
+        // Essayer de charger l'historique via smart-entry ou directement
+        if (savedSession?.id) {
+          const response = await axios.get(`${API}/chat/sessions/${savedSession.id}/messages`);
+          if (response.data && response.data.length > 0) {
+            const restoredMessages = response.data.map(msg => ({
+              id: msg.id,
+              type: msg.sender_type === 'user' ? 'user' : msg.sender_type === 'coach' ? 'coach' : 'ai',
+              text: msg.content,
+              sender: msg.sender_name
+            }));
+            setMessages(restoredMessages);
+            setLastMessageCount(restoredMessages.length);
+            console.log('[HISTORY] ✅', restoredMessages.length, 'messages restaurés');
+          }
+        }
+      } catch (err) {
+        console.warn('[HISTORY] ⚠️ Historique non disponible:', err.message);
+      }
+    };
+    
+    loadChatHistory();
+  }, [step, sessionData]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Extraire le token de lien depuis l'URL si présent
   const getLinkTokenFromUrl = () => {
     const path = window.location.pathname;
