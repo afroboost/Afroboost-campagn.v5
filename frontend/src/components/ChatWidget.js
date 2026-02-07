@@ -137,6 +137,21 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
   const htmlContent = parseMessageContent(msg.text);
   const isOtherUser = isCommunity && msg.type === 'user' && msg.senderId && msg.senderId !== currentUserId;
   
+  // === DÉTECTION AUTOMATIQUE DES MÉDIAS DANS LE TEXTE ===
+  const detectMediaInText = (text) => {
+    if (!text) return null;
+    const urlPattern = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/g;
+    const urls = text.match(urlPattern) || [];
+    for (const url of urls) {
+      if (isMediaUrl(url)) {
+        return parseMediaUrl(url);
+      }
+    }
+    return null;
+  };
+  
+  const detectedMedia = detectMediaInText(msg.text);
+  
   // Déterminer si c'est un message du Coach HUMAIN (pas l'IA)
   const isCoachMessage = msg.type === 'coach' || msg.is_admin === true || msg.role === 'coach';
   
