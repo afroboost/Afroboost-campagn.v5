@@ -249,38 +249,51 @@ const InlineImage = ({ src }) => (
   />
 );
 
-const InlineCtaButton = ({ label, url }) => (
-  <a
-    href={url}
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '8px',
-      marginTop: '10px',
-      padding: '12px 20px',
-      background: 'linear-gradient(135deg, #9333ea, #d91cd2)',
-      borderRadius: '12px',
-      color: '#fff',
-      fontWeight: '600',
-      fontSize: '14px',
-      textDecoration: 'none',
-      transition: 'transform 0.2s, opacity 0.2s'
-    }}
-    onMouseEnter={(e) => { e.target.style.transform = 'scale(1.02)'; e.target.style.opacity = '0.9'; }}
-    onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; e.target.style.opacity = '1'; }}
-    data-testid="inline-cta-button"
-  >
-    {label}
-    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-      <polyline points="15 3 21 3 21 9"/>
-      <line x1="10" y1="14" x2="21" y2="3"/>
-    </svg>
-  </a>
-);
+const InlineCtaButton = ({ label, url }) => {
+  // Validation stricte : label ET url doivent être non-vides
+  if (!label || !url || typeof label !== 'string' || typeof url !== 'string') return null;
+  const trimmedLabel = label.trim();
+  const trimmedUrl = url.trim();
+  if (!trimmedLabel || !trimmedUrl) return null;
+  
+  // Auto-ajout de https:// si manquant
+  const safeUrl = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://') 
+    ? trimmedUrl 
+    : `https://${trimmedUrl}`;
+  
+  return (
+    <a
+      href={safeUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        marginTop: '10px',
+        padding: '12px 20px',
+        background: 'linear-gradient(135deg, #9333ea, #d91cd2)',
+        borderRadius: '12px',
+        color: '#fff',
+        fontWeight: '600',
+        fontSize: '14px',
+        textDecoration: 'none',
+        transition: 'transform 0.2s, opacity 0.2s'
+      }}
+      onMouseEnter={(e) => { e.target.style.transform = 'scale(1.02)'; e.target.style.opacity = '0.9'; }}
+      onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; e.target.style.opacity = '1'; }}
+      data-testid="inline-cta-button"
+    >
+      {trimmedLabel}
+      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+    </a>
+  );
+};
 
 /**
  * Composant pour afficher un message avec liens cliquables et emojis
