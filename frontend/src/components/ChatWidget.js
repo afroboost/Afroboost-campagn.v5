@@ -1466,16 +1466,20 @@ export const ChatWidget = () => {
         
         // Ajouter le message à la liste
         setMessages(prev => {
-          // Éviter les doublons
+          // Éviter les doublons (par ID)
           const exists = prev.some(m => m.id === messageData.id);
-          if (exists) return prev;
+          if (exists) {
+            console.log('[SOCKET.IO] ⚠️ Doublon ignoré:', messageData.id);
+            return prev;
+          }
           
           return [...prev, {
             id: messageData.id,
             type: messageData.type,
             text: messageData.text,
             sender: messageData.sender,
-            senderId: messageData.senderId
+            senderId: messageData.senderId,
+            created_at: messageData.created_at || new Date().toISOString()
           }];
         });
         
