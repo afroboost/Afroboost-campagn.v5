@@ -48,26 +48,11 @@ RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 if RESEND_AVAILABLE and RESEND_API_KEY:
     resend.api_key = RESEND_API_KEY
 
-# ==================== TWILIO CONFIGURATION (PRIORITÉ .ENV) ====================
-# Les variables .env sont PRIORITAIRES sur la config en base de données
-# Cela garantit que le numéro de production ne sera jamais écrasé par le sandbox
+# TWILIO CONFIGURATION
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER', '')
-
-# VALIDATION CRITIQUE: Vérification des identifiants Twilio au démarrage
-# Un Account SID Twilio valide fait EXACTEMENT 34 caractères (AC + 32)
-if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_FROM_NUMBER:
-    if len(TWILIO_ACCOUNT_SID) != 34 or not TWILIO_ACCOUNT_SID.startswith('AC'):
-        print(f"[TWILIO] 🚨 Account SID invalide")
-    else:
-        print(f"[TWILIO] ✅ Config OK | FROM: {TWILIO_FROM_NUMBER}")
-else:
-    print(f"[TWILIO] ⚠️ Config incomplète - fallback DB")
-
 TWILIO_SANDBOX_NUMBER = "+14155238886"
-if TWILIO_FROM_NUMBER == TWILIO_SANDBOX_NUMBER:
-    print(f"[TWILIO] 🚨 Numéro Sandbox détecté!")
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL')
@@ -1432,12 +1417,10 @@ async def create_reservation(reservation: ReservationCreate):
                     "html": html_content
                 }
                 
-                # Envoi asynchrone (ne bloque pas la réponse)
                 email_response = await asyncio.to_thread(resend.Emails.send, params)
-                print(f"[NOTIFICATION] ✅ Email envoyé au coach: {email_response}")
+                logger.info(f"[NOTIFICATION] Email envoyé: {email_response}")
         except Exception as e:
-            # Log l'erreur mais ne bloque pas la réservation
-            print(f"[NOTIFICATION] ⚠️ Erreur envoi email: {str(e)}")
+            logger.warning(f"[NOTIFICATION] Erreur email: {str(e)}")
     
     return res_obj
 
@@ -1572,7 +1555,7 @@ async def validate_discount_code(data: dict):
             if expiry_date < datetime.now(timezone.utc):
                 return {"valid": False, "message": "Code promo expiré"}
         except Exception as e:
-            print(f"Date parsing error: {e}")
+            logger.debug(f"Date parsing: {e}")
     
     # Check max uses
     if code.get("maxUses") and code.get("used", 0) >= code["maxUses"]:
@@ -2393,13 +2376,11 @@ async def get_concept():
 async def update_concept(concept: ConceptUpdate):
     try:
         updates = {k: v for k, v in concept.model_dump().items() if v is not None}
-        print(f"Updating concept with: {updates}")
         result = await db.concept.update_one({"id": "concept"}, {"$set": updates}, upsert=True)
-        print(f"Update result: matched={result.matched_count}, modified={result.modified_count}")
         updated = await db.concept.find_one({"id": "concept"}, {"_id": 0})
         return updated
     except Exception as e:
-        print(f"Error updating concept: {e}")
+        logger.error(f"Error updating concept: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Config ---
@@ -2551,7 +2532,7 @@ async def process_google_session(request: Request, response: Response):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Google auth error: {e}")
+        logger.error(f"Google auth error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/auth/me")
