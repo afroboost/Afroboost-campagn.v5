@@ -337,13 +337,14 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
           />
         </div>
         
-        {/* Horodatage sous la bulle */}
+        {/* Horodatage sous la bulle - visible et clair */}
         {msg.created_at && (
           <div style={{
-            fontSize: '10px',
-            color: 'rgba(255,255,255,0.4)',
-            marginTop: '2px',
-            textAlign: isUser ? 'right' : 'left'
+            fontSize: '11px',
+            color: 'rgba(255,255,255,0.7)',
+            marginTop: '4px',
+            textAlign: isUser ? 'right' : 'left',
+            fontWeight: '400'
           }}>
             {formatMessageTime(msg.created_at)}
           </div>
