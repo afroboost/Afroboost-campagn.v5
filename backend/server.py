@@ -7335,7 +7335,7 @@ from pymongo import MongoClient
 
 SCHEDULER_RUNNING = False
 SCHEDULER_LAST_HEARTBEAT = None
-SCHEDULER_INTERVAL = 60
+SCHEDULER_INTERVAL = 30
 
 mongo_client_sync = MongoClient(os.environ.get('MONGO_URL'))
 jobstores = {
