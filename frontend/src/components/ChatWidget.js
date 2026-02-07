@@ -508,8 +508,8 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
         )}
         
         {/* === BOUTON CTA SI PRÉSENT === */}
-        {(msg.cta_label && msg.cta_url) && (
-          <InlineCtaButton label={msg.cta_label} url={msg.cta_url} />
+        {(msg.cta_text && msg.cta_link) && (
+          <InlineCtaButton label={msg.cta_text} url={msg.cta_link} />
         )}
         
         {/* Horodatage sous la bulle - visible et clair */}
