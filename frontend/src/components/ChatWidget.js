@@ -327,7 +327,6 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
               : '16px 16px 16px 4px',
             fontSize: '13px',
             lineHeight: '1.4',
-            // Bordure subtile dorée pour les bulles Coach
             border: isCoachMessage && !isUser ? '1px solid rgba(251, 191, 36, 0.4)' : 'none'
           }}
         >
@@ -337,6 +336,18 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
             style={{ wordBreak: 'break-word' }}
           />
         </div>
+        
+        {/* Horodatage sous la bulle */}
+        {msg.created_at && (
+          <div style={{
+            fontSize: '10px',
+            color: 'rgba(255,255,255,0.4)',
+            marginTop: '2px',
+            textAlign: isUser ? 'right' : 'left'
+          }}>
+            {formatMessageTime(msg.created_at)}
+          </div>
+        )}
       </div>
     </div>
   );
