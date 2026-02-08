@@ -1603,7 +1603,7 @@ export const ChatWidget = () => {
             setLastMessageCount(restoredMessages.length);
             // === CACHE HYBRIDE: Sauvegarder dans sessionStorage ===
             saveCachedMessages(restoredMessages);
-            console.log('[HISTORY] ✅', restoredMessages.length, 'messages restaurés et mis en cache');
+            console.log('[HISTORY]', restoredMessages.length, 'messages restaurés et mis en cache');
           }
         }
       } catch (err) {
@@ -1658,7 +1658,7 @@ export const ChatWidget = () => {
       });
       
       socket.on('joined_session', (data) => {
-        console.log('[SOCKET.IO] 🎉 Session rejointe:', data);
+        console.log('[SOCKET.IO] Session rejointe:', data);
       });
       
       // Gestion erreur WebSocket
@@ -1666,7 +1666,7 @@ export const ChatWidget = () => {
         console.error('[SOCKET.IO] Erreur WebSocket:', error.message);
         // Tenter une reconnexion avec polling en dernier recours
         if (socket.io.opts.transports[0] === 'websocket') {
-          console.log('[SOCKET.IO] 🔄 Tentative fallback polling...');
+          console.log('[SOCKET.IO] Tentative fallback polling...');
           socket.io.opts.transports = ['polling', 'websocket'];
           socket.connect();
         }
@@ -1674,7 +1674,7 @@ export const ChatWidget = () => {
       
       // === RECONNEXION: Récupérer les messages manqués ===
       socket.on('reconnect', async (attemptNumber) => {
-        console.log(`[SOCKET.IO] 🔄 Reconnexion réussie (tentative ${attemptNumber})`);
+        console.log(`[SOCKET.IO] Reconnexion réussie (tentative ${attemptNumber})`);
         // Rejoindre à nouveau la session
         socket.emit('join_session', {
           session_id: sessionData.id,
@@ -1884,7 +1884,7 @@ export const ChatWidget = () => {
           url += `&since=${encodeURIComponent(lastSyncTime)}`;
         }
         
-        console.log(`[RAMASSER] 🔄 Sync depuis ${source} (since=${lastSyncTime ? lastSyncTime.substring(0, 19) : 'null'})`);
+        console.log(`[RAMASSER] Sync depuis ${source} (since=${lastSyncTime ? lastSyncTime.substring(0, 19) : 'null'})`);
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
@@ -1939,7 +1939,7 @@ export const ChatWidget = () => {
         
         // Retry si pas épuisé et toujours en ligne
         if (retryCount < MAX_RETRIES - 1 && navigator.onLine) {
-          console.log(`[RAMASSER] 🔄 Retry dans ${RETRY_DELAY/1000}s...`);
+          console.log(`[RAMASSER] Retry dans ${RETRY_DELAY/1000}s...`);
           await new Promise(r => setTimeout(r, RETRY_DELAY));
           return fetchLatestMessages(retryCount + 1, source);
         }
