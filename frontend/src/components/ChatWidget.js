@@ -611,7 +611,7 @@ export const ChatWidget = () => {
       if (cached) {
         const messages = JSON.parse(cached);
         if (Array.isArray(messages) && messages.length > 0) {
-          console.log('[CACHE] ✅ Messages cachés trouvés:', messages.length);
+          console.log('[CACHE] Messages cachés trouvés:', messages.length);
           return messages;
         }
       }
