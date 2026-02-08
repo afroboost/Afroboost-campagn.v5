@@ -97,7 +97,7 @@ const GroupIcon = () => (
 );
 
 /**
- * Formate l'horodatage d'un message (Aujourd'hui, Hier, ou Date + Heure)
+ * Formate l'horodatage d'un message (Heure seule, Hier + Heure, ou Date + Heure)
  */
 const formatMessageTime = (dateStr) => {
   if (!dateStr) return '';
@@ -112,15 +112,14 @@ const formatMessageTime = (dateStr) => {
     yesterday.setDate(yesterday.getDate() - 1);
     const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    // Format heure locale (fr-CH = Suisse/Paris)
-    const timeStr = date.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+    // Format heure locale 24h (Europe/Paris)
+    const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
     
     if (msgDate.getTime() === today.getTime()) {
-      return `Aujourd'hui, ${timeStr}`;
+      return timeStr; // Juste "14:05" pour aujourd'hui
     } else if (msgDate.getTime() === yesterday.getTime()) {
       return `Hier, ${timeStr}`;
     } else {
-      // Format "08/02, 18:30" pour les jours précédents
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       return `${day}/${month}, ${timeStr}`;
