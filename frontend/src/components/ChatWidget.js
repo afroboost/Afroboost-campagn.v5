@@ -1945,7 +1945,7 @@ export const ChatWidget = () => {
         }
         
         // Fallback vers l'ancien endpoint
-        console.log('[RAMASSER] 🔄 Tentative fallback...');
+        console.log('[RAMASSER] Tentative fallback...');
         try {
           const fallback = await fetch(`${API}/chat/sessions/${sessionData.id}/messages`);
           if (fallback.ok) {
@@ -1983,7 +1983,7 @@ export const ChatWidget = () => {
     
     // Listener focus (clic sur la fenêtre)
     const handleFocus = () => {
-      console.log('[FOCUS] 🎯 App focus');
+      console.log('[FOCUS] App focus');
       fetchLatestMessages(0, 'focus');
     };
     
@@ -2003,7 +2003,7 @@ export const ChatWidget = () => {
       if (connectionChangeTimeout) clearTimeout(connectionChangeTimeout);
       connectionChangeTimeout = setTimeout(() => {
         if (navigator.onLine) {
-          console.log('[CONNECTION] 🔄 Type réseau changé - Sync...');
+          console.log('[CONNECTION] Type réseau changé - Sync...');
           fetchLatestMessages(0, 'connection_change');
         }
       }, 1000); // 1s de délai pour stabiliser
@@ -2431,7 +2431,7 @@ export const ChatWidget = () => {
       // Fallback: continuer sans le backend amélioré
       setMessages([{
         type: 'ai',
-        text: `Enchanté ${clientData.firstName} ! 👋 Comment puis-je t'aider ?`
+        text: `Enchanté ${clientData.firstName} ! Comment puis-je t'aider ?`
       }]);
       setStep('chat');
       return { success: false };
@@ -2494,7 +2494,7 @@ export const ChatWidget = () => {
       setStep('chat');
       setMessages([{
         type: 'ai',
-        text: `Enchanté ${leadData.firstName} ! 👋 Comment puis-je t'aider ?`
+        text: `Enchanté ${leadData.firstName} ! Comment puis-je t'aider ?`
       }]);
     } finally {
       setIsLoading(false);
@@ -2565,7 +2565,7 @@ export const ChatWidget = () => {
           setMessages(prev => [...prev, { 
             type: 'ai', 
             text: isCommunityMode 
-              ? "Message envoyé au groupe ! 👥 Les autres participants verront votre message."
+              ? "Message envoyé au groupe ! Les autres participants verront votre message."
               : "Message reçu ! Le coach vous répondra bientôt. 💬"
           }]);
         }
