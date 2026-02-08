@@ -661,7 +661,7 @@ export const ChatWidget = () => {
       const groupId = urlParams.get('group');
       
       if (profile && groupId) {
-        console.log('[ZERO-FLASH] ✅ Abonné reconnu + lien groupe → DIRECT chat');
+        console.log('[ZERO-FLASH] Abonné reconnu + lien groupe -> DIRECT chat');
         return 'chat'; // Adhésion instantanée, formulaire JAMAIS affiché
       }
       
