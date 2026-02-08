@@ -685,7 +685,7 @@ export const ChatWidget = () => {
         
         // Vérification des données minimales requises
         if (data && typeof data === 'object' && data.firstName && typeof data.firstName === 'string' && data.firstName.trim()) {
-          console.log('[PERSISTENCE] ✅ Utilisateur reconnu:', data.firstName);
+          console.log('[PERSISTENCE] Utilisateur reconnu:', data.firstName);
           return 'chat'; // Utilisateur déjà identifié → DIRECT au chat
         } else {
           throw new Error('Données utilisateur incomplètes');
