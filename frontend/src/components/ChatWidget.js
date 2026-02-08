@@ -666,7 +666,7 @@ export const ChatWidget = () => {
       }
       
       if (profile) {
-        console.log('[PERSISTENCE] ✅ Abonné reconnu:', profile.name, '- Code:', profile.code);
+        console.log('[PERSISTENCE] Abonné reconnu:', profile.name, '- Code:', profile.code);
         return 'chat'; // Abonné → DIRECT au chat en mode plein écran
       }
       
