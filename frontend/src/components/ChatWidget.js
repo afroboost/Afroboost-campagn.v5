@@ -2978,14 +2978,14 @@ export const ChatWidget = () => {
                   ) : (
                     /* Afficher le statut abonné si profil validé */
                     afroboostProfile?.code && step === 'chat'
-                      ? `💎 Abonné • ${afroboostProfile.name}`
+                      ? `Abonné - ${afroboostProfile.name}`
                       : isReturningClient && step === 'chat' 
-                        ? `👋 ${leadData.firstName}` 
+                        ? leadData.firstName 
                         : isCommunityMode 
-                          ? '👥 Chat Groupe'
+                          ? 'Chat Groupe'
                           : sessionData?.is_ai_active === false 
-                            ? '👤 Mode Coach'
-                            : '💪 Coach Bassi'
+                            ? 'Mode Coach'
+                            : 'Coach Bassi'
                   )}
                 </div>
               </div>
