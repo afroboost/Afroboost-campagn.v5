@@ -1268,6 +1268,12 @@ export const ChatWidget = () => {
 
   // === HANDLER CLIC BOUTON RÉSERVATION ===
   const handleReservationClick = useCallback(async () => {
+    // BLINDAGE: Bloquer en mode Vue Visiteur
+    if (isVisitorPreview) {
+      console.log('[ADMIN] Réservation bloquée en mode Vue Visiteur');
+      return;
+    }
+    
     if (showReservationPanel) {
       // Fermer le panel
       setShowReservationPanel(false);
@@ -1280,7 +1286,7 @@ export const ChatWidget = () => {
     
     if (!canReserve) {
       const reason = reservationEligibility?.reason || "Code invalide";
-      setReservationError(`⚠️ ${reason}. Réservation impossible.`);
+      setReservationError(`${reason}. Réservation impossible.`);
       // Afficher l'erreur pendant 5 secondes
       setTimeout(() => setReservationError(''), 5000);
       return;
@@ -1290,7 +1296,7 @@ export const ChatWidget = () => {
     loadAvailableCourses();
     setShowReservationPanel(true);
     setSelectedCourse(null);
-  }, [showReservationPanel, checkReservationEligibility, reservationEligibility]);
+  }, [showReservationPanel, checkReservationEligibility, reservationEligibility, isVisitorPreview]);
 
   // === HANDLER CONFIRMATION RÉSERVATION (extrait pour BookingPanel) ===
   const handleConfirmReservation = useCallback(async () => {
