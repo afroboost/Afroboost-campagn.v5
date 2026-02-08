@@ -598,7 +598,7 @@ export const ChatWidget = () => {
         }
       }
     } catch (e) {
-      console.warn('[PROFILE] ⚠️ Erreur lecture profil:', e.message);
+      console.warn('[PROFILE] Erreur lecture profil:', e.message);
     }
     return null;
   };
