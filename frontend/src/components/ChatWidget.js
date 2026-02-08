@@ -1171,7 +1171,7 @@ export const ChatWidget = () => {
         console.log('[PHOTO] ✅ Photo uploadée et sauvegardée en DB:', photoUrl, res.data.db_updated);
       }
     } catch (err) {
-      console.error('[PHOTO] ❌ Erreur:', err);
+      console.error('[PHOTO] Erreur:', err);
       alert('Erreur lors de l\'upload');
     } finally {
       setUploadingPhoto(false);
