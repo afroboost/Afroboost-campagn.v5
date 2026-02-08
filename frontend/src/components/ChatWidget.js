@@ -3625,10 +3625,40 @@ export const ChatWidget = () => {
                             boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
                           }}
                         >
+                          {/* Toggle Vue Visiteur (Admin) */}
+                          <button
+                            onClick={() => {
+                              setIsVisitorPreview(!isVisitorPreview);
+                              setShowCoachMenu(false);
+                              console.log('[ADMIN] Vue Visiteur:', !isVisitorPreview ? 'activée' : 'désactivée');
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '10px 14px',
+                              textAlign: 'left',
+                              fontSize: '12px',
+                              color: isVisitorPreview ? '#9333ea' : '#fff',
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                            className="hover:bg-white/10"
+                            data-testid="visitor-preview-toggle"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            {isVisitorPreview ? 'Vue Visiteur (actif)' : 'Vue Visiteur'}
+                          </button>
+                          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }} />
                           <button
                             onClick={async () => {
                               setShowCoachMenu(false);
-                              console.log('[COACH] 🔄 Rafraîchissement...');
+                              console.log('[COACH] Rafraîchissement...');
                               await loadCoachSessions();
                             }}
                             style={{
@@ -3656,13 +3686,7 @@ export const ChatWidget = () => {
                           <button
                             onClick={() => {
                               setShowCoachMenu(false);
-                              // Nettoyer localStorage/sessionStorage
-                              localStorage.removeItem('afroboost_coach_mode');
-                              localStorage.removeItem('afroboost_coach_user');
-                              localStorage.removeItem('afroboost_coach_tab');
-                              localStorage.removeItem(AFROBOOST_IDENTITY_KEY);
-                              localStorage.removeItem(CHAT_CLIENT_KEY);
-                              localStorage.removeItem(CHAT_SESSION_KEY);
+                              localStorage.clear();
                               sessionStorage.clear();
                               
                               setIsCoachMode(false);
@@ -3673,7 +3697,8 @@ export const ChatWidget = () => {
                               setSelectedCoachSession(null);
                               setCoachSessions([]);
                               
-                              console.log('[COACH] 🚪 Déconnexion');
+                              console.log('[COACH] Déconnexion');
+                              window.history.replaceState(null, '', window.location.pathname);
                               window.location.reload();
                             }}
                             style={{
